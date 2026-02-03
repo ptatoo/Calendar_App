@@ -2,6 +2,7 @@ const express = require('express');
 const { OAuth2Client } = require('google-auth-library');
 const cors = require('cors');
 
+require('dotenv').config({ path: '.env.development' });
 const app = express();
 app.use(cors());
 app.use(express.json());
