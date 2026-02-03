@@ -2,13 +2,17 @@ const express = require('express');
 const { OAuth2Client } = require('google-auth-library');
 const cors = require('cors');
 
-require('dotenv').config({ path: '.env' });
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const oAuth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+const oAuth2Client = new OAuth2Client(
+  process.env.CLIENT_ID, 
+  process.env.CLIENT_SECRET, 
+  process.env.REDIRECT_URI
+);
 
 app.post('/api/google-exchange', async (req, res) => {
   const { code } = req.body;
