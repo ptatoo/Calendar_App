@@ -17,6 +17,7 @@ function LoginButton({ setToken }: { setToken: (t: string) => void }) {
       );
 
       const tokens = await response.json();
+      setToken(tokens.access_token);
       console.log("Received tokens from backend:", tokens);
       // The refresh_token is now safely in your hands!
     },

@@ -19,13 +19,15 @@ app.post('/api/google-exchange', async (req, res) => {
   try {
     // Exchange the auth code for tokens
     const { tokens } = await oAuth2Client.getToken(code);
+    console.log("Tokens Received:", tokens);
     
     // tokens will contain: access_token, refresh_token, expiry_date, etc.
-    console.log("Tokens Received:", tokens);
 
     // TODO: Store tokens.refresh_token in your database associated with the user
-    
-    res.status(200).json(tokens);
+    res.status(200).json({ 
+      access_token: tokens.access_token,
+      expires_in: tokens.expiry_date 
+    });
   } catch (error) {
     console.error('Error exchanging code:', error);
     res.status(500).json({ error: 'Failed to exchange code' });
