@@ -1,27 +1,37 @@
-import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
+import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import { Link } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-function LoginButton( {setToken} : {setToken : (t: string) => void} ) {
+function LoginButton({ setToken }: { setToken: (t: string) => void }) {
   const login = useGoogleLogin({
-    onSuccess: tokenResponse => {
-      //debug code vvv
-      console.log("Access Token:", tokenResponse.access_token);
+    onSuccess: async (codeResponse) => {
+      // Send the code to your backend
+      const response = await fetch(
+        "http://localhost:3001/api/google-exchange",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: codeResponse.code }),
+        },
+      );
 
-      setToken(tokenResponse.access_token);
+      const tokens = await response.json();
+      console.log("Received tokens from backend:", tokens);
+      // The refresh_token is now safely in your hands!
     },
-    scope: 'https://www.googleapis.com/auth/calendar.events.readonly',
+    scope: "https://www.googleapis.com/auth/calendar.events.readonly",
+    flow: "auth-code",
   });
 
   return <button onClick={() => login()}>Login with Google</button>;
 }
 
-async function fetchData(token : string){
+async function fetchData(token: string) {
   const response = await fetch(
     "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-    { headers: { Authorization: `Bearer ${token}` } }
-  )
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
   return await response.json();
 }
 
@@ -31,8 +41,7 @@ export default function Index() {
 
   const handleFetch = async () => {
     setData(await fetchData(token));
-  }
-
+  };
 
   return (
     <View style={styles.container}>
@@ -40,21 +49,15 @@ export default function Index() {
         Edit app/index.tsx to edit this screen.
       </Text>
       <Text>sdgfasdfashi</Text>
-      
-      <button onClick = { () => console.log(token) }>
-        output token
-      </button>
 
-      <button onClick = { () => handleFetch() }>
-        fetch data
-      </button>
+      <button onClick={() => console.log(token)}>output token</button>
 
-      <button onClick = { () => console.log(data) }>
-        output data
-      </button>
-      
+      <button onClick={() => handleFetch()}>fetch data</button>
+
+      <button onClick={() => console.log(data)}>output data</button>
+
       <GoogleOAuthProvider clientId="198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com">
-        <LoginButton setToken = {setToken} />
+        <LoginButton setToken={setToken} />
       </GoogleOAuthProvider>
 
       <Link href={"/about"}>Visit about screen</Link>
