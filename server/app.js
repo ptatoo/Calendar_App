@@ -2,15 +2,11 @@ const express = require('express');
 const { OAuth2Client } = require('google-auth-library');
 const cors = require('cors');
 
-require('dotenv').config({ path: '.env.development' });
+require('dotenv').config({ path: '.env' });
+
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// These should be in your .env file!
-const CLIENT_ID = '198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com';
-const CLIENT_SECRET = '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';
-const REDIRECT_URI = 'postmessage'; // 'postmessage' is used for the auth-code flow in this library
 
 const oAuth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
