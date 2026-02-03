@@ -41,7 +41,8 @@ export default function Index() {
   let [data, setData] = useState([]);
 
   const handleFetch = async () => {
-    setData(await fetchData(token));
+    const rawData = await fetchData(token);
+    setData(rawData.items);
   };
 
   return (
