@@ -2,7 +2,6 @@
 
 # dependencies
 node_modules/
-*.env
 
 # Expo
 .expo/
@@ -22,6 +21,9 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
+# better sqlite 3
+*.db
+
 # debug
 npm-debug.*
 yarn-debug.*
@@ -32,7 +34,7 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env*.secret
 
 # typescript
 *.tsbuildinfo
