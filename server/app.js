@@ -21,18 +21,34 @@ const oAuth2Client = new OAuth2Client(
 //params: Token response from google
 //respos: access token, expiry_date   
 app.post('/api/google-exchange', async (req, res) => {
-  const { code } = req.body;
-
+  
+  //1. get code
+  const { code } = req.body; //has: code, scope, authuser, prompt
+  
   try {
     const { tokens } = await oAuth2Client.getToken(code);
-    console.log("Tokens Received");
+    
+    const ticket = await oAuth2Client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.CLIENT_ID,
+    });
+
+    // 1. get payload
+    const payload = ticket.getPayload();
+      
+    // 2. get information from payload
+    const googleId = payload.sub;    // unique google id
+    const email = payload.email;     // email
+    const name = payload.name;       // name
+
+    console.log(`User: ${name}, Email: ${email}`);
     
     res.status(200).json({ 
       access_token: tokens.access_token,
       expires_in: tokens.expiry_date 
     });
 
-    db.saveRefreshToken(tokens['id_token'], tokens['refresh_token']);
+    db.saveInformation(tokens['id_token'], tokens['refresh_token']);
 
   } catch (error) {
     console.error('Error exchanging code:', error);
@@ -53,6 +69,8 @@ app.get('/getNewAccessTokens', async (req, res) => {
   res.status(200).json(accessTokenList);
   console.log(accessTokenList);
 });
+
+
 
 //params: none
 //respos: list of access tokens
