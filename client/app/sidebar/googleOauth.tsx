@@ -1,6 +1,6 @@
 import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 //DO NOT TOUCH
 function LoginButton({ setToken }: { setToken: (t: string) => void }) {
@@ -40,7 +40,7 @@ async function fetchData(token: string) {
 }
 
 //index thing
-export default function Index() {
+export default function googleOauth() {
   let [token, setToken] = useState("");
   let [data, setData] = useState([]);
 
@@ -71,21 +71,6 @@ export default function Index() {
             <LoginButton setToken={setToken} />
           </GoogleOAuthProvider>
         </View>
-      </View>
-      <View style={styles.calenderContainer}>
-        <View style={styles.dayOfWeek}>
-          <Text style={styles.dayOfWeekTimeZone}>PST</Text>
-          <Text style={styles.dayOfWeekItem}>Mon</Text>
-          <Text style={styles.dayOfWeekItem}>Tues</Text>
-          <Text style={styles.dayOfWeekItem}>Wed</Text>
-        </View>
-        <ScrollView alwaysBounceVertical={true} style={styles.calendarGrid}>
-          {data.map((item: any, index) => (
-            <View key={index}>
-              <Text>{item.evt.summary || "No Title"}</Text>
-            </View>
-          ))}
-        </ScrollView>
       </View>
     </View>
   );
