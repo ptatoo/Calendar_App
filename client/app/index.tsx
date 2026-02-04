@@ -1,7 +1,7 @@
 import { useRoute } from "@react-navigation/native";
 import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 
 //DO NOT TOUCH
 function LoginButton({ setToken }: { setToken: (t: string) => void }) {
@@ -27,7 +27,21 @@ function LoginButton({ setToken }: { setToken: (t: string) => void }) {
   });
 
   //google login button
-  return <button onClick={() => login()}>Login with Google</button>;
+  // return <button onClick={() => login()}>Login with Google</button>;
+return
+    <View>
+      <Pressable onPress={() => console.log(token)}>
+        <Text>Output token</Text>
+      </Pressable>
+
+      <Pressable onPress={handleFetch}>
+        <Text>Fetch data</Text>
+      </Pressable>
+
+      <Pressable onPress={() => console.log(data)}>
+        <Text>Output data</Text>
+      </Pressable>
+    </View>;
 }
 //PLEASE DO NOT TOUCH ABOVE
 
@@ -66,14 +80,6 @@ export default function Index() {
     <View style={styles.homepg}>
       <View style={styles.header}>
         <Text>Calendar</Text>
-        <View>
-          <button onClick={() => console.log(token)}>output token</button>
-          <button onClick={() => handleFetch()}>fetch data</button>
-          <button onClick={() => console.log(dataa)}>output data</button>
-          <GoogleOAuthProvider clientId="198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com">
-            <LoginButton setToken={setToken} />
-          </GoogleOAuthProvider>
-        </View>
       </View>
       <View style={styles.calenderContainer}>
         <View style={styles.dayOfWeek}>

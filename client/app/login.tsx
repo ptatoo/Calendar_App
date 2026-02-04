@@ -1,43 +1,65 @@
-import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
+/*
+// import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
+import { useEffect } from 'react';
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import { Pressable } from 'react-native';
 
 //DO NOT TOUCH
-function LoginButton({ setToken }: { setToken: (t: string) => void }) {
-  const login = useGoogleLogin({
-    onSuccess: async (codeResponse) => {
-      // Send code to backend, create refresh token and recieve access token
-      const response = await fetch(
-        "http://localhost:3001/api/google-exchange",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code: codeResponse.code }),
-        },
-      );
 
-      //store access token
-      const tokens = await response.json();
-      setToken(tokens.access_token);
-      console.log("Received tokens from backend:", tokens);
-    },
-    scope: "https://www.googleapis.com/auth/calendar.events.readonly",
-    flow: "auth-code",
+// create login button
+WebBrowser.maybeCompleteAuthSession();
+
+function LoginButton() {
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: '198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com',
+    scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
   });
+    
+    useEffect(() => {
+      if (response?.type === 'success') {
+        const { access_token } = response.authentication!;
+        console.log('Access token:', access_token);
+        // store token securely (later)
+      }
+    }, [response]);
 
-  //google login button
-  return <button onClick={() => login()}>Login with Google</button>;
+  return (
+    <Pressable
+      onPress={() => promptAsync()}
+      disabled={!request}
+      style={{
+        padding: 12,
+        backgroundColor: '#4285F4',
+        borderRadius: 6,
+        alignItems: 'center',
+      }}
+    >
+      <Text style={{ color: 'white', fontWeight: '600' }}>
+        Sign in with Google
+      </Text>
+    </Pressable>
+  );
 }
-//PLEASE DO NOT TOUCH ABOVE
+
+
 
 //ask google for calendar data with token
-async function fetchData(token: string) {
-  const response = await fetch(
-    "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-    { headers: { Authorization: `Bearer ${token}` } },
+async function fetchEvents(token: string) {
+  const res = await fetch(
+    'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
   );
-  return await response.json();
+
+  const data = await res.json();
+  return data.items;
 }
 
 type RootStackParamList = {
@@ -46,41 +68,15 @@ type RootStackParamList = {
 };
 
 //index thing
-export default function googleOauth() {
-  let [token, setToken] = useState("");
-  let [data, setData] = useState([]);
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
-  //uses fetchData, processes raw Data into an array of objects
-  const handleFetch = async () => {
-    const currentDateAndTime: Date = new Date();
-    const day = currentDateAndTime.getDay();
-    console.log(day);
-    const rawData = await fetchData(token);
-
-    //array of objects in form {evt, startAt}
-    const eventSummaries = rawData.items.map((event: any) => ({
-      evt: event,
-      startAt: event.start.dateTime || event.start.date,
-    }));
-
-    navigation.navigate("index", eventSummaries);
-    setData(eventSummaries);
-  };
+export default function GoogleOauth() {
+  const [token, setToken] = useState("");
 
   return (
-    <View style={styles.homepg}>
-      <View style={styles.header}>
-        <Text>Calendar</Text>
-        <View>
-          <button onClick={() => console.log(token)}>output token</button>
-          <button onClick={() => handleFetch()}>fetch data</button>
-          <button onClick={() => console.log(data)}>output data</button>
-          <GoogleOAuthProvider clientId="198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com">
-            <LoginButton setToken={setToken} />
-          </GoogleOAuthProvider>
-        </View>
-      </View>
+    <View>
+      <Text>Calendar</Text>
+
+      {//pass setToken DOWN to the child}
+      <LoginButton onToken={setToken} />
     </View>
   );
 }
@@ -100,5 +96,190 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#F68BA2",
     gap: 10,
+  },
+});
+*/
+
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+
+const CLIENT_ID = '198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com';
+
+// Required for Expo Auth Session
+WebBrowser.maybeCompleteAuthSession();
+
+/* =========================
+   LOGIN BUTTON (CHILD)
+   ========================= */
+type LoginButtonProps = {
+  onToken: (token: string) => void;
+};
+
+function LoginButton({ onToken }: LoginButtonProps) {
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: CLIENT_ID,
+    scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
+  });
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const accessToken = response.authentication!.access_token;
+      console.log('Access token:', accessToken);
+
+      // Lift token up to parent
+      onToken(accessToken);
+    }
+  }, [response]);
+
+  return (
+    <Pressable
+      onPress={() => promptAsync()}
+      disabled={!request}
+      style={styles.loginButton}
+    >
+      <Text style={styles.loginText}>Sign in with Google</Text>
+    </Pressable>
+  );
+}
+
+/* =========================
+   FETCH GOOGLE CALENDAR EVENTS
+   ========================= */
+async function fetchEvents(token: string) {
+  if (!token) {
+    console.error("No token provided to fetchEvents");
+    return [];
+  }
+
+  try {
+    const res = await fetch(
+      'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      }
+    );
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.log(`Server responded with ${res.status}: ${errorText}`);
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();
+    return data.items || [];
+  } catch (err) {
+    // This is where "Network request failed" is caught
+    console.error('Detailed Fetch Error:', err);
+    return [];
+  }
+}
+
+/* =========================
+   MAIN SCREEN (PARENT)
+   ========================= */
+export default function GoogleOauth() {
+  const [token, setToken] = useState<string>('');
+  const [events, setEvents] = useState<any[]>([]);
+
+  // Fetch events automatically once token is available
+  useEffect(() => {
+    if (token) {
+      console.log('Token in parent:', token);
+
+      fetchEvents(token)
+        .then((items) => {
+          console.log('Fetched events:', items);
+          setEvents(items);
+        })
+        .catch((err) => console.log('Error fetching events:', err));
+    }
+  }, [token]);
+
+  return (
+    <View style={styles.homepg}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>My Calendar</Text>
+      </View>
+
+      <LoginButton onToken={setToken} />
+
+      {/* Display events */}
+      <ScrollView style={styles.eventsContainer}>
+        {events.length === 0 ? (
+          <Text style={styles.noEventsText}>
+            No events loaded yet. Sign in to see your calendar.
+          </Text>
+        ) : (
+          events.map((evt, idx) => (
+            <View key={idx} style={styles.eventItem}>
+              <Text style={styles.eventTitle}>{evt.summary || 'No Title'}</Text>
+              <Text style={styles.eventTime}>
+                {evt.start?.dateTime || evt.start?.date || 'Unknown time'}
+              </Text>
+            </View>
+          ))
+        )}
+      </ScrollView>
+    </View>
+  );
+}
+
+/* =========================
+   STYLES
+   ========================= */
+const styles = StyleSheet.create({
+  homepg: {
+    flex: 1,
+    backgroundColor: 'white',
+    padding: 16,
+  },
+  header: {
+    padding: 16,
+    backgroundColor: '#F68BA2',
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  headerText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: 'white',
+  },
+  loginButton: {
+    padding: 12,
+    backgroundColor: '#4285F4',
+    borderRadius: 6,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  loginText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  eventsContainer: {
+    flex: 1,
+  },
+  noEventsText: {
+    textAlign: 'center',
+    color: '#888',
+    marginTop: 20,
+  },
+  eventItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  eventTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  eventTime: {
+    fontSize: 14,
+    color: '#666',
   },
 });
