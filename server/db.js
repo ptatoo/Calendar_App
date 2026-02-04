@@ -1,55 +1,80 @@
 const sqlite = require('better-sqlite3');
-const tokenDb = new sqlite('data/tokens.db');
-const usersDb = new sqlite('data/users.db');
+const appDb = new sqlite('data/appDb.db');
 
-tokenDb.prepare(`
-  CREATE TABLE IF NOT EXISTS users (
+appDb.prepare(`
+  CREATE TABLE IF NOT EXISTS userInfo (
     id TEXT PRIMARY KEY,
-    refresh_token TEXT
-  )
-`).run();
-
-usersDb.prepare(`
-  CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    name TEXT,
     email TEXT,
-    children TEXT
+    name TEXT,
+    refreshToken TEXT
   )
 `).run();
 
-function linkParentToChild(parentId, childId){
+appDb.prepare(`
+  CREATE TABLE IF NOT EXISTS userChildren (
+    parentId TEXT,
+    childId TEXT,
+    PRIMARY KEY (parentId, childId)
+  )
+`).run();
 
+//saves information into sqlite userInfo table
+const saveInformation = (googleId, email, name, refreshToken) => {
+  const stmt = appDb.prepare(`
+    INSERT INTO userInfo (id,email,name,refreshToken)
+    VALUES (?,?,?,?)
+    ON CONFLICT(id) DO UPDATE SET 
+      email = excluded.email,
+      name = excluded.name,
+      refreshToken=excluded.refreshToken
+  `);
+  return stmt.run(googleId, email, name, refreshToken);
 }
 
-function saveInformation(userId, refreshToken) {
-    const stmt = tokenDb.prepare(`
-        INSERT INTO users (id,refresh_token)
-        VALUES (?,?)
-        ON CONFLICT(id) DO UPDATE SET refresh_token=excluded.refresh_token
+
+
+//params: parent user id
+//return: array of children associated with parentId
+const getChildren = (parentId) => {
+  const rows = appDb.prepare(`
+      SELECT childId FROM userChildren WHERE parentId = ?
+    `).all(parentId);
+  return rows.map(row => row.childId);
+};
+
+//params: parent user id, array of children id
+//do: associates list of children id into
+const linkParentChildren = (parentId, childIds) => {
+  const stmt = appDb.prepare(`
+      INSERT OR IGNORE INTO userChildren (parentId, childId) values (?,?)
     `);
-    return stmt.run(userId, refreshToken);
-}
+  for( const childId of childIds)
+    stmt.run(parentId, childId);
+};
 
-function displayAllData() {
-    const rows = tokenDb.prepare('SELECT * FROM users').all();
-    rows.forEach(row => {
-        console.log(`ID: ${row.id} | Token: ${row.refresh_token}`);
-    });
+//params: parent user id, array of children id
+//do: delinks parent from listed chlidren
+const delinkParentChildren = (parentId, childIds) => {
+  const stmt = appDb.prepare(`
+      DELETE FROM userChildren WHERE parentId = ? AND childId = ?
+    `);
+  for( const childId of childIds)
+    stmt.run(parentId, childId);
+};
 
-    return rows;
-}
 
-function getAllRefreshTokens() {
-    const stmt = tokenDb.prepare('SELECT refresh_token FROM users');
-    const rows = stmt.all(); 
-    return rows.map(row => row.refresh_token);
-}
 
-function getRefreshToken(userId) {
-    const stmt = tokenDb.prepare('SELECT * FROM users WHERE id = ?');
+//params: userId
+//return: refresh token
+const getRefreshToken = (userId)  => {
+    const stmt = appDb.prepare('SELECT * FROM userInfo WHERE id = ?');
     const row = stmt.get(userId);
     return row ? row.refresh_token : null;
 }
 
-module.exports = { saveInformation, displayAllData, getRefreshToken, getAllRefreshTokens };
+//debug
+function getAllData(tableName) {
+    const rows = appDb.prepare(`SELECT * FROM ${tableName}`).all();
+    return rows;
+}
+module.exports = { saveInformation, getAllData, getRefreshToken};
