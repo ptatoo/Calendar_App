@@ -1,3 +1,4 @@
+import { useRoute } from "@react-navigation/native";
 import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
@@ -43,6 +44,8 @@ async function fetchData(token: string) {
 export default function Index() {
   let [token, setToken] = useState("");
   let [data, setData] = useState([]);
+  const route = useRoute();
+  const dataa = (route.params as any)?.events || [];
 
   //uses fetchData, processes raw Data into an array of objects
   const handleFetch = async () => {
@@ -66,7 +69,7 @@ export default function Index() {
         <View>
           <button onClick={() => console.log(token)}>output token</button>
           <button onClick={() => handleFetch()}>fetch data</button>
-          <button onClick={() => console.log(data)}>output data</button>
+          <button onClick={() => console.log(dataa)}>output data</button>
           <GoogleOAuthProvider clientId="198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com">
             <LoginButton setToken={setToken} />
           </GoogleOAuthProvider>

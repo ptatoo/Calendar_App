@@ -1,6 +1,7 @@
 import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 //DO NOT TOUCH
 function LoginButton({ setToken }: { setToken: (t: string) => void }) {
@@ -39,10 +40,16 @@ async function fetchData(token: string) {
   return await response.json();
 }
 
+type RootStackParamList = {
+  googleOauth: undefined; // No params expected
+  index: []; // Expects an object with id: number
+};
+
 //index thing
 export default function googleOauth() {
   let [token, setToken] = useState("");
   let [data, setData] = useState([]);
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   //uses fetchData, processes raw Data into an array of objects
   const handleFetch = async () => {
@@ -56,6 +63,8 @@ export default function googleOauth() {
       evt: event,
       startAt: event.start.dateTime || event.start.date,
     }));
+
+    navigation.navigate("index", eventSummaries);
     setData(eventSummaries);
   };
 
@@ -92,28 +101,4 @@ const styles = StyleSheet.create({
     backgroundColor: "#F68BA2",
     gap: 10,
   },
-  calenderContainer: {
-    flex: 5,
-    flexDirection: "column",
-  },
-  dayOfWeek: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-    borderColor: "lightgrey",
-    borderBottomWidth: 1,
-    gap: 1,
-  },
-  dayOfWeekTimeZone: {
-    flex: 1,
-    textAlign: "center",
-    borderColor: "lightgrey",
-  },
-  dayOfWeekItem: {
-    flex: 3,
-    textAlign: "center",
-    borderLeftWidth: 1,
-    borderColor: "lightgrey",
-  },
-  calendarGrid: {},
 });
