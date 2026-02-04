@@ -1,7 +1,7 @@
-import { useRoute } from "@react-navigation/native";
 import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 //DO NOT TOUCH
 function LoginButton({ setToken }: { setToken: (t: string) => void }) {
@@ -40,12 +40,16 @@ async function fetchData(token: string) {
   return await response.json();
 }
 
+type RootStackParamList = {
+  googleOauth: undefined; // No params expected
+  index: []; // Expects an object with id: number
+};
+
 //index thing
-export default function Index() {
+export default function googleOauth() {
   let [token, setToken] = useState("");
   let [data, setData] = useState([]);
-  const route = useRoute();
-  const dataa = (route.params as any)?.events || [];
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   //uses fetchData, processes raw Data into an array of objects
   const handleFetch = async () => {
@@ -59,6 +63,8 @@ export default function Index() {
       evt: event,
       startAt: event.start.dateTime || event.start.date,
     }));
+
+    navigation.navigate("index", eventSummaries);
     setData(eventSummaries);
   };
 
@@ -69,26 +75,11 @@ export default function Index() {
         <View>
           <button onClick={() => console.log(token)}>output token</button>
           <button onClick={() => handleFetch()}>fetch data</button>
-          <button onClick={() => console.log(dataa)}>output data</button>
+          <button onClick={() => console.log(data)}>output data</button>
           <GoogleOAuthProvider clientId="198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com">
             <LoginButton setToken={setToken} />
           </GoogleOAuthProvider>
         </View>
-      </View>
-      <View style={styles.calenderContainer}>
-        <View style={styles.dayOfWeek}>
-          <Text style={styles.dayOfWeekTimeZone}>PST</Text>
-          <Text style={styles.dayOfWeekItem}>Mon</Text>
-          <Text style={styles.dayOfWeekItem}>Tues</Text>
-          <Text style={styles.dayOfWeekItem}>Wed</Text>
-        </View>
-        <ScrollView alwaysBounceVertical={true} style={styles.calendarGrid}>
-          {data.map((item: any, index) => (
-            <View key={index}>
-              <Text>{item.evt.summary || "No Title"}</Text>
-            </View>
-          ))}
-        </ScrollView>
       </View>
     </View>
   );
@@ -110,28 +101,4 @@ const styles = StyleSheet.create({
     backgroundColor: "#F68BA2",
     gap: 10,
   },
-  calenderContainer: {
-    flex: 5,
-    flexDirection: "column",
-  },
-  dayOfWeek: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-    borderColor: "lightgrey",
-    borderBottomWidth: 1,
-    gap: 1,
-  },
-  dayOfWeekTimeZone: {
-    flex: 1,
-    textAlign: "center",
-    borderColor: "lightgrey",
-  },
-  dayOfWeekItem: {
-    flex: 3,
-    textAlign: "center",
-    borderLeftWidth: 1,
-    borderColor: "lightgrey",
-  },
-  calendarGrid: {},
 });
