@@ -1,7 +1,7 @@
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 //DO NOT TOUCH
 function LoginButton({ setToken }: { setToken: (t: string) => void }) {
@@ -27,17 +27,26 @@ function LoginButton({ setToken }: { setToken: (t: string) => void }) {
   });
 
   //google login button
-  return <button onClick={() => login()}>Login with Google</button>;
+  return (
+    <Pressable onPress={() => login()}>
+      <Text>Login</Text>
+    </Pressable>
+  );
+  //return <button onClick={() => login()}>Login with Google</button>;
 }
 //PLEASE DO NOT TOUCH ABOVE
 
 //ask google for calendar data with token
 async function fetchData(token: string) {
-  const response = await fetch(
-    "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-    { headers: { Authorization: `Bearer ${token}` } },
-  );
-  return await response.json();
+  try {
+    const response = await fetch(
+      "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return await response.json();
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 type RootStackParamList = {
@@ -73,9 +82,6 @@ export default function googleOauth() {
       <View style={styles.header}>
         <Text>Calendar</Text>
         <View>
-          <button onClick={() => console.log(token)}>output token</button>
-          <button onClick={() => handleFetch()}>fetch data</button>
-          <button onClick={() => console.log(data)}>output data</button>
           <GoogleOAuthProvider clientId="198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com">
             <LoginButton setToken={setToken} />
           </GoogleOAuthProvider>
