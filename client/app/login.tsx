@@ -144,14 +144,24 @@ function LoginButton({ onToken }: LoginButtonProps) {
     },
   );
 
-  useEffect(() => {
+  const thing = async () => {
     if (response?.type === "success") {
-      console.log(response);
+      console.log(response.params.code);
+      const backendResponse = await fetch(
+        "http://localhost:3001/api/google-exchange",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: response.params.code }),
+        },
+      );
 
-      // Lift token up to parent
-      //onToken(accessToken);
+      const tokens = await backendResponse.json();
+
+      console.log(tokens);
     }
-  }, [response]);
+  };
+  thing();
 
   return (
     <Pressable
