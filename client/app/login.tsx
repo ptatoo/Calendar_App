@@ -100,8 +100,9 @@ async function fetchProfiles(token: string) {
     }
 
     //log data
-    const data = await res.text();
+    const data = await res.json();
     console.log(data);
+    return data;
   } catch (err) {
     console.error("Backend Profile Fetch Error:", err);
   }
@@ -148,6 +149,12 @@ export default function GoogleOauth() {
   const [token, setToken] = useState<string>("");
   const [events, setEvents] = useState<any[]>([]);
 
+  const fetchUserBackend = async () => {
+    const profile = await fetchProfiles(token);
+    setEvents(profile);
+    console.log(events);
+  };
+
   // Fetch events automatically once token is available
   // useEffect(() => {
   //   if (token) {
@@ -170,10 +177,7 @@ export default function GoogleOauth() {
 
       <LoginButton onToken={setToken} />
 
-      <Pressable
-        onPress={() => fetchProfiles(token)}
-        style={styles.loginButton}
-      >
+      <Pressable onPress={() => fetchUserBackend()} style={styles.loginButton}>
         <Text style={styles.loginText}>Fetch Profile From Backend</Text>
       </Pressable>
 
