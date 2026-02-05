@@ -1,107 +1,6 @@
-/*
-// import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
-import { useEffect } from 'react';
-import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { NavigationProp, useNavigation } from "@react-navigation/native";
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import { Pressable } from 'react-native';
-
-//DO NOT TOUCH
-
-// create login button
-WebBrowser.maybeCompleteAuthSession();
-
-function LoginButton() {
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: '198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com',
-    scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
-  });
-    
-    useEffect(() => {
-      if (response?.type === 'success') {
-        const { access_token } = response.authentication!;
-        console.log('Access token:', access_token);
-        // store token securely (later)
-      }
-    }, [response]);
-
-  return (
-    <Pressable
-      onPress={() => promptAsync()}
-      disabled={!request}
-      style={{
-        padding: 12,
-        backgroundColor: '#4285F4',
-        borderRadius: 6,
-        alignItems: 'center',
-      }}
-    >
-      <Text style={{ color: 'white', fontWeight: '600' }}>
-        Sign in with Google
-      </Text>
-    </Pressable>
-  );
-}
-
-
-
-//ask google for calendar data with token
-async function fetchEvents(token: string) {
-  const res = await fetch(
-    'https://www.googleapis.com/calendar/v3/calendars/primary/events',
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  const data = await res.json();
-  return data.items;
-}
-
-type RootStackParamList = {
-  googleOauth: undefined; // No params expected
-  index: []; // Expects an object with id: number
-};
-
-//index thing
-export default function GoogleOauth() {
-  const [token, setToken] = useState("");
-
-  return (
-    <View>
-      <Text>Calendar</Text>
-
-      {//pass setToken DOWN to the child}
-      <LoginButton onToken={setToken} />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  homepg: {
-    flex: 1,
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "stretch",
-    backgroundColor: "white",
-  },
-  header: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F68BA2",
-    gap: 10,
-  },
-});
-*/
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 const CLIENT_ID =
@@ -111,9 +10,6 @@ const BACKEND_LINK = "http://localhost:8081";
 // Required for Expo Auth Session
 WebBrowser.maybeCompleteAuthSession();
 
-/* =========================
-   LOGIN BUTTON (CHILD)
-   ========================= */
 type LoginButtonProps = {
   onToken: (token: string) => void;
 };
@@ -124,35 +20,32 @@ const discovery = {
   revocationEndpoint: "https://oauth2.googleapis.com/revoke",
 };
 
+//LOGIN BUTTON (CHILD)
 function LoginButton({ onToken }: LoginButtonProps) {
+  //fetch google's oauth (configure session)
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
       clientId: CLIENT_ID,
       scopes: [
         "https://www.googleapis.com/auth/calendar.readonly",
-        "openid", // 👈 Required for id_token
-        "https://www.googleapis.com/auth/userinfo.email", // 👈 Required for email payload
+        "openid",
+        "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/userinfo.profile",
       ],
       responseType: "code",
       usePKCE: true,
       extraParams: {
-        access_type: "offline", // Ensures backend gets a Refresh Token
-        prompt: "consent", // Forces refresh token to be sent every time
+        access_type: "offline",
+        prompt: "consent",
       },
       redirectUri: BACKEND_LINK,
     },
-    {
-      authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
-      tokenEndpoint: "https://oauth2.googleapis.com/token",
-      revocationEndpoint: "https://oauth2.googleapis.com/revoke",
-    },
+    discovery,
   );
 
-  const thing = async () => {
+  //login through google in backend
+  const backendLogin = async () => {
     if (response?.type === "success") {
-      console.log(request);
-      console.log(response);
       const backendResponse = await fetch(
         "http://localhost:3001/api/google-exchange",
         {
@@ -167,12 +60,12 @@ function LoginButton({ onToken }: LoginButtonProps) {
       );
 
       const tokens = await backendResponse.json();
-
-      console.log(tokens);
+      onToken(tokens.sessionToken);
     }
   };
-  thing();
+  backendLogin();
 
+  //JSX component
   return (
     <Pressable
       onPress={() => promptAsync()}
@@ -184,10 +77,41 @@ function LoginButton({ onToken }: LoginButtonProps) {
   );
 }
 
+//fetch users profile from
+async function fetchProfiles(token: string) {
+  //token doesnt exist
+  if (!token) {
+    console.error("No token provided to fetchEvents");
+    return [];
+  }
+
+  try {
+    //fetch from backend
+    const res = await fetch("http://localhost:3001/api/get-family-data", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.log(`Server responded with ${res.status}: ${errorText}`);
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    //log data
+    const data = await res.text();
+    console.log(data);
+  } catch (err) {
+    console.error("Backend Profile Fetch Error:", err);
+  }
+}
+
 /* =========================
    FETCH GOOGLE CALENDAR EVENTS
    ========================= */
 async function fetchEvents(token: string) {
+  //token doesnt exist
   if (!token) {
     console.error("No token provided to fetchEvents");
     return [];
@@ -214,32 +138,29 @@ async function fetchEvents(token: string) {
     const data = await res.json();
     return data.items || [];
   } catch (err) {
-    // This is where "Network request failed" is caught
     console.error("Detailed Fetch Error:", err);
     return [];
   }
 }
 
-/* =========================
-   MAIN SCREEN (PARENT)
-   ========================= */
+//MAIN SCREEN (PARENT)
 export default function GoogleOauth() {
   const [token, setToken] = useState<string>("");
   const [events, setEvents] = useState<any[]>([]);
 
   // Fetch events automatically once token is available
-  useEffect(() => {
-    if (token) {
-      console.log("Token in parent:", token);
+  // useEffect(() => {
+  //   if (token) {
+  //     console.log("Token in parent:", token);
 
-      fetchEvents(token)
-        .then((items) => {
-          console.log("Fetched events:", items);
-          setEvents(items);
-        })
-        .catch((err) => console.log("Error fetching events:", err));
-    }
-  }, [token]);
+  //     fetchEvents(token)
+  //       .then((items) => {
+  //         console.log("Fetched events:", items);
+  //         setEvents(items);
+  //       })
+  //       .catch((err) => console.log("Error fetching events:", err));
+  //   }
+  // }, [token]);
 
   return (
     <View style={styles.homepg}>
@@ -248,6 +169,13 @@ export default function GoogleOauth() {
       </View>
 
       <LoginButton onToken={setToken} />
+
+      <Pressable
+        onPress={() => fetchProfiles(token)}
+        style={styles.loginButton}
+      >
+        <Text style={styles.loginText}>Fetch Profile From Backend</Text>
+      </Pressable>
 
       {/* Display events */}
       <ScrollView style={styles.eventsContainer}>
