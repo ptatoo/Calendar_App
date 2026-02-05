@@ -31,14 +31,6 @@ const saveUserProfile = (googleId, email, name, refreshToken) => {
   return stmt.run(googleId, email, name, refreshToken);
 }
 
-//gets information from sqlite userInfo table
-const getUserProfile = (googleId) => {
-  const stmt = appDb.prepare(`
-      SELECT * FROM userInfo WHERE id = ?
-  `);
-  return stmt.get(googleId);
-}
-
 //params: parent user id, array of children id
 //do: associates list of children id into
 const linkParentChildren = (parentId, childIds) => {
@@ -74,16 +66,44 @@ const setParentChildren = (parentId, childIds) => {
   }
 };
 
+//gets information from sqlite userInfo table
+const getUserProfile = (googleId) => {
+  const stmt = appDb.prepare(`
+      SELECT id, email, name FROM userInfo WHERE id = ?
+  `);
+  return stmt.get(googleId);
+}
 //params: parent user id
 //return: array of child profiles (id, email, name, token)
 const getChildrenProfiles = (parentId) => {
   return appDb.prepare(`
-    SELECT u.id, u.email, u.name, u.refreshToken
+    SELECT u.id, u.email, u.name
     FROM userInfo u
     JOIN userChildren c ON u.id = c.childId
     WHERE c.parentId = ?
   `).all(parentId);
 };
+
+
+//gets information from sqlite userInfo table
+const getUserRefreshToken = (googleId) => {
+  const stmt = appDb.prepare(`
+      SELECT id, refreshToken FROM userInfo WHERE id = ?
+  `);
+  return stmt.get(googleId);
+}
+//params: parent user id
+//return: array of child profiles (id, email, name, token)
+const getChildrenRefreshToken = (parentId) => {
+  return appDb.prepare(`
+    SELECT u.id, u.refreshToken
+    FROM userInfo u
+    JOIN userChildren c ON u.id = c.childId
+    WHERE c.parentId = ?
+  `).all(parentId);
+};
+
+
 
 //params: parent user id
 //return: array of children associated with parentId
@@ -100,14 +120,16 @@ function getAllData(tableName) {
     return rows;
 }
 module.exports = { 
-  saveUserProfile, 
   getUserProfile, 
   getChildrenProfiles, 
+  getChildren,
+  getUserRefreshToken,
+  getChildrenRefreshToken,
 
+  saveUserProfile, 
+  setParentChildren,
   linkParentChildren, 
   delinkParentChildren,
-  setParentChildren,
-  getChildren,
   
   getAllData
 };
