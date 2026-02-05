@@ -142,6 +142,40 @@ app.post('/api/get-family-data', authenticate, async (req, res) => {
   }
 });
 
+//params: none
+//repsos: table of userids and refresh tokens
+app.post('/link', authenticate, (req, res) => {
+  try{
+    const parentId = req.userId;
+    const childId = req.cId;
+    if(!parentId || !childId) return res.status(400).json({ error: 'cid/pid is cooked' });
+
+    db.linkParentChildren(parentId,[childId]);
+    res.json(db.getChildren(parentId));
+
+  } catch (error) {
+    res.status(500).json({ error: 'errorerm' });
+  }
+  
+});
+
+//params: none
+//repsos: table of userids and refresh tokens
+app.post('/delink', authenticate, (req, res) => {
+  try{
+    const parentId = req.userId;
+    const childId = req.cId;
+    if(!parentId || !childId) return res.status(400).json({ error: 'cid/pid is cooked' });
+
+    db.delinkParentChildren(parentId,[childId]);
+
+    res.json(db.getChildren(parentId));
+
+  } catch (error) {
+    res.status(500).json({ error: 'error erm' });
+  }
+  
+});
 
 
 /////////
@@ -200,17 +234,35 @@ app.get('/token', async (req, res) => {
 
 //params: none
 //repsos: table of userids and refresh tokens
-app.get('/linkChild', (req, res) => {
+app.get('/link', (req, res) => {
   try{
     const parentId = req.query.pId; 
     const childId = req.query.cId;
+    if(!parentId || !childId) return res.status(400).json({ error: 'cid/pid is cooked' });
 
-
-
-    res.json();a
+    db.linkParentChildren(parentId,[childId]);
+    res.json(db.getAllData('userChildren'));
 
   } catch (error) {
-    res.status(500).json({ error: 'Failed to get family data' });
+    res.status(500).json({ error: 'errorerm' });
+  }
+  
+});
+//params: none
+//repsos: table of userids and refresh tokens
+
+app.get('/delink', (req, res) => {
+  try{
+    const parentId = req.query.pId; 
+    const childId = req.query.cId;
+    if(!parentId || !childId) return res.status(400).json({ error: 'cid/pid is cooked' });
+
+    db.delinkParentChildren(parentId,[childId]);
+
+    res.json(db.getAllData('userChildren'));
+
+  } catch (error) {
+    res.status(500).json({ error: 'error erm' });
   }
   
 });

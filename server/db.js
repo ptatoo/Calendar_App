@@ -3,17 +3,17 @@ const appDb = new sqlite('data/appDb.db');
 
 appDb.prepare(`
   CREATE TABLE IF NOT EXISTS userInfo (
-    id TEXT PRIMARY KEY,
-    email TEXT,
-    name TEXT,
-    refreshToken TEXT
+    id TEXT PRIMARY KEY NOT NULL,
+    email TEXT NOT NULL,
+    name TEXT NOT NULL,
+    refreshToken TEXT NOT NULL
   )
 `).run();
 
 appDb.prepare(`
   CREATE TABLE IF NOT EXISTS userChildren (
-    parentId TEXT,
-    childId TEXT,
+    parentId TEXT NOT NULL,
+    childId TEXT NOT NULL,
     PRIMARY KEY (parentId, childId)
   )
 `).run();
