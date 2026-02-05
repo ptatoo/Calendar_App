@@ -33,23 +33,6 @@ const authenticate = async (req, res, next) => {
   });
 };
 
-//params: none
-//respos: list of access tokens
-const refreshAllAccessTokens = async () => {
-  refreshTokenList = db.getAllRefreshTokens();
-  accessTokenList = [];
-  for(const refreshToken of refreshTokenList) {
-    try {
-      accessTokenList.push(await generateAccessToken(refreshToken));
-    }
-    catch (error) {
-      console.error("BRO ERROR AS FUCK:", error.message);
-    }
-  }
-
-  return accessTokenList;
-}
-
 //params: refreshToken
 //respos: complete token respo from google
 const generateAccessToken = async (refreshToken) => {
@@ -59,7 +42,8 @@ const generateAccessToken = async (refreshToken) => {
 
   try {
     const tokenInfo = await oAuth2Client.getAccessToken();
-    return tokenInfo.token;
+    
+    return {accessToken: tokenInfo.token, expiryDate: tokenInfo.res.data.expiry_date};
   } catch (error) {
     console.error("some error: ", error.message);
     throw new Error("Failed to get access token.");
@@ -106,7 +90,7 @@ app.post('/api/google-exchange', async (req, res) => {
     });
 
     // 4. save information into db
-    db.saveInformation(googleId, email, name, refreshToken);
+    db.saveUserProfile(googleId, email, name, refreshToken);
 
   } catch (error) {
     console.error('Error exchanging code:', error);
@@ -120,25 +104,31 @@ app.post('/api/get-family-data', authenticate, async (req, res) => {
   try {
     const parentId = req.userId;
 
-    const parentData = db.getProfile(parentId);
+    const parentData = db.getUserProfile(parentId);
     const childrenData = db.getChildrenProfiles(parentId);
 
+    const parentToken = await generateAccessToken(parentData.refreshToken);
     const parentJson = {
       id: parentData.id,
       name: parentData.name,
       email: parentData.email,
-      accessToken: await generateAccessToken(parentData.refreshToken)
+      accessToken: parentToken.accessToken,
+      expiryDate: parentToken.expiryDate
     };
 
     const childrenJson = await Promise.all(
-      childrenData.map(
+      childrenData.map( 
         async (child) => 
-          ({
-          id: child.id,
-          name: child.name,
-          email: child.email,
-          accessToken: await generateAccessToken(child.refreshToken)
-          })
+          {
+          const childToken = await generateAccessToken(child.refreshToken);
+          return {
+            id: child.id,
+            name: child.name,
+            email: child.email,
+            accessToken: childToken.accessToken,
+            expiryDate: childToken.expiryDate
+          };
+        }
       )
     );
 
@@ -165,30 +155,36 @@ app.get('/getData', (req, res) => {
   res.send(db.getAllData(tableName));
 });
 
-
+//gets family tokens given parent id
 app.get('/token', async (req, res) => {
   try {
     const parentId = req.query.id;
 
-    const parentData = db.getProfile(parentId);
+    const parentData = db.getUserProfile(parentId);
     const childrenData = db.getChildrenProfiles(parentId);
 
+    const parentToken = await generateAccessToken(parentData.refreshToken);
     const parentJson = {
       id: parentData.id,
       name: parentData.name,
       email: parentData.email,
-      accessToken: await generateAccessToken(parentData.refreshToken)
+      accessToken: parentToken.accessToken,
+      expiryDate: parentToken.expiryDate
     };
 
     const childrenJson = await Promise.all(
-      childrenData.map(
+      childrenData.map( 
         async (child) => 
-          ({
-          id: child.id,
-          name: child.name,
-          email: child.email,
-          accessToken: await generateAccessToken(child.refreshToken)
-          })
+          {
+          const childToken = await generateAccessToken(child.refreshToken);
+          return {
+            id: child.id,
+            name: child.name,
+            email: child.email,
+            accessToken: childToken.accessToken,
+            expiryDate: childToken.expiryDate
+          };
+        }
       )
     );
 
@@ -201,5 +197,23 @@ app.get('/token', async (req, res) => {
     res.status(500).json({ error: 'Failed to get family data' });
   }
 });
+
+//params: none
+//repsos: table of userids and refresh tokens
+app.get('/linkChild', (req, res) => {
+  try{
+    const parentId = req.query.pId; 
+    const childId = req.query.cId;
+
+
+
+    res.json();a
+
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get family data' });
+  }
+  
+});
+
 
 app.listen(3001, () => console.log('Server running on port 3001'));
