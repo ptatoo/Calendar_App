@@ -54,8 +54,8 @@ const generateAccessToken = async (refreshToken) => {
 //routes
 //
 
-//params: Token response from google
-//respos: access token, expiry_date   
+//req: {code}
+//res: {jwt session token, acc token, expires in}
 app.post('/api/google-exchange', async (req, res) => {
   
   //1. get code
@@ -98,8 +98,8 @@ app.post('/api/google-exchange', async (req, res) => {
   }
 });
 
-//params: user id 
-//respos: Json : {parent : {}, children: {[]...}}
+//req: {jwt code} => {userId}
+//res: {parent: parentJson, children: [...childrenJson]}
 app.post('/api/get-family-data', authenticate, async (req, res) => {
   try {
     const parentId = req.userId;
@@ -142,35 +142,35 @@ app.post('/api/get-family-data', authenticate, async (req, res) => {
   }
 });
 
-//params: none
-//repsos: table of userids and refresh tokens
-app.post('/link', authenticate, (req, res) => {
+//req: {jwt code, childId} => {userId, childId}
+//res: 200
+app.post('/api/link', authenticate, (req, res) => {
   try{
     const parentId = req.userId;
-    const childId = req.cId;
+    const childId = req.childId;
     if(!parentId || !childId) return res.status(400).json({ error: 'cid/pid is cooked' });
 
     db.linkParentChildren(parentId,[childId]);
     res.json(db.getChildren(parentId));
-
+    res.status(200);
   } catch (error) {
     res.status(500).json({ error: 'errorerm' });
   }
   
 });
 
-//params: none
-//repsos: table of userids and refresh tokens
-app.post('/delink', authenticate, (req, res) => {
+//req: {jwt code, childId} => {userId, chlidId}
+//res: 200
+app.post('/api/delink', authenticate, (req, res) => {
   try{
     const parentId = req.userId;
-    const childId = req.cId;
+    const childId = req.childId;
     if(!parentId || !childId) return res.status(400).json({ error: 'cid/pid is cooked' });
 
     db.delinkParentChildren(parentId,[childId]);
 
     res.json(db.getChildren(parentId));
-
+    res.status(200);
   } catch (error) {
     res.status(500).json({ error: 'error erm' });
   }
