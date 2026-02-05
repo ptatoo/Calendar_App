@@ -11,8 +11,14 @@ const db = require('./db.js')
 app.use(cors());
 app.use(express.json());
 
-//functions
+//setting up oAuth content
+const oAuth2Client = new OAuth2Client(
+  process.env.CLIENT_ID, 
+  process.env.CLIENT_SECRET, 
+  process.env.REDIRECT_URI
+);
 
+//functions
 //call before routes that need auth
 const authenticate = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -27,47 +33,29 @@ const authenticate = async (req, res, next) => {
   });
 };
 
-//params: none
-//respos: list of access tokens
-const refreshAllAccessTokens = async () => {
-  refreshTokenList = db.getAllRefreshTokens();
-  accessTokenList = [];
-  for(const refreshToken of refreshTokenList) {
-    try {
-      accessTokenList.push(await generateAccessTokenFromRefresh(refreshToken));
-    }
-    catch (error) {
-      console.error("BRO ERROR AS FUCK:", error.message);
-    }
-  }
-
-  return accessTokenList;
-}
-
 //params: refreshToken
 //respos: complete token respo from google
-const generateAccessTokenFromRefresh = async (refreshToken) => {
+const generateAccessToken = async (refreshToken) => {
   oAuth2Client.setCredentials({
     refresh_token: refreshToken,
   });
 
   try {
     const tokenInfo = await oAuth2Client.getAccessToken();
-    return tokenInfo.token;
+    
+    return {accessToken: tokenInfo.token, expiryDate: tokenInfo.res.data.expiry_date};
   } catch (error) {
     console.error("some error: ", error.message);
     throw new Error("Failed to get access token.");
   }
 }
 
-const oAuth2Client = new OAuth2Client(
-  process.env.CLIENT_ID, 
-  process.env.CLIENT_SECRET, 
-  process.env.REDIRECT_URI
-);
+//
+//routes
+//
 
-//params: Token response from google
-//respos: access token, expiry_date   
+//req: {code}
+//res: {jwt session token, acc token, expires in}
 app.post('/api/google-exchange', async (req, res) => {
   
   //1. get code
@@ -102,20 +90,93 @@ app.post('/api/google-exchange', async (req, res) => {
     });
 
     // 4. save information into db
-    db.saveInformation(googleId, email, name, refreshToken);
+    db.saveUserProfile(googleId, email, name, refreshToken);
+
   } catch (error) {
     console.error('Error exchanging code:', error);
     res.status(500).json({ error: 'Failed to exchange code' });
   }
 });
 
-//params: user id 
-//respos: 
-app.post('/api/get-new-access-tokens', authenticate, async (req, res) => {
+//req: {jwt code} => {userId}
+//res: {parent: parentJson, children: [...childrenJson]}
+app.post('/api/get-family-data', authenticate, async (req, res) => {
+  try {
+    const parentId = req.userId;
 
-  db.getRefreshToken(req.userId)
-  req.userId
+    const parentData = db.getUserProfile(parentId);
+    const childrenData = db.getChildrenProfiles(parentId);
+
+    const parentToken = await generateAccessToken(parentData.refreshToken);
+    const parentJson = {
+      id: parentData.id,
+      name: parentData.name,
+      email: parentData.email,
+      accessToken: parentToken.accessToken,
+      expiryDate: parentToken.expiryDate
+    };
+
+    const childrenJson = await Promise.all(
+      childrenData.map( 
+        async (child) => 
+          {
+          const childToken = await generateAccessToken(child.refreshToken);
+          return {
+            id: child.id,
+            name: child.name,
+            email: child.email,
+            accessToken: childToken.accessToken,
+            expiryDate: childToken.expiryDate
+          };
+        }
+      )
+    );
+
+    res.json({
+      parent: parentJson,
+      children: childrenJson
+    });
+  } catch (error) {
+    console.error("oopsie, error: ", error);
+    res.status(500).json({ error: 'Failed to get family data' });
+  }
 });
+
+//req: {jwt code, childId} => {userId, childId}
+//res: 200
+app.post('/api/link', authenticate, (req, res) => {
+  try{
+    const parentId = req.userId;
+    const childId = req.childId;
+    if(!parentId || !childId) return res.status(400).json({ error: 'cid/pid is cooked' });
+
+    db.linkParentChildren(parentId,[childId]);
+    res.json(db.getChildren(parentId));
+    res.status(200);
+  } catch (error) {
+    res.status(500).json({ error: 'errorerm' });
+  }
+  
+});
+
+//req: {jwt code, childId} => {userId, chlidId}
+//res: 200
+app.post('/api/delink', authenticate, (req, res) => {
+  try{
+    const parentId = req.userId;
+    const childId = req.childId;
+    if(!parentId || !childId) return res.status(400).json({ error: 'cid/pid is cooked' });
+
+    db.delinkParentChildren(parentId,[childId]);
+
+    res.json(db.getChildren(parentId));
+    res.status(200);
+  } catch (error) {
+    res.status(500).json({ error: 'error erm' });
+  }
+  
+});
+
 
 /////////
 //DEBUG//
@@ -126,6 +187,84 @@ app.post('/api/get-new-access-tokens', authenticate, async (req, res) => {
 app.get('/getData', (req, res) => {
   const tableName = req.query.table; 
   res.send(db.getAllData(tableName));
+});
+
+//gets family tokens given parent id
+app.get('/token', async (req, res) => {
+  try {
+    const parentId = req.query.id;
+
+    const parentData = db.getUserProfile(parentId);
+    const childrenData = db.getChildrenProfiles(parentId);
+
+    const parentToken = await generateAccessToken(parentData.refreshToken);
+    const parentJson = {
+      id: parentData.id,
+      name: parentData.name,
+      email: parentData.email,
+      accessToken: parentToken.accessToken,
+      expiryDate: parentToken.expiryDate
+    };
+
+    const childrenJson = await Promise.all(
+      childrenData.map( 
+        async (child) => 
+          {
+          const childToken = await generateAccessToken(child.refreshToken);
+          return {
+            id: child.id,
+            name: child.name,
+            email: child.email,
+            accessToken: childToken.accessToken,
+            expiryDate: childToken.expiryDate
+          };
+        }
+      )
+    );
+
+    res.json({
+      parent: parentJson,
+      children: childrenJson
+    });
+  } catch (error) {
+    console.error("oopsie, error: ", error);
+    res.status(500).json({ error: 'Failed to get family data' });
+  }
+});
+
+//params: none
+//repsos: table of userids and refresh tokens
+app.get('/link', (req, res) => {
+  try{
+    const parentId = req.query.pId; 
+    const childId = req.query.cId;
+    if(!parentId || !childId) return res.status(400).json({ error: 'cid/pid is cooked' });
+
+    db.linkParentChildren(parentId,[childId]);
+    res.json(db.getAllData('userChildren'));
+
+  } catch (error) {
+    res.status(500).json({ error: 'errorerm' });
+  }
+  
+});
+//params: none
+//repsos: table of userids and refresh tokens
+
+app.get('/delink', (req, res) => {
+  try{
+    const parentId = req.query.pId; 
+    const childId = req.query.cId;
+    if(!parentId || !childId) return res.status(400).json({ error: 'cid/pid is cooked' });
+
+    db.delinkParentChildren(parentId,[childId]);
+
+    res.json(db.getAllData('userChildren'));
+
+  } catch (error) {
+    res.status(500).json({ error: 'error erm' });
+  }
+  
 });
 
 
