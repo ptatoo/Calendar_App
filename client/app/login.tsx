@@ -106,6 +106,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 const CLIENT_ID =
   "198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com";
+const BACKEND_LINK = "http://localhost:8081";
 
 // Required for Expo Auth Session
 WebBrowser.maybeCompleteAuthSession();
@@ -127,15 +128,19 @@ function LoginButton({ onToken }: LoginButtonProps) {
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
       clientId: CLIENT_ID,
-      scopes: ["https://www.googleapis.com/auth/calendar.readonly"],
+      scopes: [
+        "https://www.googleapis.com/auth/calendar.readonly",
+        "openid", // 👈 Required for id_token
+        "https://www.googleapis.com/auth/userinfo.email", // 👈 Required for email payload
+        "https://www.googleapis.com/auth/userinfo.profile",
+      ],
       responseType: "code",
+      usePKCE: true,
       extraParams: {
         access_type: "offline", // Ensures backend gets a Refresh Token
         prompt: "consent", // Forces refresh token to be sent every time
       },
-      redirectUri: AuthSession.makeRedirectUri({
-        useProxy: true,
-      }),
+      redirectUri: BACKEND_LINK,
     },
     {
       authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
@@ -146,13 +151,18 @@ function LoginButton({ onToken }: LoginButtonProps) {
 
   const thing = async () => {
     if (response?.type === "success") {
-      console.log(response.params.code);
+      console.log(request);
+      console.log(response);
       const backendResponse = await fetch(
         "http://localhost:3001/api/google-exchange",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code: response.params.code }),
+          body: JSON.stringify({
+            code: response.params.code,
+            codeVerifier: request?.codeVerifier,
+            redirectUri: AuthSession.makeRedirectUri({ useProxy: true }),
+          }),
         },
       );
 
