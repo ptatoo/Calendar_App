@@ -100,10 +100,10 @@ const styles = StyleSheet.create({
 });
 */
 
-import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+import { useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 const CLIENT_ID = '198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com';
 
@@ -125,7 +125,7 @@ function LoginButton({ onToken }: LoginButtonProps) {
 
   useEffect(() => {
     if (response?.type === 'success') {
-      const accessToken = response.authentication!.access_token;
+      const accessToken = response.authentication!.accessToken;
       console.log('Access token:', accessToken);
 
       // Lift token up to parent
