@@ -1,4 +1,4 @@
-// loads env vars
+// importing 
 require('dotenv').config();
 
 const express = require('express');
@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const app = express();
 const db = require('./db.js')
 
+//setup
 app.use(cors());
 app.use(express.json());
 
@@ -17,6 +18,9 @@ const oAuth2Client = new OAuth2Client(
   process.env.CLIENT_SECRET, 
   process.env.REDIRECT_URI
 );
+
+//should store [userId : string , {accessToken : string, expiryDate : integer}]
+const accessTokenCache = new Map();
 
 //functions
 //call before routes that need auth
@@ -46,6 +50,31 @@ const generateAccessToken = async (refreshToken) => {
     return {accessToken: tokenInfo.token, expiryDate: tokenInfo.res.data.expiry_date};
   } catch (error) {
     console.error("some error: ", error.message);
+    throw new Error("Failed to get access token.");
+  }
+}
+
+//params: refreshToken
+//res: if exists, gets non-expired token, otherwise generates new token.
+const getAccessToken = async (userId, refreshToken) => {
+  try {
+    const cachedToken = accessTokenCache.get(userId);
+
+    //if exists AND still valid 1 min into thte future
+    if(cachedToken && cachedToken.expiryDate  > (Date.now() + 60000)){
+      console.log("Using RAM cache for:", userId);
+      return cachedToken;
+    }
+
+    //generate new, update cache, return
+    newAccessToken = await generateAccessToken(refreshToken)
+    console.log("user: ", userId, "\n new token: ",newAccessToken);
+    accessTokenCache.set(
+      userId, newAccessToken
+    );
+    return newAccessToken;
+  } catch (error) {
+    console.error(" getAccessToken error: ", error.message);
     throw new Error("Failed to get access token.");
   }
 }
@@ -110,30 +139,43 @@ app.post('/api/get-family-data', authenticate, async (req, res) => {
 
     const parentData = db.getUserProfile(parentId);
     const childrenData = db.getChildrenProfiles(parentId);
+    
+    res.json({
+      parent: parentData,
+      children: childrenData
+    });
+  } catch (error) {
+    console.error("oopsie, error: ", error);
+    res.status(500).json({ error: 'Failed to get family data' });
+  }
+});
 
-    const parentToken = await generateAccessToken(parentData.refreshToken);
+//req: {jwt code} => {userId}
+//res: {parent: parentJson, children: [...childrenJson]}
+app.post('/api/get-family-access-token', authenticate, async (req, res) => {
+  try {
+    const parentId = req.userId;
+
+    const parentData = db.getUserRefreshToken(parentId);
+    const childrenData = db.getChildrenRefreshToken(parentId);
+    
+    const parentAccessToken = await getAccessToken(parentId, parentData.refreshToken);
     const parentJson = {
       id: parentData.id,
-      name: parentData.name,
-      email: parentData.email,
-      accessToken: parentToken.accessToken,
-      expiryDate: parentToken.expiryDate
-    };
+      accessToken: parentAccessToken.accessToken,
+      expiryDate: parentAccessToken.expiryDate
+    }
 
     const childrenJson = await Promise.all(
-      childrenData.map( 
-        async (child) => 
-          {
-          const childToken = await generateAccessToken(child.refreshToken);
-          return {
-            id: child.id,
-            name: child.name,
-            email: child.email,
-            accessToken: childToken.accessToken,
-            expiryDate: childToken.expiryDate
-          };
-        }
-      )
+      childrenData.map(async (child) => {
+        const tokenObj = await getAccessToken(parentId, child.refreshToken);
+        
+        return {
+          id: child.id,
+          accessToken: tokenObj.accessToken,
+          expiryDate: tokenObj.expiryDate
+        };
+      })
     );
 
     res.json({
@@ -146,6 +188,8 @@ app.post('/api/get-family-data', authenticate, async (req, res) => {
   }
 });
 
+//I NEED TO WORK ON THIS, TODO:
+//1. include getting google code + PKCE for more authentication
 //req: {jwt code, childId} => {userId, childId}
 //res: 200
 app.post('/api/link', authenticate, (req, res) => {
@@ -196,34 +240,48 @@ app.get('/getData', (req, res) => {
 //gets family tokens given parent id
 app.get('/token', async (req, res) => {
   try {
+    console.log("get-family-data called");
     const parentId = req.query.id;
 
     const parentData = db.getUserProfile(parentId);
     const childrenData = db.getChildrenProfiles(parentId);
+    
+    res.json({
+      parent: parentData,
+      children: childrenData
+    });
+  } catch (error) {
+    console.error("oopsie, error: ", error);
+    res.status(500).json({ error: 'Failed to get family data' });
+  }
+});
 
-    const parentToken = await generateAccessToken(parentData.refreshToken);
+//gets family tokens given parent id
+app.get('/tokenreal', async (req, res) => {
+  try {
+    console.log("get-family-access-tokens called");
+    const parentId = req.query.id;
+
+    const parentData = db.getUserRefreshToken(parentId);
+    const childrenData = db.getChildrenRefreshToken(parentId);
+    
+    const parentAccessToken = await getAccessToken(parentId, parentData.refreshToken);
     const parentJson = {
       id: parentData.id,
-      name: parentData.name,
-      email: parentData.email,
-      accessToken: parentToken.accessToken,
-      expiryDate: parentToken.expiryDate
-    };
+      accessToken: parentAccessToken.accessToken,
+      expiryDate: parentAccessToken.expiryDate
+    }
 
     const childrenJson = await Promise.all(
-      childrenData.map( 
-        async (child) => 
-          {
-          const childToken = await generateAccessToken(child.refreshToken);
-          return {
-            id: child.id,
-            name: child.name,
-            email: child.email,
-            accessToken: childToken.accessToken,
-            expiryDate: childToken.expiryDate
-          };
-        }
-      )
+      childrenData.map(async (child) => {
+        const tokenObj = await getAccessToken(parentId, child.refreshToken);
+        
+        return {
+          id: child.id,
+          accessToken: tokenObj.accessToken,
+          expiryDate: tokenObj.expiryDate
+        };
+      })
     );
 
     res.json({
