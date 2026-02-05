@@ -88,10 +88,14 @@ const getAccessToken = async (userId, refreshToken) => {
 app.post('/api/google-exchange', async (req, res) => {
   
   //1. get code
-  const { code } = req.body; //has: code, scope, authuser, prompt
+  const { code, codeVerifier, redirectUri } = req.body; //has: code, scope, authuser, prompt
   
   try {
-    const { tokens } = await oAuth2Client.getToken(code);
+    const { tokens } = await oAuth2Client.getToken({
+      code: code,
+      codeVerifier : codeVerifier,
+      redirect_uri: redirectUri
+  });
     
     
     const ticket = await oAuth2Client.verifyIdToken({

@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+# general excludes
+.idea
+
 # Expo
 .expo/
 dist/
