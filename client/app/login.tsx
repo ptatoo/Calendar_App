@@ -99,13 +99,13 @@ const styles = StyleSheet.create({
   },
 });
 */
+import * as AuthSession from "expo-auth-session";
+import * as WebBrowser from "expo-web-browser";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-
-const CLIENT_ID = '198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com';
+const CLIENT_ID =
+  "198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com";
 
 // Required for Expo Auth Session
 WebBrowser.maybeCompleteAuthSession();
@@ -117,19 +117,39 @@ type LoginButtonProps = {
   onToken: (token: string) => void;
 };
 
+const discovery = {
+  authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
+  tokenEndpoint: "https://oauth2.googleapis.com/token",
+  revocationEndpoint: "https://oauth2.googleapis.com/revoke",
+};
+
 function LoginButton({ onToken }: LoginButtonProps) {
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: CLIENT_ID,
-    scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
-  });
+  const [request, response, promptAsync] = AuthSession.useAuthRequest(
+    {
+      clientId: CLIENT_ID,
+      scopes: ["https://www.googleapis.com/auth/calendar.readonly"],
+      responseType: "code",
+      extraParams: {
+        access_type: "offline", // Ensures backend gets a Refresh Token
+        prompt: "consent", // Forces refresh token to be sent every time
+      },
+      redirectUri: AuthSession.makeRedirectUri({
+        useProxy: true,
+      }),
+    },
+    {
+      authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
+      tokenEndpoint: "https://oauth2.googleapis.com/token",
+      revocationEndpoint: "https://oauth2.googleapis.com/revoke",
+    },
+  );
 
   useEffect(() => {
-    if (response?.type === 'success') {
-      const accessToken = response.authentication!.access_token;
-      console.log('Access token:', accessToken);
+    if (response?.type === "success") {
+      console.log(response);
 
       // Lift token up to parent
-      onToken(accessToken);
+      //onToken(accessToken);
     }
   }, [response]);
 
@@ -155,14 +175,14 @@ async function fetchEvents(token: string) {
 
   try {
     const res = await fetch(
-      'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+      "https://www.googleapis.com/calendar/v3/calendars/primary/events",
       {
-        method: 'GET',
+        method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!res.ok) {
@@ -175,7 +195,7 @@ async function fetchEvents(token: string) {
     return data.items || [];
   } catch (err) {
     // This is where "Network request failed" is caught
-    console.error('Detailed Fetch Error:', err);
+    console.error("Detailed Fetch Error:", err);
     return [];
   }
 }
@@ -184,20 +204,20 @@ async function fetchEvents(token: string) {
    MAIN SCREEN (PARENT)
    ========================= */
 export default function GoogleOauth() {
-  const [token, setToken] = useState<string>('');
+  const [token, setToken] = useState<string>("");
   const [events, setEvents] = useState<any[]>([]);
 
   // Fetch events automatically once token is available
   useEffect(() => {
     if (token) {
-      console.log('Token in parent:', token);
+      console.log("Token in parent:", token);
 
       fetchEvents(token)
         .then((items) => {
-          console.log('Fetched events:', items);
+          console.log("Fetched events:", items);
           setEvents(items);
         })
-        .catch((err) => console.log('Error fetching events:', err));
+        .catch((err) => console.log("Error fetching events:", err));
     }
   }, [token]);
 
@@ -218,9 +238,9 @@ export default function GoogleOauth() {
         ) : (
           events.map((evt, idx) => (
             <View key={idx} style={styles.eventItem}>
-              <Text style={styles.eventTitle}>{evt.summary || 'No Title'}</Text>
+              <Text style={styles.eventTitle}>{evt.summary || "No Title"}</Text>
               <Text style={styles.eventTime}>
-                {evt.start?.dateTime || evt.start?.date || 'Unknown time'}
+                {evt.start?.dateTime || evt.start?.date || "Unknown time"}
               </Text>
             </View>
           ))
@@ -236,50 +256,50 @@ export default function GoogleOauth() {
 const styles = StyleSheet.create({
   homepg: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 16,
   },
   header: {
     padding: 16,
-    backgroundColor: '#F68BA2',
+    backgroundColor: "#F68BA2",
     borderRadius: 8,
     marginBottom: 20,
   },
   headerText: {
     fontSize: 20,
-    fontWeight: '600',
-    color: 'white',
+    fontWeight: "600",
+    color: "white",
   },
   loginButton: {
     padding: 12,
-    backgroundColor: '#4285F4',
+    backgroundColor: "#4285F4",
     borderRadius: 6,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20,
   },
   loginText: {
-    color: 'white',
-    fontWeight: '600',
+    color: "white",
+    fontWeight: "600",
   },
   eventsContainer: {
     flex: 1,
   },
   noEventsText: {
-    textAlign: 'center',
-    color: '#888',
+    textAlign: "center",
+    color: "#888",
     marginTop: 20,
   },
   eventItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   eventTitle: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   eventTime: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
 });
