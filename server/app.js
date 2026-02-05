@@ -11,8 +11,14 @@ const db = require('./db.js')
 app.use(cors());
 app.use(express.json());
 
-//functions
+//setting up oAuth content
+const oAuth2Client = new OAuth2Client(
+  process.env.CLIENT_ID, 
+  process.env.CLIENT_SECRET, 
+  process.env.REDIRECT_URI
+);
 
+//functions
 //call before routes that need auth
 const authenticate = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -34,7 +40,7 @@ const refreshAllAccessTokens = async () => {
   accessTokenList = [];
   for(const refreshToken of refreshTokenList) {
     try {
-      accessTokenList.push(await generateAccessTokenFromRefresh(refreshToken));
+      accessTokenList.push(await generateAccessToken(refreshToken));
     }
     catch (error) {
       console.error("BRO ERROR AS FUCK:", error.message);
@@ -46,7 +52,7 @@ const refreshAllAccessTokens = async () => {
 
 //params: refreshToken
 //respos: complete token respo from google
-const generateAccessTokenFromRefresh = async (refreshToken) => {
+const generateAccessToken = async (refreshToken) => {
   oAuth2Client.setCredentials({
     refresh_token: refreshToken,
   });
@@ -60,11 +66,9 @@ const generateAccessTokenFromRefresh = async (refreshToken) => {
   }
 }
 
-const oAuth2Client = new OAuth2Client(
-  process.env.CLIENT_ID, 
-  process.env.CLIENT_SECRET, 
-  process.env.REDIRECT_URI
-);
+//
+//routes
+//
 
 //params: Token response from google
 //respos: access token, expiry_date   
@@ -103,6 +107,7 @@ app.post('/api/google-exchange', async (req, res) => {
 
     // 4. save information into db
     db.saveInformation(googleId, email, name, refreshToken);
+
   } catch (error) {
     console.error('Error exchanging code:', error);
     res.status(500).json({ error: 'Failed to exchange code' });
@@ -110,12 +115,44 @@ app.post('/api/google-exchange', async (req, res) => {
 });
 
 //params: user id 
-//respos: 
-app.post('/api/get-new-access-tokens', authenticate, async (req, res) => {
+//respos: Json : {parent : {}, children: {[]...}}
+app.post('/api/get-family-data', authenticate, async (req, res) => {
+  try {
+    const parentId = req.userId;
 
-  db.getRefreshToken(req.userId)
-  req.userId
+    const parentData = db.getProfile(parentId);
+    const childrenData = db.getChildrenProfiles(parentId);
+
+    const parentJson = {
+      id: parentData.id,
+      name: parentData.name,
+      email: parentData.email,
+      accessToken: await generateAccessToken(parentData.refreshToken)
+    };
+
+    const childrenJson = await Promise.all(
+      childrenData.map(
+        async (child) => 
+          ({
+          id: child.id,
+          name: child.name,
+          email: child.email,
+          accessToken: await generateAccessToken(child.refreshToken)
+          })
+      )
+    );
+
+    res.json({
+      parent: parentJson,
+      children: childrenJson
+    });
+  } catch (error) {
+    console.error("oopsie, error: ", error);
+    res.status(500).json({ error: 'Failed to get family data' });
+  }
 });
+
+
 
 /////////
 //DEBUG//
@@ -128,5 +165,41 @@ app.get('/getData', (req, res) => {
   res.send(db.getAllData(tableName));
 });
 
+
+app.get('/token', async (req, res) => {
+  try {
+    const parentId = req.query.id;
+
+    const parentData = db.getProfile(parentId);
+    const childrenData = db.getChildrenProfiles(parentId);
+
+    const parentJson = {
+      id: parentData.id,
+      name: parentData.name,
+      email: parentData.email,
+      accessToken: await generateAccessToken(parentData.refreshToken)
+    };
+
+    const childrenJson = await Promise.all(
+      childrenData.map(
+        async (child) => 
+          ({
+          id: child.id,
+          name: child.name,
+          email: child.email,
+          accessToken: await generateAccessToken(child.refreshToken)
+          })
+      )
+    );
+
+    res.json({
+      parent: parentJson,
+      children: childrenJson
+    });
+  } catch (error) {
+    console.error("oopsie, error: ", error);
+    res.status(500).json({ error: 'Failed to get family data' });
+  }
+});
 
 app.listen(3001, () => console.log('Server running on port 3001'));

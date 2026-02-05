@@ -31,7 +31,32 @@ const saveInformation = (googleId, email, name, refreshToken) => {
   return stmt.run(googleId, email, name, refreshToken);
 }
 
+//gets information from sqlite userInfo table
+const getProfile = (googleId) => {
+  const stmt = appDb.prepare(`
+      SELECT * FROM userInfo WHERE id = ?
+  `);
+  return stmt.get(googleId);
+}
 
+//params: parent user id
+//return: array of child profiles (id, email, name, token)
+const getChildrenProfiles = (parentId) => {
+  return appDb.prepare(`
+    SELECT u.id, u.email, u.name, u.refreshToken
+    FROM userInfo u
+    JOIN userChildren c ON u.id = c.childId
+    WHERE c.parentId = ?
+  `).all(parentId);
+};
+
+//params: userId
+//return: refresh token
+const getRefreshToken = (userId)  => {
+    const stmt = appDb.prepare('SELECT * FROM userInfo WHERE id = ?');
+    const row = stmt.get(userId);
+    return row ? row.refresh_token : null;
+}
 
 //params: parent user id
 //return: array of children associated with parentId
@@ -62,19 +87,18 @@ const delinkParentChildren = (parentId, childIds) => {
     stmt.run(parentId, childId);
 };
 
-
-
-//params: userId
-//return: refresh token
-const getRefreshToken = (userId)  => {
-    const stmt = appDb.prepare('SELECT * FROM userInfo WHERE id = ?');
-    const row = stmt.get(userId);
-    return row ? row.refresh_token : null;
-}
-
 //debug
 function getAllData(tableName) {
     const rows = appDb.prepare(`SELECT * FROM ${tableName}`).all();
     return rows;
 }
-module.exports = { saveInformation, getAllData, getRefreshToken};
+module.exports = { 
+  saveInformation, 
+  getAllData, 
+  getProfile, 
+  getChildrenProfiles, 
+
+  getChildren,
+  linkParentChildren, 
+  delinkParentChildren
+};
