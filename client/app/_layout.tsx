@@ -27,6 +27,16 @@ export default function RootLayout() {
             ),
           }}
         />
+        <Drawer.Screen
+          name="backend_console"
+          options={{
+            headerTitle: "Backend Console",
+            drawerLabel: "Backend Console",
+            drawerIcon: ({ size, color }) => (
+              <Ionicons size={size} color={color} />
+            ),
+          }}
+        />
       </Drawer>
     </GestureHandlerRootView>
   );
