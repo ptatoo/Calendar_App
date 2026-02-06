@@ -43,10 +43,8 @@ const generateAccessToken = async (refreshToken) => {
   oAuth2Client.setCredentials({
     refresh_token: refreshToken,
   });
-
   try {
     const tokenInfo = await oAuth2Client.getAccessToken();
-    
     return {accessToken: tokenInfo.token, expiryDate: tokenInfo.res.data.expiry_date};
   } catch (error) {
     console.error("some error: ", error.message);
@@ -79,6 +77,23 @@ const getAccessToken = async (userId, refreshToken) => {
   }
 }
 
+
+//params: userId
+//res: creates and returns a JWT token  + expiration date
+const getJWTToken = async (userId) => {
+  try {
+    const sessionToken = jwt.sign({ userId: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const { exp } = jwt.verify(sessionToken, process.env.JWT_SECRET);
+
+    return {sessionToken, expiryDate : exp};
+  } catch (error) {
+    console.error("getJWTToken error: ", error.message);
+    throw new Error("Failed to get access token.");
+  }
+}
+
+
+
 //
 //routes
 //
@@ -86,7 +101,8 @@ const getAccessToken = async (userId, refreshToken) => {
 //req: {code}
 //res: {jwt session token, acc token, expires in}
 app.post('/api/google-exchange', async (req, res) => {
-  
+  console.log('/api/google-exchange called');
+
   //1. get code
   const { code, codeVerifier, redirectUri } = req.body; //has: code, scope, authuser, prompt
   
@@ -111,15 +127,12 @@ app.post('/api/google-exchange', async (req, res) => {
     const email = payload.email;                  // email
     const name = payload.name;                    // name
     const refreshToken = tokens['refresh_token']; // refresh token
-    
-    // 2.5 create jwt sesh token
-    const sessionToken = jwt.sign({ userId: googleId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    const sessionTokenObj = await getJWTToken(googleId);
 
     // 3. respond with jwt token, access token, expiration date
     res.status(200).json({ 
-      sessionToken,
-      access_token: tokens.access_token,
-      expires_in: tokens.expiry_date 
+      sessionTokenObj
     });
 
     // 4. save information into db
@@ -135,6 +148,7 @@ app.post('/api/google-exchange', async (req, res) => {
 //res: {parent: parentJson, children: [...childrenJson]}
 app.post('/api/get-family-data', authenticate, async (req, res) => {
   try {
+    console.log('/api/get-family-data called');
     const parentId = req.userId;
 
     const parentData = db.getUserProfile(parentId);
@@ -154,6 +168,7 @@ app.post('/api/get-family-data', authenticate, async (req, res) => {
 //res: {parent: parentJson, children: [...childrenJson]}
 app.post('/api/get-family-access-token', authenticate, async (req, res) => {
   try {
+    console.log('/api/get-family-access-token called');
     const parentId = req.userId;
 
     const parentData = db.getUserRefreshToken(parentId);
