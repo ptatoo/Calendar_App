@@ -1,6 +1,7 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 // Required for Expo Auth Session
@@ -97,6 +98,7 @@ async function fetchProfiles(token: string) {
 
     //log data
     const data = await res.json();
+    storeStringData(data.parent.id, data.parent.accessToken);
     console.log(data);
     return data;
   } catch (err) {
@@ -104,9 +106,24 @@ async function fetchProfiles(token: string) {
   }
 }
 
-/* =========================
-   FETCH GOOGLE CALENDAR EVENTS
-   ========================= */
+const storeObjectData = async (key: string, value: object) => {
+  try {
+    const jsonValue = JSON.stringify(value);
+    await AsyncStorage.setItem(key, jsonValue);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+const storeStringData = async (key: string, value: string) => {
+  try {
+    await AsyncStorage.setItem(key, value);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+//fetch calender events
 async function fetchEvents(token: string) {
   //token doesnt exist
   if (!token) {
@@ -149,19 +166,11 @@ export default function GoogleOauth() {
     const profile = await fetchProfiles(token);
   };
 
-  // Fetch events automatically once token is available
-  // useEffect(() => {
-  //   if (token) {
-  //     console.log("Token in parent:", token);
-
-  //     fetchEvents(token)
-  //       .then((items) => {
-  //         console.log("Fetched events:", items);
-  //         setEvents(items);
-  //       })
-  //       .catch((err) => console.log("Error fetching events:", err));
-  //   }
-  // }, [token]);
+  useEffect(() => {
+    if (token) {
+      fetchUserBackend();
+    }
+  }, [token]);
 
   return (
     <View style={styles.homepg}>
@@ -169,6 +178,7 @@ export default function GoogleOauth() {
         <Text style={styles.headerText}>My Calendar</Text>
       </View>
 
+      {/* User Buttons */}
       <LoginButton onToken={setToken} />
 
       <Pressable onPress={() => fetchBackendProfiles()} style={styles.loginButton}>
@@ -176,29 +186,12 @@ export default function GoogleOauth() {
       </Pressable>
 
       {/* Display events */}
-      <ScrollView style={styles.eventsContainer}>
-        {events.length === 0 ? (
-          <Text style={styles.noEventsText}>
-            No events loaded yet. Sign in to see your calendar.
-          </Text>
-        ) : (
-          events.map((evt, idx) => (
-            <View key={idx} style={styles.eventItem}>
-              <Text style={styles.eventTitle}>{evt.summary || "No Title"}</Text>
-              <Text style={styles.eventTime}>
-                {evt.start?.dateTime || evt.start?.date || "Unknown time"}
-              </Text>
-            </View>
-          ))
-        )}
-      </ScrollView>
+      <ScrollView style={styles.eventsContainer}></ScrollView>
     </View>
   );
 }
 
-/* =========================
-   STYLES
-   ========================= */
+//styles
 const styles = StyleSheet.create({
   homepg: {
     flex: 1,
