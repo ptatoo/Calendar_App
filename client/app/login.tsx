@@ -3,10 +3,6 @@ import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-const CLIENT_ID =
-  "198333533430-et6uu5nbtl7erbmc4rop3v55cprj4ts2.apps.googleusercontent.com";
-const BACKEND_LINK = "http://localhost:8081";
-
 // Required for Expo Auth Session
 WebBrowser.maybeCompleteAuthSession();
 
@@ -25,10 +21,10 @@ function LoginButton({ onToken }: LoginButtonProps) {
   //fetch google's oauth (configure session)
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
-      clientId: CLIENT_ID,
+      clientId: process.env.EXPO_PUBLIC_CLIENT_ID!,
       scopes: [
-        "https://www.googleapis.com/auth/calendar.readonly",
         "openid",
+        "https://www.googleapis.com/auth/calendar.readonly",
         "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/userinfo.profile",
       ],
@@ -38,12 +34,12 @@ function LoginButton({ onToken }: LoginButtonProps) {
         access_type: "offline",
         prompt: "consent",
       },
-      redirectUri: BACKEND_LINK,
+      redirectUri: process.env.EXPO_PUBLIC_FRONTEND_LINK!,
     },
     discovery,
   );
 
-  //login through google in backend
+  //login through google in backen
   const backendLogin = async () => {
     if (response?.type === "success") {
       const backendResponse = await fetch(
@@ -54,7 +50,7 @@ function LoginButton({ onToken }: LoginButtonProps) {
           body: JSON.stringify({
             code: response.params.code,
             codeVerifier: request?.codeVerifier,
-            redirectUri: AuthSession.makeRedirectUri({ useProxy: true }),
+            redirectUri: AuthSession.makeRedirectUri(),
           }),
         },
       );
@@ -81,7 +77,7 @@ function LoginButton({ onToken }: LoginButtonProps) {
 async function fetchProfiles(token: string) {
   //token doesnt exist
   if (!token) {
-    console.error("No token provided to fetchEvents");
+    console.error("No token provided to fetchProfiles");
     return [];
   }
 
@@ -149,10 +145,8 @@ export default function GoogleOauth() {
   const [token, setToken] = useState<string>("");
   const [events, setEvents] = useState<any[]>([]);
 
-  const fetchUserBackend = async () => {
+  const fetchBackendProfiles = async () => {
     const profile = await fetchProfiles(token);
-    setEvents(profile);
-    console.log(events);
   };
 
   // Fetch events automatically once token is available
@@ -177,7 +171,7 @@ export default function GoogleOauth() {
 
       <LoginButton onToken={setToken} />
 
-      <Pressable onPress={() => fetchUserBackend()} style={styles.loginButton}>
+      <Pressable onPress={() => fetchBackendProfiles()} style={styles.loginButton}>
         <Text style={styles.loginText}>Fetch Profile From Backend</Text>
       </Pressable>
 
