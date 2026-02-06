@@ -43,10 +43,8 @@ const generateAccessToken = async (refreshToken) => {
   oAuth2Client.setCredentials({
     refresh_token: refreshToken,
   });
-
   try {
     const tokenInfo = await oAuth2Client.getAccessToken();
-    
     return {accessToken: tokenInfo.token, expiryDate: tokenInfo.res.data.expiry_date};
   } catch (error) {
     console.error("some error: ", error.message);
