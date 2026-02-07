@@ -22,7 +22,7 @@ function LoginButton({ onToken }: LoginButtonProps) {
   //fetch google's oauth (configure session)
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
-      clientId: process.env.EXPO_PUBLIC_CLIENT_ID!,
+      clientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID!,
       scopes: [
         "openid",
         "https://www.googleapis.com/auth/calendar.readonly",
