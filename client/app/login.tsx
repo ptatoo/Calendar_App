@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import * as Keychain from "react-native-keychain";
 
+
 // Required for Expo Auth Session
 WebBrowser.maybeCompleteAuthSession();
 
