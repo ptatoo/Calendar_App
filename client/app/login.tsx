@@ -18,6 +18,26 @@ const discovery = {
   revocationEndpoint: "https://oauth2.googleapis.com/revoke",
 };
 
+const storeObject = async (key: string, value: object) => {
+  try {
+    const jsonValue = JSON.stringify(value);
+    await AsyncStorage.setItem(key, jsonValue);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+const storeString = async (key: string, value: string) => {
+  try {
+    await Keychain.setGenericPassword(key, value, {
+      accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
+    });
+    console.log("JWT Token stored using Keychain");
+  } catch (error) {
+    console.error("Failed to store token");
+  }
+};
+
 //LOGIN BUTTON (CHILD)
 //logs in user through google and recieves JWT token from backend
 function LoginButton({ onToken }: LoginButtonProps) {
@@ -59,7 +79,7 @@ function LoginButton({ onToken }: LoginButtonProps) {
       );
 
       const tokens = await backendResponse.json();
-      storeJWTToken("JWTToken", tokens.sessionToken);
+      storeString("JWTToken", tokens.sessionToken);
       onToken(tokens.sessionToken);
     }
   };
@@ -79,9 +99,9 @@ function LoginButton({ onToken }: LoginButtonProps) {
 
 //fetch users profile from backend, including:
 //access tokens, emails, userIds
-async function fetchProfiles(token: string) {
+const fetchProfiles = async (JWTToken: string) => {
   //token doesnt exist
-  if (!token) {
+  if (!JWTToken) {
     console.error("No token provided to fetchProfiles");
     return [];
   }
@@ -98,7 +118,7 @@ async function fetchProfiles(token: string) {
       console.log("No credentials stored");
     }
   } catch (error) {
-    console.error("Failed to access Keychain", error);
+    console.error("Failed to access Keychain");
   }
 
   try {
@@ -106,7 +126,7 @@ async function fetchProfiles(token: string) {
     const res = await fetch("http://localhost:3001/api/get-family-data", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${JWTToken}`,
       },
     });
     if (!res.ok) {
@@ -118,37 +138,51 @@ async function fetchProfiles(token: string) {
     //log data
     const data = await res.json();
     console.log(data);
-    storeObjectData("key", data);
+    storeObject("profile", data);
     return data;
   } catch (err) {
     console.error("Backend Profile Fetch Error:", err);
   }
-}
-
-const storeObjectData = async (key: string, value: object) => {
-  try {
-    const jsonValue = JSON.stringify(value);
-    await AsyncStorage.setItem(key, jsonValue);
-  } catch (e) {
-    console.log(e);
-  }
 };
 
-const storeJWTToken = async (key: string, value: string) => {
+const fetchAccessToken = async (JWTToken: string) => {
+  //token doesnt exist
+  if (!JWTToken) {
+    console.error("No token provided to fetchProfiles");
+    return [];
+  }
+
   try {
-    await Keychain.setGenericPassword(key, value, {
-      accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
-    });
-    console.log("JWT Token stored using Keychain");
-  } catch (error) {
-    console.error("Failed to store token securely", error);
+    //fetch from backend
+    const res = await fetch(
+      "http://localhost:3001/api/get-family-access-token",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${JWTToken}`,
+        },
+      },
+    );
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.log(`Server responded with ${res.status}: ${errorText}`);
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    //log data
+    const data = await res.json();
+    console.log(data);
+    storeObject("access_token", data);
+    return data;
+  } catch (err) {
+    console.error("Backend Profile Fetch Error:", err);
   }
 };
 
 //fetch calender events
-async function fetchEvents(token: string) {
+const fetchEvents = async (accessToken: string) => {
   //token doesnt exist
-  if (!token) {
+  if (!accessToken) {
     console.error("No token provided to fetchEvents");
     return [];
   }
@@ -159,7 +193,7 @@ async function fetchEvents(token: string) {
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
       },
@@ -172,26 +206,27 @@ async function fetchEvents(token: string) {
     }
 
     const data = await res.json();
-    return data.items || [];
+    console.log(data);
+    storeObject("events", data);
   } catch (err) {
     console.error("Detailed Fetch Error:", err);
     return [];
   }
-}
+};
 
 //MAIN SCREEN (PARENT)
 export default function GoogleOauth() {
   const [token, setToken] = useState<string>("");
-  const [events, setEvents] = useState<any[]>([]);
 
-  const fetchBackendProfiles = async () => {
+  const fetch_backend_token_data = async () => {
     const profile = await fetchProfiles(token);
-    storeObjectData("temp", profile);
+    const access_token = await fetchAccessToken(token);
+    const events = await fetchEvents(access_token.parent.accessToken);
   };
 
   useEffect(() => {
     if (token) {
-      fetchBackendProfiles();
+      fetch_backend_token_data();
     }
   }, [token]);
 
@@ -205,7 +240,7 @@ export default function GoogleOauth() {
       <LoginButton onToken={setToken} />
 
       <Pressable
-        onPress={() => fetchBackendProfiles()}
+        onPress={() => fetch_backend_token_data()}
         style={styles.loginButton}
       >
         <Text style={styles.loginText}>Fetch Profile From Backend</Text>
