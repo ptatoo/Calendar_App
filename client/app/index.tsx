@@ -1,17 +1,28 @@
-import { StyleSheet, Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
+  const [data, setData] = useState<string>("");
+
   // --- STATE ---
-  // try {
-  //   const data = AsyncStorage.getItem("temp");
-  //   console.log(data);
-  // } catch (err) {
-  //   console.log(err);
-  // }
+  const displayProfile = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem("user_data");
+      setData(jsonValue != null ? JSON.parse(jsonValue) : null);
+      return jsonValue != null ? JSON.parse(jsonValue) : null;
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <View>
       <Text>here</Text>
+
+      <Pressable onPress={() => displayProfile()} style={styles.btnPrimary}>
+        <Text style={styles.btnText}>Fetch Profile From Backend</Text>
+      </Pressable>
     </View>
   );
 }
