@@ -130,10 +130,12 @@ app.post('/api/google-exchange', async (req, res) => {
 
     const sessionTokenObj = await getJWTToken(googleId);
 
+    console.log(sessionTokenObj);
+
     // 3. respond with jwt token, access token, expiration date
-    res.status(200).json({ 
+    res.status(200).json(
       sessionTokenObj
-    });
+    );
 
     // 4. save information into db
     db.saveUserProfile(googleId, email, name, refreshToken);

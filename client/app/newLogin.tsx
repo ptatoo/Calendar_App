@@ -8,7 +8,7 @@ type ChildProps = {
 };
 
 type DisplayProps = {
-  jwtToken : string;
+  jwtToken: string;
 };
 
 const LoginButton = ({onLogin} : ChildProps) => {
@@ -20,14 +20,11 @@ const LoginButton = ({onLogin} : ChildProps) => {
   )
 }
 
-const DisplayJwtButton = ({jwtToken} : DisplayProps) =>{
-  return(
-    <Button
-    title = "u r amazing"
-      onPress={() => console.log({jwtToken})}
-    />
-  )
-}
+const DisplayJwtButton = ({ jwtToken }: DisplayProps) => {
+  return (
+    <Button title="u r amazing" onPress={() => console.log({ jwtToken })} />
+  );
+};
 
 // 2. The Main Screen that React actually "Runs"
 export default function NewLogin() {

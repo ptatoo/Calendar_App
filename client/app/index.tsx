@@ -2,10 +2,16 @@ import { StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
   // --- STATE ---
+  // try {
+  //   const data = AsyncStorage.getItem("temp");
+  //   console.log(data);
+  // } catch (err) {
+  //   console.log(err);
+  // }
 
   return (
     <View>
-      <Text>bruh</Text>
+      <Text>here</Text>
     </View>
   );
 }
