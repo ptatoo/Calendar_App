@@ -3,6 +3,7 @@ import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import * as Keychain from "react-native-keychain";
 
 
 // Required for Expo Auth Session
@@ -19,6 +20,7 @@ const discovery = {
 };
 
 //LOGIN BUTTON (CHILD)
+//logs in user through google and recieves JWT token from backend
 function LoginButton({ onToken }: LoginButtonProps) {
   //fetch google's oauth (configure session)
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
@@ -44,7 +46,6 @@ function LoginButton({ onToken }: LoginButtonProps) {
   //login through google in backen
   const backendLogin = async () => {
     if (response?.type === "success") {
-      console.log(response.params.code);
       const backendResponse = await fetch(
         "http://localhost:3001/api/google-exchange",
         {
@@ -59,8 +60,8 @@ function LoginButton({ onToken }: LoginButtonProps) {
       );
 
       const tokens = await backendResponse.json();
+      storeJWTToken("JWTToken", tokens.sessionToken);
       onToken(tokens.sessionToken);
-      console.log(tokens);
     }
   };
   backendLogin();
@@ -77,12 +78,28 @@ function LoginButton({ onToken }: LoginButtonProps) {
   );
 }
 
-//fetch users profile from
+//fetch users profile from backend, including:
+//access tokens, emails, userIds
 async function fetchProfiles(token: string) {
   //token doesnt exist
   if (!token) {
     console.error("No token provided to fetchProfiles");
     return [];
+  }
+
+  try {
+    const credentials = await Keychain.getGenericPassword({
+      service: "service_key",
+    });
+    if (credentials) {
+      console.log(
+        "Credentials successfully loaded for user " + credentials.username,
+      );
+    } else {
+      console.log("No credentials stored");
+    }
+  } catch (error) {
+    console.error("Failed to access Keychain", error);
   }
 
   try {
@@ -101,8 +118,8 @@ async function fetchProfiles(token: string) {
 
     //log data
     const data = await res.json();
-    storeStringData(data.parent.id, data.parent.accessToken);
     console.log(data);
+    storeObjectData("key", data);
     return data;
   } catch (err) {
     console.error("Backend Profile Fetch Error:", err);
@@ -118,11 +135,14 @@ const storeObjectData = async (key: string, value: object) => {
   }
 };
 
-const storeStringData = async (key: string, value: string) => {
+const storeJWTToken = async (key: string, value: string) => {
   try {
-    await AsyncStorage.setItem(key, value);
-  } catch (e) {
-    console.log(e);
+    await Keychain.setGenericPassword(key, value, {
+      accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
+    });
+    console.log("JWT Token stored using Keychain");
+  } catch (error) {
+    console.error("Failed to store token securely", error);
   }
 };
 
