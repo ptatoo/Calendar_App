@@ -43,6 +43,7 @@ function LoginButton({ onToken }: LoginButtonProps) {
   //login through google in backen
   const backendLogin = async () => {
     if (response?.type === "success") {
+      console.log(response.params.code);
       const backendResponse = await fetch(
         "http://localhost:3001/api/google-exchange",
         {
@@ -58,6 +59,7 @@ function LoginButton({ onToken }: LoginButtonProps) {
 
       const tokens = await backendResponse.json();
       onToken(tokens.sessionToken);
+      console.log(tokens);
     }
   };
   backendLogin();
@@ -164,11 +166,12 @@ export default function GoogleOauth() {
 
   const fetchBackendProfiles = async () => {
     const profile = await fetchProfiles(token);
+    storeObjectData("temp", profile);
   };
 
   useEffect(() => {
     if (token) {
-      fetchUserBackend();
+      fetchBackendProfiles();
     }
   }, [token]);
 
@@ -181,7 +184,10 @@ export default function GoogleOauth() {
       {/* User Buttons */}
       <LoginButton onToken={setToken} />
 
-      <Pressable onPress={() => fetchBackendProfiles()} style={styles.loginButton}>
+      <Pressable
+        onPress={() => fetchBackendProfiles()}
+        style={styles.loginButton}
+      >
         <Text style={styles.loginText}>Fetch Profile From Backend</Text>
       </Pressable>
 
