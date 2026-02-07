@@ -1,20 +1,21 @@
 import { useState } from "react";
 import { Button, View } from "react-native";
+import { useAuth } from "../hooks/useAuth";
 
 
 type ChildProps = {
-  setJwtToken: (token: string) => void;
+  onLogin: () => void;
 };
 
 type DisplayProps = {
   jwtToken : string;
 };
 
-const LoginButton = ({setJwtToken} : ChildProps) => {
+const LoginButton = ({onLogin} : ChildProps) => {
   return(
     <Button
     title = "u r amazing"
-      onPress={() => setJwtToken("gay")} 
+      onPress={() => onLogin()} 
     />
   )
 }
@@ -31,10 +32,18 @@ const DisplayJwtButton = ({jwtToken} : DisplayProps) =>{
 // 2. The Main Screen that React actually "Runs"
 export default function NewLogin() {
   const [jwtToken, setJwtToken] = useState<string>("");
+
+  
+const handleApiCall = async () => {
+  const response = await useAuth("123");
+  setJwtToken(JSON.stringify(response));
+}
+
   return (
     <View>
-      <LoginButton setJwtToken = {setJwtToken}/>
+      <LoginButton onLogin = {handleApiCall}/>
       <DisplayJwtButton jwtToken = {jwtToken}/>
     </View>
   );
 }
+
