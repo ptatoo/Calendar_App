@@ -155,7 +155,7 @@ const fetchAccessToken = async (JWTToken: string) => {
   try {
     //fetch from backend
     const res = await fetch(
-      "http://localhost:3001/api/get-family-access-token",
+      "http://localhost:3001/api/get-family-access-tokens",
       {
         method: "POST",
         headers: {
@@ -220,6 +220,8 @@ export default function GoogleOauth() {
 
   const fetch_backend_token_data = async () => {
     const profile = await fetchProfiles(token);
+    const accessToken = await fetchAccessToken(token);
+    const events = await fetchEvents(accessToken.parent.accessToken);
   };
 
   useEffect(() => {
