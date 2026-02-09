@@ -4,6 +4,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect } from "react";
 import { fetchJwtToken } from "../services/api";
+import { storage } from '../services/storage';
 
 WebBrowser.maybeCompleteAuthSession();
 export const useGoogleAuth = () => {
@@ -34,7 +35,7 @@ export const useGoogleAuth = () => {
     const { codeVerifier, redirectUri } = request;
 
     const JwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
-    
+    Storage(jwttoken type shit);
   };
     handleBackendLogin();
   }, [response, request]);
