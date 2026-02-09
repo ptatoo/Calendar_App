@@ -1,11 +1,16 @@
 import * as AuthSession from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchJwtToken } from "../services/api";
+import { storage } from '../services/storage';
 
 WebBrowser.maybeCompleteAuthSession();
 export const useGoogleAuth = () => {
+
+  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     //ids and stuff
@@ -24,19 +29,32 @@ export const useGoogleAuth = () => {
     redirectUri: AuthSession.makeRedirectUri()
   });
 
-  useEffect( () => {
-    //login through google in backen
-    const handleBackendLogin = async () => {
-    if (!(response?.type === "success") || !request?.codeVerifier) return;
+  const handleBackendLogin = useCallback( async () => {
+    
+    if (!(response?.type === "success") || !request?.codeVerifier){ 
+      if(response?.type === "error") setError("oopsie, error");
+      return;
+    }
 
-    const { code } = response.params;
-    const { codeVerifier, redirectUri } = request;
+    setIsLoading(true);
+    setError(null);
+    try{
+      const { code } = response.params;
+      const { codeVerifier, redirectUri } = request;
 
-    const JwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
-    storage.saveSecure('jwt_token', JwtToken);
-  };
-    handleBackendLogin();
+      const jwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
+      storage.saveSecure('jwt_token', jwtToken);
+      setToken(jwtToken);
+    } catch (error : any) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   }, [response, request]);
 
-  return { promptAsync, request };
+  useEffect(() => {
+    handleBackendLogin();
+  }, [handleBackendLogin]);
+
+  return { token, isLoading, error, promptAsync, request };
 };
