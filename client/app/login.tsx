@@ -1,9 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import * as Keychain from "react-native-keychain";
+import { useAccessToken } from "../hooks/useAccessToken";
 import { useProfiles } from "../hooks/useProfile";
 
 // Required for Expo Auth Session
@@ -98,54 +99,6 @@ function LoginButton({ onToken }: LoginButtonProps) {
   );
 }
 
-//fetch users profile from backend, including:
-//access tokens, emails, userIds
-const fetchProfiles = async (JWTToken: string) => {
-  //token doesnt exist
-  if (!JWTToken) {
-    console.error("No token provided to fetchProfiles");
-    return [];
-  }
-
-  try {
-    const credentials = await Keychain.getGenericPassword({
-      service: "service_key",
-    });
-    if (credentials) {
-      console.log(
-        "Credentials successfully loaded for user " + credentials.username,
-      );
-    } else {
-      console.log("No credentials stored");
-    }
-  } catch (error) {
-    console.error("Failed to access Keychain");
-  }
-
-  try {
-    //fetch from backend
-    const res = await fetch("http://localhost:3001/api/get-family-profiles", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${JWTToken}`,
-      },
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.log(`Server responded with ${res.status}: ${errorText}`);
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-
-    //log data
-    const data = await res.json();
-    console.log(data);
-    storeObject("profile", data);
-    return data;
-  } catch (err) {
-    console.error("Backend Profile Fetch Error:", err);
-  }
-};
-
 const fetchAccessToken = async (JWTToken: string) => {
   //token doesnt exist
   if (!JWTToken) {
@@ -217,21 +170,33 @@ const fetchEvents = async (accessToken: string) => {
 
 //MAIN SCREEN (PARENT)
 export default function GoogleOauth() {
-  const [token, setToken] = useState<string>("");
-  const { profiles, isLoading, error, refetch } = useProfiles(token);
+  const [JwtToken, setJwtToken] = useState<string>("");
+  const [accessTokens, setAccessTokens] = useState([]);
+  const profileProps = useProfiles(JwtToken);
+  const accessTokenProps = useAccessToken(JwtToken);
 
   const fetch_backend_token_data = async () => {
     //const profile = await fetchProfiles(token);
-    const accessToken = await fetchAccessToken(token);
+    const accessToken = await fetchAccessToken(JwtToken);
     const events = await fetchEvents(accessToken.parent.accessToken);
-    console.log(profiles);
+    console.log(profileProps);
   };
 
   useEffect(() => {
-    if (token) {
+    if (JwtToken) {
       fetch_backend_token_data();
     }
-  }, [token]);
+  }, [JwtToken]);
+
+  const allTokens = useMemo(() => {
+    if (!accessTokenProps.accessTokens) return [];
+    return [
+      accessTokenProps.accessTokens.parent
+        ? [accessTokenProps.accessTokens.parent]
+        : [],
+      accessTokenProps.accessTokens.children || [],
+    ];
+  }, [accessTokenProps.accessTokens]);
 
   return (
     <View style={styles.homepg}>
@@ -239,8 +204,30 @@ export default function GoogleOauth() {
         <Text style={styles.headerText}>My Calendar</Text>
       </View>
 
+      {profileProps.isLoading ? (
+        <View>
+          <Text>Fetching your data from the vault...</Text>
+        </View>
+      ) : (
+        <View>
+          <Text>{JSON.stringify(profileProps.profiles)}</Text>
+        </View>
+      )}
+
+      {accessTokenProps.isLoading ? (
+        <View>
+          <Text>Fetching your data from the vault...</Text>
+        </View>
+      ) : (
+        <View>
+          <Text>{JSON.stringify(accessTokenProps.accessTokens)}</Text>
+        </View>
+      )}
+
+      <Text>{JSON.stringify(allTokens)}</Text>
+
       {/* User Buttons */}
-      <LoginButton onToken={setToken} />
+      <LoginButton onToken={setJwtToken} />
 
       <Pressable
         onPress={() => fetch_backend_token_data()}
