@@ -77,7 +77,6 @@ const getAccessToken = async (userId, refreshToken) => {
   }
 }
 
-
 //params: userId
 //res: creates and returns a JWT token  + expiration date
 const getJWTToken = async (userId) => {
@@ -91,8 +90,6 @@ const getJWTToken = async (userId) => {
     throw new Error("Failed to get access token.");
   }
 }
-
-
 
 //
 //routes
