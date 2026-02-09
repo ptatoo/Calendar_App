@@ -3,8 +3,7 @@ import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-
-import { fetchJwtToken } from "../services/api";
+import * as Keychain from "react-native-keychain";
 
 // Required for Expo Auth Session
 WebBrowser.maybeCompleteAuthSession();
@@ -40,6 +39,7 @@ const storeString = async (key: string, value: string) => {
 };
 
 //LOGIN BUTTON (CHILD)
+//logs in user through google and recieves JWT token from backend
 function LoginButton({ onToken }: LoginButtonProps) {
   //fetch google's oauth (configure session)
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
@@ -65,16 +65,6 @@ function LoginButton({ onToken }: LoginButtonProps) {
   //login through google in backen
   const backendLogin = async () => {
     if (response?.type === "success") {
-      const code = response.params.code;
-      const codeVerifier = request?.codeVerifier!;
-      const redirectUri = request?.redirectUri!;
-
-      console.log("code: ",response.params.code);
-      
-      const sessionTokenObj = await fetchJwtToken(code,codeVerifier,redirectUri)
-
-      onToken(sessionTokenObj.sessionToken);
-      console.log(sessionTokenObj);
       const backendResponse = await fetch(
         "http://localhost:3001/api/google-exchange",
         {
@@ -107,8 +97,6 @@ function LoginButton({ onToken }: LoginButtonProps) {
   );
 }
 
-//fetch users profile from
-async function fetchProfiles(token: string) {
 //fetch users profile from backend, including:
 //access tokens, emails, userIds
 const fetchProfiles = async (JWTToken: string) => {
@@ -135,7 +123,7 @@ const fetchProfiles = async (JWTToken: string) => {
 
   try {
     //fetch from backend
-    const res = await fetch("http://localhost:3001/api/get-family-data", {
+    const res = await fetch("http://localhost:3001/api/get-family-profiles", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${JWTToken}`,
@@ -149,7 +137,6 @@ const fetchProfiles = async (JWTToken: string) => {
 
     //log data
     const data = await res.json();
-    storeStringData(data.parent.id, data.parent.accessToken);
     console.log(data);
     storeObject("profile", data);
     return data;
@@ -158,20 +145,6 @@ const fetchProfiles = async (JWTToken: string) => {
   }
 };
 
-const storeObjectData = async (key: string, value: object) => {
-  try {
-    const jsonValue = JSON.stringify(value);
-    await AsyncStorage.setItem(key, jsonValue);
-  } catch (e) {
-    console.log(e);
-  }
-};
-
-const storeStringData = async (key: string, value: string) => {
-  try {
-    await AsyncStorage.setItem(key, value);
-  } catch (e) {
-    console.log(e);
 const fetchAccessToken = async (JWTToken: string) => {
   //token doesnt exist
   if (!JWTToken) {
@@ -182,7 +155,7 @@ const fetchAccessToken = async (JWTToken: string) => {
   try {
     //fetch from backend
     const res = await fetch(
-      "http://localhost:3001/api/get-family-access-token",
+      "http://localhost:3001/api/get-family-access-tokens",
       {
         method: "POST",
         headers: {
@@ -247,8 +220,8 @@ export default function GoogleOauth() {
 
   const fetch_backend_token_data = async () => {
     const profile = await fetchProfiles(token);
-    const access_token = await fetchAccessToken(token);
-    const events = await fetchEvents(access_token.parent.accessToken);
+    const accessToken = await fetchAccessToken(token);
+    const events = await fetchEvents(accessToken.parent.accessToken);
   };
 
   useEffect(() => {

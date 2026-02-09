@@ -147,7 +147,7 @@ app.post('/api/google-exchange', async (req, res) => {
 //res: {parent: parentJson, children: [...childrenJson]}
 app.post('/api/get-family-profiles', authenticate, async (req, res) => {
   try {
-    console.log('/api/get-family-data called');
+    console.log('/api/get-family-profiles called');
     const parentId = req.userId;
 
     const parentData = db.getUserProfile(parentId);
@@ -167,7 +167,7 @@ app.post('/api/get-family-profiles', authenticate, async (req, res) => {
 //res: {parent: parentJson, children: [...childrenJson]}
 app.post('/api/get-family-access-tokens', authenticate, async (req, res) => {
   try {
-    console.log('/api/get-family-access-token called');
+    console.log('/api/get-family-access-tokens called');
     const parentId = req.userId;
 
     const parentData = db.getUserRefreshToken(parentId);

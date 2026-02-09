@@ -26,11 +26,21 @@ export default function Index() {
     }
   };
 
+  const displayEvents = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem("events");
+      console.log(jsonValue != null ? jsonValue : "null");
+      setData(jsonValue != null ? jsonValue : "null");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <View>
       <Text>{data}</Text>
 
-      <Pressable onPress={() => displayProfile()} style={styles.btnPrimary}>
+      <Pressable onPress={() => displayEvents()} style={styles.btnPrimary}>
         <Text style={styles.btnText}>Display Profile From Storage</Text>
       </Pressable>
     </View>
