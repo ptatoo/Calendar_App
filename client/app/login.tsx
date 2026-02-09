@@ -4,6 +4,7 @@ import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import * as Keychain from "react-native-keychain";
+import { useProfiles } from "../hooks/useProfile";
 
 // Required for Expo Auth Session
 WebBrowser.maybeCompleteAuthSession();
@@ -217,11 +218,13 @@ const fetchEvents = async (accessToken: string) => {
 //MAIN SCREEN (PARENT)
 export default function GoogleOauth() {
   const [token, setToken] = useState<string>("");
+  const { profiles, isLoading, error, refetch } = useProfiles(token);
 
   const fetch_backend_token_data = async () => {
-    const profile = await fetchProfiles(token);
+    //const profile = await fetchProfiles(token);
     const accessToken = await fetchAccessToken(token);
     const events = await fetchEvents(accessToken.parent.accessToken);
+    console.log(profiles);
   };
 
   useEffect(() => {

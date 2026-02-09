@@ -1,9 +1,6 @@
-import * as AuthSession from 'expo-auth-session';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-import { useEffect, useState, useCallback } from "react";
-import * as Keychain from "react-native-keychain";
-import { fetchJwtToken } from "../services/api";
+import { useCallback, useEffect, useState } from "react";
+import { fetchFamilyProfiles } from "../services/api";
+import { storage } from "../services/storage";
 
 export function useProfiles(JWTToken: string | null) {
   const [profiles, setProfiles] = useState([]);
@@ -18,17 +15,17 @@ export function useProfiles(JWTToken: string | null) {
 
     try {
       // 1. Keychain Check
-      const credentials = await Keychain.getGenericPassword({ service: "service_key" });
-      if (!credentials) {
-        console.log("No credentials stored");
-      }
+      // const credentials = await Keychain.getGenericPassword({ service: "service_key" });
+      // if (!credentials) {
+      //   console.log("No credentials stored");
+      // }
 
-      // 2. Fetch from Backend
+      //Fetch from Backend
       const data = await fetchFamilyProfiles(JWTToken)
       
-      // 3. Update State & Local Storage
+      //Update State & Local Storage
       setProfiles(data);
-      // storeObject("profile", data); // Assuming this is a global helper
+      storage.save("profiles", data);
       
     } catch (err: any) {
       console.error("Backend Profile Fetch Error:", err);
