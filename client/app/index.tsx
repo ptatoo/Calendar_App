@@ -8,9 +8,19 @@ export default function Index() {
   // --- STATE ---
   const displayProfile = async () => {
     try {
-      const jsonValue = await AsyncStorage.getItem("user_data");
-      setData(jsonValue != null ? JSON.parse(jsonValue) : null);
-      return jsonValue != null ? JSON.parse(jsonValue) : null;
+      const jsonValue = await AsyncStorage.getItem("profile");
+      console.log(jsonValue != null ? jsonValue : "null");
+      setData(jsonValue != null ? jsonValue : "null");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const displayAccessToken = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem("access_token");
+      console.log(jsonValue != null ? jsonValue : "null");
+      setData(jsonValue != null ? jsonValue : "null");
     } catch (err) {
       console.error(err);
     }
@@ -18,10 +28,10 @@ export default function Index() {
 
   return (
     <View>
-      <Text>here</Text>
+      <Text>{data}</Text>
 
       <Pressable onPress={() => displayProfile()} style={styles.btnPrimary}>
-        <Text style={styles.btnText}>Fetch Profile From Backend</Text>
+        <Text style={styles.btnText}>Display Profile From Storage</Text>
       </Pressable>
     </View>
   );
