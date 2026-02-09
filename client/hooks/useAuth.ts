@@ -35,7 +35,7 @@ export const useGoogleAuth = () => {
     const { codeVerifier, redirectUri } = request;
 
     const JwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
-    Storage(jwttoken type shit);
+    storage.saveSecure('jwt_token', JwtToken);
   };
     handleBackendLogin();
   }, [response, request]);
