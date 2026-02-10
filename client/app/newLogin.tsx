@@ -17,7 +17,7 @@ export default function LoginButton() {
       }
       </Pressable>
       <Text>
-        {jwtToken ? jwtToken : "asdf"}
+        {jwtToken ? jwtToken.sessionToken : "asdf"}
       </Text>
     </View>
   )
