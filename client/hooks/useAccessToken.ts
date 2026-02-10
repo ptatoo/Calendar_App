@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { AuthContext } from "@/app/context";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { fetchFamilyAccessTokens } from "../services/api";
 import { storage } from "../services/storage";
 
 export function useAccessToken(JWTToken: string | null) {
-  const [accessTokens, setAccessTokens] = useState([]);
+  const [accessTokens, setAccessTokens] = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
