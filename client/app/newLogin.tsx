@@ -4,7 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 
 export default function LoginButton() {
 
-  const { jwtToken, isLoading, error, request, promptAsync } = useAuth();
+  const { JwtToken, isLoading, error, request, promptAsync } = useAuth();
 
   return (
     <View>
@@ -13,11 +13,11 @@ export default function LoginButton() {
         disabled={!request}
       > 
       {
-        isLoading ? (<Text> loading </Text>) : (<Text> real text </Text>)
+        isLoading ? (<Text> loading </Text>) : JwtToken ? (<Text> logged in as f </Text>) : (<Text> login pls. </Text>)
       }
       </Pressable>
       <Text>
-        {jwtToken ? jwtToken.sessionToken : "asdf"}
+        {JwtToken ? JwtToken.sessionToken : "asdf"}
       </Text>
     </View>
   )

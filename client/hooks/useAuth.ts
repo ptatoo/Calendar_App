@@ -17,7 +17,7 @@ WebBrowser.maybeCompleteAuthSession();
 export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { jwtToken, setJwtToken } = useContext(AuthContext);
+  const { jwtToken: JwtToken, setJwtTokenObj: setJwtToken } = useContext(AuthContext);
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
@@ -56,11 +56,10 @@ export const useAuth = () => {
       const { code } = response.params;
       const { codeVerifier, redirectUri } = request;
 
-      const jwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
+      const JwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
 
-      console.log(jwtToken);
-      storage.saveSecure('jwt_token', jwtToken); // saves into persistent storage
-      setJwtToken(jwtToken); // sets global context
+      storage.saveSecure('jwt_token', JwtToken); // saves into persistent storage
+      setJwtToken(JwtToken); // sets global context
       
     } catch (error : any) {
       setError(error.message);
@@ -73,5 +72,5 @@ export const useAuth = () => {
     handleBackendLogin();
   }, [handleBackendLogin]);
 
-  return { jwtToken, isLoading, error, request, promptAsync };
+  return { JwtToken, isLoading, error, request, promptAsync };
 };
