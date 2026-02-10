@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useState, useMemo } from "react";
-import { Pressable, StyleSheet, Text, View, FlatList, Dimensions, ScrollView } from "react-native";
+import { useMemo, useState } from "react";
+import { Dimensions, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 // --- CONSTANTS ---
 const SCREEN_WIDTH = Dimensions.get("window").width;
