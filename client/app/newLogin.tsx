@@ -5,26 +5,26 @@ import { useAuth } from "../hooks/useAuth";
 import { useProfiles } from "../hooks/useProfile";
 
 export default function LoginButton() {
-  const { jwtToken, isLoading, error, request, promptAsync } = useAuth();
-  const profileProps = useProfiles(jwtToken?.sessionToken || null);
-  const accessTokenProps = useAccessToken(jwtToken?.sessionToken || null);
+  const authProps = useAuth();
+  useProfiles(authProps.jwtToken?.sessionToken || null);
+  useAccessToken(authProps.jwtToken?.sessionToken || null);
 
   return (
     <View style={styles.homepg}>
       <Pressable
         style={styles.button}
-        onPress={() => promptAsync()}
-        disabled={!request}
+        onPress={() => authProps.promptAsync()}
+        disabled={!authProps.request}
       >
-        {isLoading ? (
+        {authProps.isLoading ? (
           <Text style={styles.buttonText}> loading </Text>
-        ) : jwtToken ? (
+        ) : authProps.jwtToken ? (
           <Text style={styles.buttonText}> logged in as f </Text>
         ) : (
           <Text style={styles.buttonText}> login pls. </Text>
         )}
       </Pressable>
-      <Text>{jwtToken ? jwtToken.sessionToken : "asdf"}</Text>
+      <Text>{authProps.jwtToken ? authProps.jwtToken.sessionToken : "asdf"}</Text>
     </View>
   );
 }

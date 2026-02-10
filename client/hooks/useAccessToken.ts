@@ -42,7 +42,7 @@ export function useAccessToken(JWTToken: string | null) {
   }, [fetchAccessTokens]);
 
   const value = useMemo(() => ({
-    accessTokens: familyAccessTokens, isLoading, error, refetch: fetchAccessTokens
+    familyAccessTokens, isLoading, error, refetch: fetchAccessTokens
   }), [familyAccessTokens, isLoading, error, fetchAccessTokens])
 
   return value;

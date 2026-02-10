@@ -1,4 +1,5 @@
-import { createContext, ReactNode, useState } from "react";
+import { storage } from "@/services/storage";
+import { createContext, ReactNode, useEffect, useState } from "react";
 
 export interface JwtTokenObj {
   sessionToken: string;
@@ -42,6 +43,28 @@ export const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [jwtToken, setJwtToken] = useState<JwtTokenObj | null>(null);
   const [familyProfiles, setFamilyProfiles] = useState<FamilyProfileObjs | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    const hydrateContext = async () => {
+      try {
+        const [storedJwt, storedProfiles] = await Promise.all([
+          storage.getSecure("jwt_token"),
+          storage.get("profiles"),
+        ]);
+        if (storedJwt) setJwtToken(storedJwt);
+        if (storedProfiles) setFamilyProfiles(storedProfiles);
+      } catch (err : any) {
+        console.log("error as fuck: ", err.message);
+      } finally {
+        setIsHydrated(true);
+      }
+    };
+    
+    hydrateContext();
+  },[]);
+
+  if (!isHydrated) return null;
 
   return (
     <AuthContext.Provider value={{ 

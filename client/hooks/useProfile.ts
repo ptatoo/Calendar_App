@@ -15,15 +15,9 @@ export function useProfiles(JWTToken: string | null) {
     setError(null);
 
     try {
-      // 1. Keychain Check
-      // const credentials = await Keychain.getGenericPassword({ service: "service_key" });
-      // if (!credentials) {
-      //   console.log("No credentials stored");
-      // }
-
       //Fetch from Backend
-      const data = await fetchFamilyProfiles(JWTToken)
-      
+      const data = await fetchFamilyProfiles(JWTToken);
+      console.log("pleaaase be called")
       //Update State & Local Storage
       setFamilyProfiles(data);
       storage.save("profiles", data);
@@ -34,12 +28,12 @@ export function useProfiles(JWTToken: string | null) {
     } finally {
       setIsLoading(false);
     }
-  }, [JWTToken]);
+  }, [JWTToken, setFamilyProfiles]);
 
   // Automatically fetch when the token changes
   useEffect(() => {
     fetchProfiles();
   }, [fetchProfiles]);
 
-  return { familyProfiles, isLoading, error, refetch: fetchProfiles };
+  return { familyProfiles, isLoading, error, refetch : fetchProfiles };
 }
