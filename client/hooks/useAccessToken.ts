@@ -4,7 +4,7 @@ import { fetchFamilyAccessTokens } from "../services/api";
 import { storage } from "../services/storage";
 
 export function useAccessToken(JWTToken: string | null) {
-  const [accessTokens, setAccessTokens] = useContext(AuthContext);
+  const {familyAccessTokens, setFamilyAccessTokens} = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,7 +25,7 @@ export function useAccessToken(JWTToken: string | null) {
       const data = await fetchFamilyAccessTokens(JWTToken)
       
       //Update State & Local Storage
-      setAccessTokens(data);
+      setFamilyAccessTokens(data);
       storage.save("access_tokens", data);
       
     } catch (err: any) {
@@ -42,8 +42,8 @@ export function useAccessToken(JWTToken: string | null) {
   }, [fetchAccessTokens]);
 
   const value = useMemo(() => ({
-    accessTokens, isLoading, error, refetch: fetchAccessTokens
-  }), [accessTokens, isLoading, error, fetchAccessTokens])
+    familyAccessTokens, isLoading, error, refetch: fetchAccessTokens
+  }), [familyAccessTokens, isLoading, error, fetchAccessTokens])
 
   return value;
 }
