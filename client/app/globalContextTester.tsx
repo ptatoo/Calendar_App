@@ -2,22 +2,22 @@ import { Pressable, Text, View } from "react-native";
 
 import { useAuth } from "../hooks/useAuth";
 
-export default function LoginButton() {
 
-  const { JwtToken, isLoading, error, request, promptAsync } = useAuth();
+const getJwtToken = () => {
+  
+}
+
+export default function ContextTester420() {
+  const { jwtToken } = useAuth();
 
   return (
     <View>
       <Pressable 
-        onPress={() => promptAsync()} 
-        disabled={!request}
-      > 
-      {
-        isLoading ? (<Text> loading </Text>) : JwtToken ? (<Text> logged in as f </Text>) : (<Text> login pls. </Text>)
-      }
+        onPress={() => getJwtToken()} 
+      >
       </Pressable>
       <Text>
-        {JwtToken ? JwtToken.sessionToken : "asdf"}
+        jwtting
       </Text>
     </View>
   )

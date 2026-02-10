@@ -3,7 +3,7 @@ import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Platform } from "react-native";
-import { fetchJwtToken } from "../services/api";
+import { fetchjwtToken } from "../services/api";
 import { storage } from '../services/storage';
 
 const discovery = {
@@ -17,7 +17,7 @@ WebBrowser.maybeCompleteAuthSession();
 export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { jwtToken: JwtToken, setJwtToken } = useContext(AuthContext);
+  const { jwtToken: jwtToken, setjwtToken } = useContext(AuthContext);
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
@@ -56,21 +56,21 @@ export const useAuth = () => {
       const { code } = response.params;
       const { codeVerifier, redirectUri } = request;
 
-      const JwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
+      const jwtToken = await fetchjwtToken(code, codeVerifier, redirectUri);
 
-      storage.saveSecure('jwt_token', JwtToken); // saves into persistent storage
-      setJwtToken(JwtToken); // sets global context
+      storage.saveSecure('jwt_token', jwtToken); // saves into persistent storage
+      setjwtToken(jwtToken); // sets global context
       
     } catch (error : any) {
       setError(error.message);
     } finally {
       setIsLoading(false);
     }
-  }, [response, request, setJwtToken]);
+  }, [response, request, setjwtToken]);
 
   useEffect(() => {
     handleBackendLogin();
   }, [handleBackendLogin]);
 
-  return { JwtToken, isLoading, error, request, promptAsync };
+  return { jwtToken, isLoading, error, request, promptAsync };
 };
