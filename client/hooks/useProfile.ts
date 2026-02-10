@@ -1,10 +1,10 @@
 import { AuthContext } from "@/app/context";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { fetchFamilyProfiles } from "../services/api";
 import { storage } from "../services/storage";
 
 export function useProfiles(JWTToken: string | null) {
-  const [profiles, setProfiles] = useState([]);
+  const {familyProfiles, setFamilyProfiles} = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,7 +25,7 @@ export function useProfiles(JWTToken: string | null) {
       const data = await fetchFamilyProfiles(JWTToken)
       
       //Update State & Local Storage
-      setProfiles(data);
+      setFamilyProfiles(data);
       storage.save("profiles", data);
       
     } catch (err: any) {
@@ -41,5 +41,5 @@ export function useProfiles(JWTToken: string | null) {
     fetchProfiles();
   }, [fetchProfiles]);
 
-  return { profiles, isLoading, error, refetch: fetchProfiles };
+  return { familyProfiles, isLoading, error, refetch: fetchProfiles };
 }

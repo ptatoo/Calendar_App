@@ -1,10 +1,10 @@
-import { AuthContext } from "@/app/context";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { FamilyAccessTokenObjs } from "@/app/context";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchFamilyAccessTokens } from "../services/api";
 import { storage } from "../services/storage";
 
 export function useAccessToken(JWTToken: string | null) {
-  const {familyAccessTokens, setFamilyAccessTokens} = useContext(AuthContext);
+  const [familyAccessTokens, setFamilyAccessTokens] = useState<FamilyAccessTokenObjs | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +42,7 @@ export function useAccessToken(JWTToken: string | null) {
   }, [fetchAccessTokens]);
 
   const value = useMemo(() => ({
-    familyAccessTokens, isLoading, error, refetch: fetchAccessTokens
+    accessTokens: familyAccessTokens, isLoading, error, refetch: fetchAccessTokens
   }), [familyAccessTokens, isLoading, error, fetchAccessTokens])
 
   return value;
