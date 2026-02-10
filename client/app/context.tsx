@@ -49,8 +49,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setJwtToken,
       familyProfiles, 
       setFamilyProfiles,
-      familyAccessTokens, 
-      setFamilyAccessTokens,
     }}>
       {children}
     </AuthContext.Provider>
