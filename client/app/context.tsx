@@ -1,11 +1,21 @@
-import { createContext } from "react";
+import { createContext, ReactNode, useState } from "react";
 
-interface AuthContext {
-  jwtToken: string | null;
-  setJwtToken: (jwtToken : string | null) => void;
+interface AuthContextType {
+  jwtToken: object | null;
+  setJwtToken: (jwtToken : object | null) => void;
 }
 
-export const context = createContext<AuthContext>({
+export const AuthContext = createContext<AuthContextType>({
   jwtToken: null,
   setJwtToken: () => {}
 });
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [jwtToken, setJwtToken] = useState<object | null>(null);
+
+  return (
+    <AuthContext.Provider value={{ jwtToken, setJwtToken }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}

@@ -1,33 +1,47 @@
-import * as AuthSession from 'expo-auth-session';
-import * as Google from 'expo-auth-session/providers/google';
+import { AuthContext } from "@/app/context";
+import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from 'expo-web-browser';
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
+import { Platform } from "react-native";
 import { fetchJwtToken } from "../services/api";
 import { storage } from '../services/storage';
 
-WebBrowser.maybeCompleteAuthSession();
-export const useGoogleAuth = () => {
+const discovery = {
+  authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
+  tokenEndpoint: "https://oauth2.googleapis.com/token",
+  revocationEndpoint: "https://oauth2.googleapis.com/revoke",
+};
 
-  const [token, setToken] = useState<string | null>(null);
+WebBrowser.maybeCompleteAuthSession();
+
+export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { jwtToken, setJwtToken } = useContext(AuthContext);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    //ids and stuff
-    iosClientId: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
-    responseType: 'code', //ts is for code
-    scopes: [
+  const [request, response, promptAsync] = AuthSession.useAuthRequest(
+    {
+      clientId: Platform.select({
+        ios: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
+        android: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
+        default: process.env.EXPO_PUBLIC_WEB_CLIENT_ID, 
+      })!,
+      scopes: [
+        "openid",
         "https://www.googleapis.com/auth/calendar.readonly",
-    ],
-    // apparently email openid and profile are default scoped
-    // PKCE is default when using google provider
-    extraParams: {
-        access_type: "offline", // this is so backend gets refresh token
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile",
+      ],
+      responseType: "code",
+      usePKCE: true,
+      extraParams: {
+        access_type: "offline",
         prompt: "consent",
+      },
+      redirectUri: AuthSession.makeRedirectUri(),
     },
-    redirectUri: AuthSession.makeRedirectUri()
-  });
+    discovery,
+  );
 
   const handleBackendLogin = useCallback( async () => {
     
@@ -43,18 +57,21 @@ export const useGoogleAuth = () => {
       const { codeVerifier, redirectUri } = request;
 
       const jwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
-      storage.saveSecure('jwt_token', jwtToken);
-      setToken(jwtToken);
+
+      console.log(jwtToken);
+      storage.saveSecure('jwt_token', jwtToken); // saves into persistent storage
+      setJwtToken(jwtToken); // sets global context
+      
     } catch (error : any) {
       setError(error.message);
     } finally {
       setIsLoading(false);
     }
-  }, [response, request]);
+  }, [response, request, setJwtToken]);
 
   useEffect(() => {
     handleBackendLogin();
   }, [handleBackendLogin]);
 
-  return { token, isLoading, error, promptAsync, request };
+  return { jwtToken, isLoading, error, request, promptAsync };
 };
