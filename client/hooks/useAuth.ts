@@ -17,7 +17,7 @@ WebBrowser.maybeCompleteAuthSession();
 export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { jwtToken: JwtToken, setJwtTokenObj: setJwtToken } = useContext(AuthContext);
+  const { jwtToken: JwtToken, setJwtToken } = useContext(AuthContext);
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
