@@ -1,4 +1,4 @@
-import { FamilyAccessTokenObjs } from "@/app/context";
+import { FamilyAccessTokenObjs } from "@/utility/types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchFamilyAccessTokens } from "../services/api";
 import { storage } from "../services/storage";

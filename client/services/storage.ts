@@ -1,18 +1,16 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 export const storage = {
-  saveSecure: async (key: string, value: string) => {
+  saveSecure: (key: string, value: string) => {
     try {
         const jsonValue = JSON.stringify(value);
-        await AsyncStorage.setItem(key, jsonValue);
+        localStorage.setItem(key, jsonValue);
     } catch (e) {
         console.log("Failed storage.web.ts:saveSecure\n", e);
     }
   },
 
-  getSecure: async (key: string) => {
+  getSecure: (key: string) => {
     try {
-      const val = await AsyncStorage.getItem(key);
+      const val = localStorage.getItem(key);
       return val ? JSON.parse(val) : null;
     } catch (error) {
       console.error(`Failed storage.web.ts:get [Storage] Load failed for "${key}":`, error);
@@ -20,23 +18,23 @@ export const storage = {
     }
   },
 
-  removeSecure: async (key: string) => {
-    await AsyncStorage.removeItem(key);
+  removeSecure: (key: string) => {
+    localStorage.removeItem(key);
   },
 
   // Standard Async Storage (Works on Web too)
-  save: async (key: string, value: any) => {
+  save: (key: string, value: any) => {
     try {
         const jsonValue = JSON.stringify(value);
-        await AsyncStorage.setItem(key, jsonValue);
+        localStorage.setItem(key, jsonValue);
     } catch (e) {
         console.log("Failed storage.web.ts:save\n", e);
     }
   },
 
-  get: async (key: string) => {
+  get: (key: string) => {
     try {
-      const val = await AsyncStorage.getItem(key);
+      const val = localStorage.getItem(key);
       return val ? JSON.parse(val) : null;
     } catch (error) {
       console.error(`Failed storage.web.ts:get [Storage] Load failed for "${key}":`, error);

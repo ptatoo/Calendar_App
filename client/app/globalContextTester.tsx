@@ -1,5 +1,6 @@
 import { useAccessToken } from "@/hooks/useAccessToken";
 import { useProfiles } from "@/hooks/useProfile";
+import { storage } from "@/services/storage";
 import { Pressable, Text, View } from "react-native";
 import { useAuth } from "../hooks/useAuth";
 
@@ -14,10 +15,13 @@ export default function ContextTester420() {
         <Text>profile</Text>
       </Pressable>
       <Text>
+        {JSON.stringify(authProps.jwtToken)}
+      </Text>
+      <Text>
         {JSON.stringify(profileProps.familyProfiles)}
       </Text>
       <Text>
-        {JSON.stringify(accessTokenProps.familyAccessTokens)}
+        {JSON.stringify(storage.get('access_tokens'))}
       </Text>
     </View>
   )
