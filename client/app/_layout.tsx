@@ -20,8 +20,9 @@ export default function RootLayout() {
             }}
           />
           <Drawer.Screen
-            name="newLogin"
+            name="login"
             options={{
+              headerShown: false,
               headerTitle: "Login",
               drawerLabel: "Login",
               drawerIcon: ({ size, color }) => (

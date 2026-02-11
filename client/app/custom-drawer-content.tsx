@@ -16,7 +16,7 @@ export default function CustomDrawerContent(props: any) {
       <View>
         {/* make the parent name title case, decrease spacing in between the two 
         make the Pressable component less transparent when pressed*/}
-        <Pressable onPress={() => router.push("/newLogin")}>
+        <Pressable onPress={() => router.push("/login")}>
           <Text style={styles.username}>
             {familyProfile ? familyProfile.parent.name : "Username"}
           </Text>
