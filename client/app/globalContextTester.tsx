@@ -7,22 +7,18 @@ import { useAuth } from "../hooks/useAuth";
 export default function ContextTester420() {
   const authProps = useAuth();
   const profileProps = useProfiles(authProps.jwtToken?.sessionToken || null);
-  const accessTokenProps = useAccessToken(authProps.jwtToken?.sessionToken || null);
+  const accessTokenProps = useAccessToken(
+    authProps.jwtToken?.sessionToken || null,
+  );
 
   return (
     <View>
-      <Pressable onPress = {profileProps.refetch}>
+      <Pressable onPress={profileProps.refetch}>
         <Text>profile</Text>
       </Pressable>
-      <Text>
-        {JSON.stringify(authProps.jwtToken)}
-      </Text>
-      <Text>
-        {JSON.stringify(profileProps.familyProfiles)}
-      </Text>
-      <Text>
-        {JSON.stringify(storage.get('access_tokens'))}
-      </Text>
+      <Text>{JSON.stringify(authProps.jwtToken)}</Text>
+      <Text>{JSON.stringify(profileProps.familyProfiles)}</Text>
+      <Text>{JSON.stringify(storage.get("access_tokens"))}</Text>
     </View>
-  )
+  );
 }

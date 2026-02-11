@@ -2,12 +2,13 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Drawer } from "expo-router/drawer";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider } from "./context";
+import CustomDrawerContent from "./custom-drawer-content";
 
 export default function RootLayout() {
   return (
     <AuthProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <Drawer>
+        <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
           <Drawer.Screen
             name="index"
             options={{
@@ -19,7 +20,7 @@ export default function RootLayout() {
             }}
           />
           <Drawer.Screen
-            name="login"
+            name="newLogin"
             options={{
               headerTitle: "Login",
               drawerLabel: "Login",
