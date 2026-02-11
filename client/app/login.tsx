@@ -169,7 +169,7 @@ const fetchEvents = async (accessToken: string) => {
 };
 
 //MAIN SCREEN (PARENT)
-export default function GoogleOauth() {
+function GoogleOauth() {
   const [JwtToken, setJwtToken] = useState<string>("");
   const [accessTokens, setAccessTokens] = useState([]);
   const profileProps = useProfiles(JwtToken);

@@ -13,7 +13,7 @@ export default function ContextTester420() {
 
   return (
     <View>
-      <Pressable onPress = {profileProps.refetch}>
+      <Pressable onPress={profileProps.refetch}>
         <Text>profile</Text>
       </Pressable>
       <Pressable onPress = {calendarProps.refetch}>
@@ -32,5 +32,5 @@ export default function ContextTester420() {
         {JSON.stringify(storage.get('calendar'))}
       </Text>
     </View>
-  )
+  );
 }

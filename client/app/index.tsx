@@ -74,8 +74,7 @@ function MonthView({ year, month, events }: { year: number; month: number; event
 
           const dayEvents = events.filter(
             (e) =>
-              e.start?.dateTime?.startsWith(item.dateString) ||
-              e.start?.date === item.dateString
+              e.start?.dateTime?.startsWith(item.dateString) || e.start?.date === item.dateString
           );
 
           return (
@@ -102,7 +101,7 @@ function MonthView({ year, month, events }: { year: number; month: number; event
 function WeekView({currentDate, events, onChangeWeek}: {currentDate: Date; events: any[]; onChangeWeek: (newDate: Date) => void;}) {
   const weekStart = getWeekStart(currentDate);
   const hours = Array.from({ length: 24 }, (_, i) => i); // 0-23 hours
-  const HOUR_HEIGHT = 60;
+  const HOUR_HEIGHT = 50;
   const TIME_LABEL_WIDTH = 50;
 
   return (
@@ -133,16 +132,7 @@ function WeekView({currentDate, events, onChangeWeek}: {currentDate: Date; event
             day: "numeric",
           });
           return (
-            <Text
-              key={dayIndex}
-              style={{
-                flex: 1,
-                textAlign: "center",
-                fontSize: 11,
-                fontWeight: "600",
-                color: "#666",
-              }}
-            >
+            <Text key={dayIndex} style={{ flex: 1, textAlign: "center", fontSize: 11, fontWeight: "600", color: "#666" }}>
               {dayLabel}
             </Text>
           );
@@ -152,23 +142,14 @@ function WeekView({currentDate, events, onChangeWeek}: {currentDate: Date; event
       {/* --- SCROLLABLE HOURS --- */}
       <ScrollView
         horizontal={false}
-        style={{ height: Dimensions.get("window").height - 250 }} // FIXED HEIGHT
+        style={{ height: Dimensions.get("window").height - 250 }}
         contentContainerStyle={{ minHeight: hours.length * HOUR_HEIGHT + HOUR_HEIGHT }}
       >
         <View style={{ flexDirection: "row" }}>
           {/* Time labels column */}
           <View style={{ width: TIME_LABEL_WIDTH }}>
             {hours.map((h) => (
-              <Text
-                key={h}
-                style={{
-                  height: HOUR_HEIGHT,
-                  fontSize: 10,
-                  color: "#666",
-                  textAlign: "right",
-                  paddingRight: 4,
-                }}
-              >
+              <Text key={h} style={{ height: HOUR_HEIGHT, fontSize: 10, color: "#666", textAlign: "right", paddingRight: 4 }}>
                 {formatHour(h)}
               </Text>
             ))}
@@ -181,48 +162,18 @@ function WeekView({currentDate, events, onChangeWeek}: {currentDate: Date; event
             const dateString = dayDate.toISOString().split("T")[0];
 
             return (
-              <View
-                key={dayIndex}
-                style={{
-                  flex: 1,
-                  borderLeftWidth: 1,
-                  borderColor: "#e5e5e5",
-                  position: "relative",
-                }}
-              >
+              <View key={dayIndex} style={{flex: 1, borderLeftWidth: 1, borderColor: "#e5e5e5", position: "relative" }}>
                 {hours.map((h) => (
-                  <View
-                    key={h}
-                    style={{
-                      height: HOUR_HEIGHT,
-                      borderBottomWidth: 1,
-                      borderColor: "#eee",
-                    }}
-                  />
+                  <View key={h} style={{height: HOUR_HEIGHT, borderBottomWidth: 1, borderColor: "#eee" }}/>
                 ))}
 
                 {events
                   .filter((e) => e.start?.dateTime?.startsWith(dateString))
                   .map((e, i) => {
                     const start = new Date(e.start.dateTime);
-                    const top =
-                      start.getHours() * HOUR_HEIGHT +
-                      (start.getMinutes() * HOUR_HEIGHT) / 60;
-
+                    const top = start.getHours() * HOUR_HEIGHT + (start.getMinutes() * HOUR_HEIGHT) / 60;
                     return (
-                      <View
-                        key={i}
-                        style={{
-                          position: "absolute",
-                          top,
-                          left: 4,
-                          right: 4,
-                          height: 40,
-                          backgroundColor: "#dbeafe",
-                          borderRadius: 6,
-                          padding: 4,
-                        }}
-                      >
+                      <View key={i} style={{ position: "absolute", top, left: 4, right: 4, height: 40, backgroundColor: "#dbeafe", borderRadius: 6, padding: 4 }}>
                         <Text style={{ fontSize: 10 }}>{e.summary}</Text>
                       </View>
                     );
