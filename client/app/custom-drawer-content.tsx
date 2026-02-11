@@ -12,8 +12,8 @@ export default function CustomDrawerContent(props: any) {
   return (
     <SafeAreaView style={styles.headerContainer}>
       <View>
-        <Text>{familyProfile.parent.name || "Username"}</Text>
-        <Text>{familyProfile.parent.email || "Username"}</Text>
+        <Text>{familyProfile ? familyProfile.parent.name : "lol not logged in" || "Username"}</Text>
+        <Text>{familyProfile ? familyProfile.parent.email : "lol not logged in"  || "Email"}</Text>
       </View>
       <DrawerContentScrollView {...props}>
         <DrawerItemList {...props} />
