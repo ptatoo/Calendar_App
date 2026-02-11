@@ -6,6 +6,7 @@ appDb.prepare(`
     id TEXT PRIMARY KEY NOT NULL,
     email TEXT NOT NULL,
     name TEXT NOT NULL,
+    picture TEXT NOT NULL,
     refreshToken TEXT NOT NULL
   )
 `).run();
@@ -19,16 +20,16 @@ appDb.prepare(`
 `).run();
 
 //saves information into sqlite userInfo table
-const saveUserProfile = (googleId, email, name, refreshToken) => {
+const saveUserProfile = (googleId, email, name, picture, refreshToken) => {
   const stmt = appDb.prepare(`
-    INSERT INTO userInfo (id,email,name,refreshToken)
-    VALUES (?,?,?,?)
+    INSERT INTO userInfo (id,email,name,picture,refreshToken)
+    VALUES (?,?,?,?,?)
     ON CONFLICT(id) DO UPDATE SET 
       email = excluded.email,
       name = excluded.name,
       refreshToken=excluded.refreshToken
   `);
-  return stmt.run(googleId, email, name, refreshToken);
+  return stmt.run(googleId, email, name, picture, refreshToken);
 }
 
 //params: parent user id, array of children id
@@ -69,21 +70,21 @@ const setParentChildren = (parentId, childIds) => {
 //gets information from sqlite userInfo table
 const getUserProfile = (googleId) => {
   const stmt = appDb.prepare(`
-      SELECT id, email, name FROM userInfo WHERE id = ?
+      SELECT id, email, name, picture FROM userInfo WHERE id = ?
   `);
   return stmt.get(googleId);
 }
+
 //params: parent user id
 //return: array of child profiles (id, email, name, token)
 const getChildrenProfiles = (parentId) => {
   return appDb.prepare(`
-    SELECT u.id, u.email, u.name
+    SELECT u.id, u.email, u.name, u.picture
     FROM userInfo u
     JOIN userChildren c ON u.id = c.childId
     WHERE c.parentId = ?
   `).all(parentId);
 };
-
 
 //gets information from sqlite userInfo table
 const getUserRefreshToken = (googleId) => {
@@ -102,8 +103,6 @@ const getChildrenRefreshToken = (parentId) => {
     WHERE c.parentId = ?
   `).all(parentId);
 };
-
-
 
 //params: parent user id
 //return: array of children associated with parentId

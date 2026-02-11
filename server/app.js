@@ -120,9 +120,12 @@ app.post('/api/google-exchange', async (req, res) => {
     const payload = ticket.getPayload();
       
     // 2. get information from payload
-    const googleId = payload.sub;                 // unique google id
-    const email = payload.email;                  // email
-    const name = payload.name;                    // name
+    const { 
+      sub: googleId,  // .sub and renames it to googleId
+      email,          // .email
+      name,           // .name
+      picture         // .picture
+    } = payload;
     const refreshToken = tokens['refresh_token']; // refresh token
 
     const sessionTokenObj = await getJWTToken(googleId);
@@ -135,7 +138,7 @@ app.post('/api/google-exchange', async (req, res) => {
     );
 
     // 4. save information into db
-    db.saveUserProfile(googleId, email, name, refreshToken);
+    db.saveUserProfile(googleId, email, name, picture, refreshToken);
 
   } catch (error) {
     console.error('Error exchanging code:', error);
