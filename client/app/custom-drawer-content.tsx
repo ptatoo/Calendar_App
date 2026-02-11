@@ -12,8 +12,8 @@ export default function CustomDrawerContent(props: any) {
   return (
     <SafeAreaView style={styles.headerContainer}>
       <View>
-        <Text>{familyProfile ? familyProfile.parent.name : "lol not logged in" || "Username"}</Text>
-        <Text>{familyProfile ? familyProfile.parent.email : "lol not logged in"  || "Email"}</Text>
+          <Text style={styles.username}>{familyProfile ? familyProfile.parent.name : "Username"}</Text>
+          <Text style={styles.email}>{familyProfile ? familyProfile.parent.email : "Email"}</Text>
       </View>
       <DrawerContentScrollView {...props}>
         <DrawerItemList {...props} />
@@ -27,5 +27,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "transparent",
     padding: 5,
+  },
+  username: {
+    paddingLeft: 20,
+    paddingTop: 20,
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  email: {
+    paddingLeft: 20,
+    fontSize: 14,
+    color: "gray",
+    marginBottom: 10,
   },
 });
