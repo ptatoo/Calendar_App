@@ -35,3 +35,16 @@ export const fetchFamilyAccessTokens = async (jwtToken : string) => {
 }
 
 // Google Api Fetching
+export const fetchCalendar = async (accessToken: string) => {
+    const res = await fetch(
+      "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    return await res.json();
+}
