@@ -16,7 +16,7 @@ export function useCalendar(accessToken: string | null) {
     try {
       //Fetch from Backend
       const data = await fetchCalendar(accessToken);
-      console.log("calendar fetcing clled");
+      console.log("calendar fetcing called");
 
       //Update State & Local Storage
       setEvents(data);

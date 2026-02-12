@@ -25,6 +25,9 @@ export default function LoginButton() {
         )}
       </Pressable>
 
+      <View>
+        <Text></Text>
+      </View>
       <View style={styles.tokenContainer}>
         <Text style={styles.label}>JWT Token:</Text>
         <Text style={styles.tokenText}>

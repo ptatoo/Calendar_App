@@ -11,6 +11,7 @@ export default function RootLayout() {
         options={{
           headerTitle: "Settings",
           headerTitleAlign: "center",
+          //to do: make this look cool
           headerRight: () => (
             <View>
               <Pressable onPress={() => router.replace("/")}>

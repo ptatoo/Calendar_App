@@ -25,6 +25,7 @@ export default function CustomDrawerContent(props: any) {
           </Text>
         </Pressable>
       </View>
+      {/* here for convenience. only for testing */}
       <DrawerContentScrollView {...props}>
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
