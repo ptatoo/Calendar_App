@@ -19,6 +19,9 @@ export default function ContextTester420() {
       <Pressable onPress = {calendarProps.refetch}>
         <Text>calendar</Text>
       </Pressable>
+      <Pressable onPress = {accessTokenProps.refetch}>
+        <Text>access</Text>
+      </Pressable>
       <Text>
         {JSON.stringify(authProps.jwtToken)}
       </Text>

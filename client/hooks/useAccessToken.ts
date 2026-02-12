@@ -8,19 +8,13 @@ export function useAccessToken(JWTToken: string | null) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAccessTokens = useCallback(async () => {
+  const fetchBackendAccessTokens = useCallback(async () => {
     if (!JWTToken) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      // 1. Keychain Check
-      // const credentials = await Keychain.getGenericPassword({ service: "service_key" });
-      // if (!credentials) {
-      //   console.log("No credentials stored");
-      // }
-
       //Fetch from Backend
       const data = await fetchFamilyAccessTokens(JWTToken)
       
@@ -38,12 +32,13 @@ export function useAccessToken(JWTToken: string | null) {
 
   // Automatically fetch when the token changes
   useEffect(() => {
-    fetchAccessTokens();
-  }, [fetchAccessTokens]);
+    
+    fetchBackendAccessTokens();
+  }, [fetchBackendAccessTokens]);
 
   const value = useMemo(() => ({
-    familyAccessTokens, isLoading, error, refetch: fetchAccessTokens
-  }), [familyAccessTokens, isLoading, error, fetchAccessTokens])
+    familyAccessTokens, isLoading, error, refetch: fetchBackendAccessTokens
+  }), [familyAccessTokens, isLoading, error, fetchBackendAccessTokens])
 
   return value;
 }
