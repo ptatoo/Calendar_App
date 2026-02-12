@@ -9,6 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
+import DayContainer from "../components/dayContainer";
 import { generateDays } from "../utility/calendarUtils";
 //import { FlatList } from "react-native-bidirectional-infinite-scroll";
 
@@ -21,31 +22,6 @@ const HOUR_HEIGHT = 40;
 const DAY_WIDTH = Math.floor(SCREEN_WIDTH / 3);
 const DATE_HEIGHT = 20;
 const GRID_COLOR = "#f0f0f0";
-
-const HourTicks = () => {
-  return (
-    <View style={{}}>
-      {Array.from({ length: 24 }).map((_, i) => (
-        <View key={i} style={[styles.hourRow, { height: HOUR_HEIGHT }]}>
-          {/* <Text style={{}}>{i}:00</Text> */}
-        </View>
-      ))}
-    </View>
-  );
-};
-
-const DayContainer = ({ day }: { day: Date }) => {
-  return (
-    <View
-      key={day.toLocaleDateString()}
-      style={{ borderRightWidth: 1, borderColor: "#f0f0f0", width: DAY_WIDTH }}
-    >
-      <View style={styles.dayContainer}>
-        <HourTicks />
-      </View>
-    </View>
-  );
-};
 
 const DayHeader = ({ day }: { day: Date }) => {
   return (
@@ -71,7 +47,6 @@ export default function Index() {
     return <DayContainer day={item.date} />;
   };
   const renderDate = ({ item }: { item: { date: Date } }) => {
-    console.log(item);
     return <DayHeader day={item.date} />;
   };
 
