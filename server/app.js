@@ -66,7 +66,6 @@ const getAccessToken = async (userId, refreshToken) => {
 
     //generate new, update cache, return
     newAccessToken = await generateAccessToken(refreshToken)
-    console.log("user: ", userId, "\n new token: ",newAccessToken);
     accessTokenCache.set(
       userId, newAccessToken
     );

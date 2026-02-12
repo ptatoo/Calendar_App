@@ -2,7 +2,7 @@ import { useAccessToken } from "@/hooks/useAccessToken";
 import { useCalendar } from "@/hooks/useCalendar";
 import { useProfiles } from "@/hooks/useProfile";
 import { storage } from "@/services/storage";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useAuth } from "../hooks/useAuth";
 
 export default function ContextTester420() {
@@ -13,27 +13,68 @@ export default function ContextTester420() {
 
   return (
     <View>
-      <Pressable onPress={profileProps.refetch}>
-        <Text>profile</Text>
+      <Pressable  
+        style={styles.button}
+        onPress={profileProps.refetch}
+      >
+        <Text style={styles.buttonText}>profile</Text>
       </Pressable>
-      <Pressable onPress = {calendarProps.refetch}>
-        <Text>calendar</Text>
+      <Pressable 
+        style={styles.button} 
+        onPress={calendarProps.refetch}
+      >
+        <Text style={styles.buttonText}>calendar</Text>
       </Pressable>
-      <Pressable onPress = {accessTokenProps.refetch}>
-        <Text>access</Text>
+      <Pressable 
+        style={styles.button} 
+        onPress={accessTokenProps.refetch}
+      >
+        <Text style={styles.buttonText}>access</Text>
       </Pressable>
-      <Text>
+      <Text style={styles.display}>
         {JSON.stringify(authProps.jwtToken)}
       </Text>
-      <Text>
+      <Text style={styles.display}>
         {JSON.stringify(profileProps.familyProfiles)}
       </Text>
-      <Text>
-        {JSON.stringify(storage.get('access_tokens').parent.accessToken)}
+      <Text style={styles.display}>
+        {JSON.stringify(accessTokenProps.familyAccessTokens)}
       </Text>
-      <Text>
-        {JSON.stringify(storage.get('calendar'))}
+      <Text style={styles.display}>
+        {JSON.stringify(calendarProps.events)}
       </Text>
     </View>
   );
 }
+
+
+const styles = StyleSheet.create({
+  homepg: {
+    flex: 1,
+    backgroundColor: "white",
+    padding: 16,
+  },
+  button: {
+    padding: 12,
+    backgroundColor: "#4285F4",
+    borderRadius: 6,
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "600",
+  },
+
+  display: {
+    padding: 12,
+    backgroundColor: "#ff8989",
+    borderRadius: 6,
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  displayText: {
+    color: "white",
+    fontWeight: "600",
+  },
+});
