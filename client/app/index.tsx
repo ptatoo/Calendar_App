@@ -2,11 +2,14 @@ import { useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { generateDays } from "../utility/calendarUtils";
 //import { FlatList } from "react-native-bidirectional-infinite-scroll";
 
 // --- CONSTANTS ---
@@ -15,7 +18,7 @@ const NUM_COLUMNS = 7;
 const CONTAINER_PADDING = 40;
 const CELL_SIZE = (SCREEN_WIDTH - CONTAINER_PADDING) / NUM_COLUMNS;
 const HOUR_HEIGHT = 40;
-const DAY_WIDTH = SCREEN_WIDTH / 3;
+const DAY_WIDTH = Math.floor(SCREEN_WIDTH / 3);
 const DATE_HEIGHT = 20;
 const GRID_COLOR = "#f0f0f0";
 
@@ -31,9 +34,12 @@ const HourTicks = () => {
   );
 };
 
-const DayContainer = () => {
+const DayContainer = ({ day }: { day: Date }) => {
   return (
-    <View style={{ borderRightWidth: 1, borderColor: "#f0f0f0", flex: 1 }}>
+    <View
+      key={day.toLocaleDateString()}
+      style={{ borderRightWidth: 1, borderColor: "#f0f0f0", width: DAY_WIDTH }}
+    >
       <View style={styles.dayContainer}>
         <HourTicks />
       </View>
@@ -41,7 +47,7 @@ const DayContainer = () => {
   );
 };
 
-const DayHeader = ({ day }) => {
+const DayHeader = ({ day }: { day: Date }) => {
   return (
     <View style={styles.date}>
       <Text style={{ height: 10, textAlign: "center" }}>
@@ -51,28 +57,6 @@ const DayHeader = ({ day }) => {
   );
 };
 
-const generateDays = (count = 20) => {
-  const days = [];
-  for (let i = 0; i < count; i++) {
-    const date = new Date();
-    // This adds 'i' number of days to today's date
-    date.setDate(date.getDate() + i);
-
-    days.push({
-      id: date.getTime().toString(), // Unique ID for FlatList
-      date: date,
-      fullDateString: date.toDateString(), // e.g. "Wed Feb 11 2026"
-    });
-  }
-  return days;
-};
-
-interface BasicDate {
-  id: string; // Unique ID for FlatList
-  date: Date;
-  fullDateString: string; // e.g. "Wed Feb 11 2026"
-}
-
 // --- MAIN COMPONENT ---
 export default function Index() {
   // --- STATE ---
@@ -81,33 +65,33 @@ export default function Index() {
   const [view, setView] = useState<"M" | "W" | "3" | "2" | "1">("3"); // month/week toggle
   const [currentDate, setCurrentDate] = useState(new Date());
   const [days, setDays] = useState(() => generateDays(20));
-  const headerRef = useRef(null);
+  const headerRef = useRef<FlatList>(null);
 
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-
-  const renderDay = ({ item }) => {
-    return <DayContainer />;
+  const renderDay = ({ item }: { item: { date: Date } }) => {
+    return <DayContainer day={item.date} />;
   };
-  const renderDate = ({ item, index }) => {
+  const renderDate = ({ item }: { item: { date: Date } }) => {
+    console.log(item);
     return <DayHeader day={item.date} />;
   };
 
-  const onGridScroll = (event) => {
+  //moves the header with the calendar
+  const onGridScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const xOffset = event.nativeEvent.contentOffset.x;
 
     // Directly tell the header to scroll to the same position
     headerRef.current?.scrollToOffset({
       offset: xOffset,
-      animated: false, // Must be false for "perfect" syncing
+      animated: false,
     });
   };
 
   // --- DISPLAY ---
   return (
     <View style={styles.container}>
-      {/* --- VIEW TOGGLE BUTTONS --- */}
+      {/* --- MAIN CALENDAR --- */}
       <View style={{ borderRightWidth: 1, borderColor: GRID_COLOR, flex: 1 }}>
+        {/* --- DATE HEADER --- */}
         <View style={{ height: DATE_HEIGHT }}>
           <FlatList
             ref={headerRef}
@@ -116,23 +100,34 @@ export default function Index() {
             renderItem={renderDate}
             horizontal={true}
             scrollEnabled={false}
+            snapToInterval={DAY_WIDTH}
+            decelerationRate="fast"
             showsHorizontalScrollIndicator={false}
           />
         </View>
+        {/* --- VERTICAL SCROLL --- */}
         <ScrollView
           nestedScrollEnabled={true}
           style={{ flex: 1 }}
           contentContainerStyle={{
             height: HOUR_HEIGHT * 24,
           }}
+          horizontal={false}
         >
-          <FlatList
-            style={styles.multiDayContainer}
-            onScroll={onGridScroll}
-            data={days}
-            renderItem={renderDay}
-            horizontal={true}
-          />
+          {/* --- HORIZONTAL SCROLL --- */}
+          <View style={{ width: SCREEN_WIDTH }}>
+            <FlatList
+              style={styles.multiDayContainer}
+              snapToInterval={DAY_WIDTH}
+              decelerationRate="fast"
+              snapToAlignment="start"
+              onScroll={onGridScroll}
+              data={days}
+              renderItem={renderDay}
+              horizontal={true}
+              scrollEventThrottle={16}
+            />
+          </View>
         </ScrollView>
       </View>
     </View>
