@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   },
   hourRow: {
     borderBottomWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: GRID_COLOR,
     paddingLeft: 5,
   },
 });

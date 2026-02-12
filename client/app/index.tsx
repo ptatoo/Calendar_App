@@ -27,7 +27,7 @@ const INIT_DAYS_LOADED = 5;
 const DayHeader = ({ day }: { day: Date }) => {
   return (
     <View style={styles.date}>
-      <Text style={{ height: 10, textAlign: "center" }}>
+      <Text style={{ height: 20, textAlign: "center" }}>
         {day.toLocaleDateString("en-US", { weekday: "short" }) +
           " " +
           day.toLocaleDateString("en-US", { day: "numeric" })}
@@ -124,7 +124,7 @@ export default function Index() {
           horizontal={false}
         >
           {/* --- HORIZONTAL SCROLL --- */}
-          <View style={{ width: SCREEN_WIDTH }}>
+          <View style={{ width: SCREEN_WIDTH, flex: 1 }}>
             {days.length > 0 && (
               <RoundList
                 style={styles.multiDayContainer}
