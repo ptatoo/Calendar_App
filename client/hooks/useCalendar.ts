@@ -3,7 +3,9 @@ import { fetchCalendar } from "../services/api";
 import { storage } from "../services/storage";
 
 export function useCalendar(accessToken: string | null) {
-  const [events, setEvents] = useState<any>(null);
+  const [events, setEvents] = useState<any>(() => {
+    return storage.get("calendar") || null;
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

@@ -1,7 +1,7 @@
 import { AuthContext } from "@/app/context";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from 'expo-web-browser';
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Platform } from "react-native";
 import { fetchJwtToken } from "../services/api";
 import { storage } from '../services/storage';
@@ -43,34 +43,32 @@ export const useAuth = () => {
     discovery,
   );
 
-  const handleBackendLogin = useCallback( async () => {
-    
-    if (!(response?.type === "success") || !request?.codeVerifier){ 
-      if(response?.type === "error") setError("oopsie, error");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    try{
-      const { code } = response.params;
-      const { codeVerifier, redirectUri } = request;
-
-      const jwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
-
-      storage.saveSecure('jwt_token', jwtToken); // saves into persistent storage
-      setJwtToken(jwtToken); // sets global context
-      
-    } catch (error : any) {
-      setError(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [response, request, setJwtToken]);
 
   useEffect(() => {
+    const handleBackendLogin = async () => {
+      if (!(response?.type === "success") || !request?.codeVerifier){ 
+        if(response?.type === "error") setError("oopsie, error");
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+      try{
+        const { code } = response.params;
+        const { codeVerifier, redirectUri } = request;
+        const jwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
+
+        storage.saveSecure('jwt_token', jwtToken); // saves into persistent storage
+        setJwtToken(jwtToken); // sets global context
+        
+      } catch (error : any) {
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     handleBackendLogin();
-  }, [handleBackendLogin]);
+  }, [response, request, setJwtToken]);
 
   return { jwtToken, isLoading, error, request, promptAsync };
 };
