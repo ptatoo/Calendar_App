@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -9,9 +9,9 @@ import {
   Text,
   View,
 } from "react-native";
+import { FlatList as RoundList } from "react-native-bidirectional-infinite-scroll";
 import DayContainer from "../components/dayContainer";
-import { generateDays } from "../utility/calendarUtils";
-//import { FlatList } from "react-native-bidirectional-infinite-scroll";
+import { useDate } from "../hooks/useDate";
 
 // --- CONSTANTS ---
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -19,15 +19,18 @@ const NUM_COLUMNS = 7;
 const CONTAINER_PADDING = 40;
 const CELL_SIZE = (SCREEN_WIDTH - CONTAINER_PADDING) / NUM_COLUMNS;
 const HOUR_HEIGHT = 40;
-const DAY_WIDTH = Math.floor(SCREEN_WIDTH / 3);
+const DAY_WIDTH = SCREEN_WIDTH / 3;
 const DATE_HEIGHT = 20;
 const GRID_COLOR = "#f0f0f0";
+const INIT_DAYS_LOADED = 5;
 
 const DayHeader = ({ day }: { day: Date }) => {
   return (
     <View style={styles.date}>
       <Text style={{ height: 10, textAlign: "center" }}>
-        {day.toLocaleDateString("en-US", { weekday: "short" })}
+        {day.toLocaleDateString("en-US", { weekday: "short" }) +
+          " " +
+          day.toLocaleDateString("en-US", { day: "numeric" })}
       </Text>
     </View>
   );
@@ -40,8 +43,11 @@ export default function Index() {
   const [events, setEvents] = useState<any[]>([]);
   const [view, setView] = useState<"M" | "W" | "3" | "2" | "1">("3"); // month/week toggle
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [days, setDays] = useState(() => generateDays(20));
+  const [startDay, setStartDay] = useState(INIT_DAYS_LOADED * -1);
+  const [endDay, setEndDay] = useState(INIT_DAYS_LOADED);
+  const days = useDate(startDay, endDay);
   const headerRef = useRef<FlatList>(null);
+  const isUpdating = useRef(false);
 
   const renderDay = ({ item }: { item: { date: Date } }) => {
     return <DayContainer day={item.date} />;
@@ -60,6 +66,34 @@ export default function Index() {
       animated: false,
     });
   };
+
+  const getItemLayout = (data: any, index: number) => ({
+    length: DAY_WIDTH,
+    offset: DAY_WIDTH * index,
+    index,
+  });
+
+  const handleEndReached = useCallback(async () => {
+    if (isUpdating.current) return;
+
+    isUpdating.current = true;
+    setEndDay((prev) => prev + 10);
+
+    setTimeout(() => {
+      isUpdating.current = false;
+    }, 500);
+  }, []);
+
+  const handleStartReached = useCallback(async () => {
+    if (isUpdating.current) return;
+
+    isUpdating.current = true;
+    setStartDay((prev) => prev - 10);
+
+    setTimeout(() => {
+      isUpdating.current = false;
+    }, 500);
+  }, []);
 
   // --- DISPLAY ---
   return (
@@ -91,17 +125,26 @@ export default function Index() {
         >
           {/* --- HORIZONTAL SCROLL --- */}
           <View style={{ width: SCREEN_WIDTH }}>
-            <FlatList
-              style={styles.multiDayContainer}
-              snapToInterval={DAY_WIDTH}
-              decelerationRate="fast"
-              snapToAlignment="start"
-              onScroll={onGridScroll}
-              data={days}
-              renderItem={renderDay}
-              horizontal={true}
-              scrollEventThrottle={16}
-            />
+            {days.length > 0 && (
+              <RoundList
+                style={styles.multiDayContainer}
+                snapToInterval={DAY_WIDTH}
+                decelerationRate="fast"
+                snapToAlignment="start"
+                onScroll={onGridScroll}
+                data={days}
+                getItemLayout={getItemLayout}
+                initialScrollIndex={INIT_DAYS_LOADED}
+                onStartReached={async () => {}}
+                onEndReached={async () => {}}
+                renderItem={renderDay}
+                horizontal={true}
+                scrollEventThrottle={16}
+                onStartReachedThreshold={10} // Try a small pixel value or 0.1 ratio
+                onEndReachedThreshold={10}
+                keyExtractor={(item) => item.date.toISOString()}
+              />
+            )}
           </View>
         </ScrollView>
       </View>

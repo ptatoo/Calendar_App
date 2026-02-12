@@ -3,7 +3,7 @@ import { Dimensions, StyleSheet, View } from "react-native";
 // --- CONSTANTS ---
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const HOUR_HEIGHT = 40;
-const DAY_WIDTH = Math.floor(SCREEN_WIDTH / 3);
+const DAY_WIDTH = SCREEN_WIDTH / 3;
 const DATE_HEIGHT = 20;
 const GRID_COLOR = "#f0f0f0";
 
