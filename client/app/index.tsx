@@ -21,7 +21,7 @@ const CONTAINER_PADDING = 40;
 const CELL_SIZE = (SCREEN_WIDTH - CONTAINER_PADDING) / NUM_COLUMNS;
 const HOUR_HEIGHT = 40;
 const DAY_WIDTH = SCREEN_WIDTH / 3;
-const DATE_HEIGHT = 20;
+const DATE_HEIGHT = 40;
 const GRID_COLOR = "#f0f0f0";
 const INIT_DAYS_LOADED = 5;
 
@@ -183,10 +183,12 @@ const styles = StyleSheet.create({
   },
 
   date: {
+    padding: 10,
     width: DAY_WIDTH,
     height: DATE_HEIGHT,
     borderBottomWidth: 1,
     borderColor: GRID_COLOR,
+    backgroundColor: "#f0f0f0",
   },
 
   // --- WEEKDAY ROW ---
