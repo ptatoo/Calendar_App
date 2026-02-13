@@ -1,18 +1,18 @@
 import { useAccessToken } from "@/hooks/useAccessToken";
 import { useCalendar } from "@/hooks/useCalendar";
 import { useProfiles } from "@/hooks/useProfile";
-import { storage } from "@/services/storage";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { normalizeEvent } from "@/utility/eventUtils";
+import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { useAuth } from "../hooks/useAuth";
 
 export default function ContextTester420() {
   const authProps = useAuth();
   const profileProps = useProfiles(authProps.jwtToken?.sessionToken || null);
   const accessTokenProps = useAccessToken(authProps.jwtToken?.sessionToken || null);
-  const calendarProps = useCalendar(storage.get('access_tokens').parent.accessToken);
+  const calendarProps = useCalendar(accessTokenProps.familyAccessTokens?.parent.accessToken ?? null);
 
   return (
-    <View>
+    <ScrollView>
       <Pressable  
         style={styles.button}
         onPress={profileProps.refetch}
@@ -41,9 +41,12 @@ export default function ContextTester420() {
         {JSON.stringify(accessTokenProps.familyAccessTokens)}
       </Text>
       <Text style={styles.display}>
-        {JSON.stringify(calendarProps.events)}
+        {
+          calendarProps.events.items.map(
+          (item : any) => JSON.stringify(normalizeEvent(item),null,2)).join('\n\n')
+        }
       </Text>
-    </View>
+    </ScrollView>
   );
 }
 
