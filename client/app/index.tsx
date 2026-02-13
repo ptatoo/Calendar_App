@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useContext, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -12,6 +12,7 @@ import {
 import { FlatList as RoundList } from "react-native-bidirectional-infinite-scroll";
 import DayContainer from "../components/dayContainer";
 import { useDate } from "../hooks/useDate";
+import { AuthContext } from "./context";
 
 // --- CONSTANTS ---
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -41,7 +42,7 @@ export default function Index() {
   // --- STATE ---
   const [data, setData] = useState<string>("");
   const [events, setEvents] = useState<any[]>([]);
-  const [view, setView] = useState<"M" | "W" | "3" | "2" | "1">("3"); // month/week toggle
+  const [calendarType, setCalendarType] = useContext(AuthContext);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [startDay, setStartDay] = useState(INIT_DAYS_LOADED * -1);
   const [endDay, setEndDay] = useState(INIT_DAYS_LOADED);
