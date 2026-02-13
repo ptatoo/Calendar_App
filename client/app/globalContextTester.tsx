@@ -2,7 +2,6 @@ import { useAccessToken } from "@/hooks/useAccessToken";
 import { useCalendar } from "@/hooks/useCalendar";
 import { useProfiles } from "@/hooks/useProfile";
 import { storage } from "@/services/storage";
-import { normalizeEvent } from "@/utility/eventUtils";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { useAuth } from "../hooks/useAuth";
 
@@ -43,9 +42,7 @@ export default function ContextTester420() {
       </Text>
       <Text style={styles.display}>
         {
-          calendarProps.events ?
-          calendarProps.events.items.map((item : any) => JSON.stringify(normalizeEvent(item),null,2)).join('\n\n')
-          : "oopsie"
+          JSON.stringify(calendarProps.calendars,null,2)
         }
       </Text>
     </ScrollView>
