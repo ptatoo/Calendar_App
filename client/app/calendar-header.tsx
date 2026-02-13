@@ -21,16 +21,13 @@ export default function CalendarHeader(props: any) {
 
       {/* Date */}
       <View style={{ justifyContent: "center" }}>
-        <Text style={{ fontWeight: 500, fontSize: 18 }}>
+        <Text style={{ fontWeight: 500, fontSize: 22 }}>
           {currentDate.toLocaleString("default", { month: "long" })}
         </Text>
       </View>
 
       {/* Extra Buttons on the Right */}
       <View style={styles.headerButtonContainer}>
-        <Pressable style={styles.headerButton}>
-          <Text style={{ fontWeight: 500, fontSize: 14 }}>{view}</Text>
-        </Pressable>
         <Pressable style={styles.headerButton}>
           <Text style={{ fontWeight: 500, fontSize: 14 }}>
             {currentDate.toLocaleString("default", { day: "numeric" })}
@@ -62,7 +59,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   headerButton: {
-    backgroundColor: "#4285F4",
+    backgroundColor: "#77a7f7",
     borderRadius: 6,
     alignItems: "center",
     justifyContent: "center",
