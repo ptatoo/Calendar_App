@@ -31,3 +31,24 @@ export interface AuthContextType {
   calendarType: CalendarView;
   setCalendarType: (calendarType: CalendarView) => void;
 }
+
+export interface EventObj {
+  id: string,
+  title: string,
+  description: string,
+  organizer: string,
+  allDay: boolean,
+  startDate: Date,
+  endDate: Date,
+}
+
+export interface CalendarData {
+  owner: string;
+  name: string;
+  color: string;
+  events: EventObj[]; // The actual calendar events
+}
+export interface FamilyCalendarState {
+  parent: CalendarData;       // You (The User)
+  children: CalendarData[];   // The Kids
+}
