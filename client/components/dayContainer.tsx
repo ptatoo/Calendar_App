@@ -11,21 +11,25 @@ const HourTicks = () => {
   return (
     <View style={{}}>
       {Array.from({ length: 24 }).map((_, i) => (
-        <View key={i} style={[styles.hourRow, { height: HOUR_HEIGHT }]}>
-          {/* <Text style={{}}>{i}:00</Text> */}
-        </View>
+        <View key={i} style={[styles.hourRow, { height: HOUR_HEIGHT }]}></View>
       ))}
     </View>
   );
 };
 
-export default function DayContainer({ day }: { day: Date }) {
+export default function DayContainer({
+  day,
+  dayWidth,
+}: {
+  day: Date;
+  dayWidth: number;
+}) {
   return (
     <View
       key={day.toLocaleDateString()}
-      style={{ borderRightWidth: 1, borderColor: "#f0f0f0", width: DAY_WIDTH }}
+      style={{ borderRightWidth: 1, borderColor: "#f0f0f0", width: dayWidth }}
     >
-      <View style={styles.dayContainer}>
+      <View style={[styles.dayContainer, { width: dayWidth }]}>
         <HourTicks />
       </View>
     </View>
@@ -33,32 +37,8 @@ export default function DayContainer({ day }: { day: Date }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "white",
-    flex: 1,
-  },
-
-  // --- DAY ---
-  multiDayContainer: {
-    flexDirection: "row",
-    flex: 1,
-  },
-
   dayContainer: {
-    width: DAY_WIDTH,
     flex: 1,
-  },
-
-  dateContainer: {
-    flexDirection: "row",
-    height: DATE_HEIGHT,
-  },
-
-  date: {
-    width: DAY_WIDTH,
-    height: DATE_HEIGHT,
-    borderBottomWidth: 1,
-    borderColor: GRID_COLOR,
   },
   hourRow: {
     borderBottomWidth: 1,
