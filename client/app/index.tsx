@@ -1,4 +1,4 @@
-import { useCallback, useContext, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -42,13 +42,17 @@ export default function Index() {
   // --- STATE ---
   const [data, setData] = useState<string>("");
   const [events, setEvents] = useState<any[]>([]);
-  const [calendarType, setCalendarType] = useContext(AuthContext);
+  const { calendarType, setCalendarType } = useContext(AuthContext);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [startDay, setStartDay] = useState(INIT_DAYS_LOADED * -1);
   const [endDay, setEndDay] = useState(INIT_DAYS_LOADED);
   const days = useDate(startDay, endDay);
   const headerRef = useRef<FlatList>(null);
   const isUpdating = useRef(false);
+
+  useEffect(() => {
+    console.log("Type changed to:", calendarType);
+  }, [calendarType]);
 
   const renderDay = ({ item }: { item: { date: Date } }) => {
     return <DayContainer day={item.date} />;

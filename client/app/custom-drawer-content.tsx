@@ -4,25 +4,24 @@ import {
   DrawerItemList,
 } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthContext } from "./context";
 
 export default function CustomDrawerContent(props: any) {
   const [familyProfile, setFamilyProfile] = useState(storage.get("profiles"));
-  const [calendarType, setCalendarType] = useContext(AuthContext);
+  const { calendarType, setCalendarType } = useContext(AuthContext);
   const router = useRouter();
   const [view, setView] = useState<"M" | "W" | "3" | "2" | "1">("3"); // month/week toggle
-    
-  useEffect(() => {
-    console.log("View changed to:", view);
-  }, [view]);
 
-  const getButtonStyle = (option: "1" | "2" | "3" | "W" | "M", pressed: boolean) => [
-      styles.viewButton,
-      view === option && styles.activeButton,
-      pressed && styles.pressedButton,
+  const getButtonStyle = (
+    option: "1" | "2" | "3" | "W" | "M",
+    pressed: boolean,
+  ) => [
+    styles.viewButton,
+    calendarType === option && styles.activeButton,
+    pressed && styles.pressedButton,
   ];
 
   return (
@@ -42,12 +41,28 @@ export default function CustomDrawerContent(props: any) {
       {/* here for convenience. only for testing */}
       <View style={styles.viewToggleContainer}>
         {["1", "2", "3", "W", "M"].map((option) => (
-            <Pressable key={option} onPress={() => setView(option as "1" | "2" | "3" | "W" | "M" )}
-                style={({ pressed }) => getButtonStyle(option as "1" | "2" | "3" | "W" | "M" , pressed)}>
-                <Text style={[styles.viewButtonText, view === option && styles.activeButtonText]}>
-                    {option === "W" ? "week" : option === "M" ? "month" : `${option} day${option !== "1" ? "s" : ""}`}
-                </Text>
-            </Pressable>
+          <Pressable
+            key={option}
+            onPress={() =>
+              setCalendarType(option as "1" | "2" | "3" | "W" | "M")
+            }
+            style={({ pressed }) =>
+              getButtonStyle(option as "1" | "2" | "3" | "W" | "M", pressed)
+            }
+          >
+            <Text
+              style={[
+                styles.viewButtonText,
+                calendarType === option && styles.activeButtonText,
+              ]}
+            >
+              {option === "W"
+                ? "week"
+                : option === "M"
+                  ? "month"
+                  : `${option} day${option !== "1" ? "s" : ""}`}
+            </Text>
+          </Pressable>
         ))}
       </View>
       <DrawerContentScrollView {...props}>
@@ -75,35 +90,35 @@ const styles = StyleSheet.create({
     color: "gray",
     marginBottom: 10,
   },
-    viewToggleContainer: {
-      justifyContent: "space-between",
-      marginVertical: 15,
-      paddingHorizontal: 10,
-    },
+  viewToggleContainer: {
+    justifyContent: "space-between",
+    marginVertical: 15,
+    paddingHorizontal: 10,
+  },
 
-    viewButton: {
-      paddingVertical: 10,
-      marginVertical: 2,
-      borderRadius: 8,
-      backgroundColor: "#FFFFFF",
-      alignItems: "center",
-    },
+  viewButton: {
+    paddingVertical: 10,
+    marginVertical: 2,
+    borderRadius: 8,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+  },
 
-    activeButton: {
-      backgroundColor: "#f0f0f0",
-    },
+  activeButton: {
+    backgroundColor: "#f0f0f0",
+  },
 
-    viewButtonText: {
-      fontSize: 14,
-      color: "#333",
-      fontWeight: "500",
-    },
+  viewButtonText: {
+    fontSize: 14,
+    color: "#333",
+    fontWeight: "500",
+  },
 
-    activeButtonText: {
-      color: "#333",
-      fontWeight: "600",
-    },
-    pressedButton: {
-      transform: [{ scale: 0.96 }],
-    },
+  activeButtonText: {
+    color: "#333",
+    fontWeight: "600",
+  },
+  pressedButton: {
+    transform: [{ scale: 0.96 }],
+  },
 });
