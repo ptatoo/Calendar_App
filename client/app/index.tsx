@@ -65,6 +65,8 @@ export default function Index() {
       offset: xOffset,
       animated: false,
     });
+    const itemsScrolled = Math.floor(xOffset / DAY_WIDTH + 0.5);
+    console.log(itemsScrolled);
   };
 
   const getItemLayout = (data: any, index: number) => ({

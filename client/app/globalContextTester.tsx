@@ -8,32 +8,25 @@ import { useAuth } from "../hooks/useAuth";
 export default function ContextTester420() {
   const authProps = useAuth();
   const profileProps = useProfiles(authProps.jwtToken?.sessionToken || null);
-  const accessTokenProps = useAccessToken(authProps.jwtToken?.sessionToken || null);
-  const calendarProps = useCalendar(accessTokenProps.familyAccessTokens?.parent.accessToken ?? null);
+  const accessTokenProps = useAccessToken(
+    authProps.jwtToken?.sessionToken || null,
+  );
+  const calendarProps = useCalendar(
+    accessTokenProps.familyAccessTokens?.parent.accessToken ?? null,
+  );
 
   return (
     <ScrollView>
-      <Pressable  
-        style={styles.button}
-        onPress={profileProps.refetch}
-      >
+      <Pressable style={styles.button} onPress={profileProps.refetch}>
         <Text style={styles.buttonText}>profile</Text>
       </Pressable>
-      <Pressable 
-        style={styles.button} 
-        onPress={calendarProps.refetch}
-      >
+      <Pressable style={styles.button} onPress={calendarProps.refetch}>
         <Text style={styles.buttonText}>calendar</Text>
       </Pressable>
-      <Pressable 
-        style={styles.button} 
-        onPress={accessTokenProps.refetch}
-      >
+      <Pressable style={styles.button} onPress={accessTokenProps.refetch}>
         <Text style={styles.buttonText}>access</Text>
       </Pressable>
-      <Text style={styles.display}>
-        {JSON.stringify(authProps.jwtToken)}
-      </Text>
+      <Text style={styles.display}>{JSON.stringify(authProps.jwtToken)}</Text>
       <Text style={styles.display}>
         {JSON.stringify(profileProps.familyProfiles)}
       </Text>
@@ -41,15 +34,15 @@ export default function ContextTester420() {
         {JSON.stringify(accessTokenProps.familyAccessTokens)}
       </Text>
       <Text style={styles.display}>
-        {
-          calendarProps.events.items.map(
-          (item : any) => JSON.stringify(normalizeEvent(item),null,2)).join('\n\n')
-        }
+        {calendarProps.events
+          ? calendarProps.events.items
+              .map((item: any) => JSON.stringify(normalizeEvent(item), null, 2))
+              .join("\n\n")
+          : "asdf"}
       </Text>
     </ScrollView>
   );
 }
-
 
 const styles = StyleSheet.create({
   homepg: {
