@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { fetchCalendar } from "../services/api";
 import { storage } from "../services/storage";
+import { useAccessToken } from "./useAccessToken";
 
-export function useCalendar(accessToken: string | null) {
+export function useCalendar(jwtToken: string | null) {
+  const { getValidAccessToken } = useAccessToken(jwtToken);
+
   const [events, setEvents] = useState<any>(() => {
     return storage.get("calendar") || null;
   });
@@ -10,15 +13,23 @@ export function useCalendar(accessToken: string | null) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchUserEvents = useCallback(async () => {
-    if (!accessToken) return;
+    if (!jwtToken) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      //Fetch from Backend
+      // 2. Get a Guaranteed Valid Token (Waits for refresh if needed)
+      const tokens = await getValidAccessToken();
+      
+      if (!tokens?.parent?.accessToken) {
+        throw new Error("oopsie, parent accesstoken no exist");
+      }
+
+      const accessToken = tokens.parent.accessToken;
+
+      //fetch google cal
       const data = await fetchCalendar(accessToken);
-      console.log("calendar fetcing called");
 
       //Update State & Local Storage
       setEvents(data);
@@ -30,7 +41,7 @@ export function useCalendar(accessToken: string | null) {
     } finally {
       setIsLoading(false);
     }
-  }, [accessToken]);
+  }, [jwtToken, getValidAccessToken]);
 
   // Automatically fetch when the token changes
   useEffect(() => {

@@ -4,12 +4,14 @@ import {
   DrawerItemList,
 } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AuthContext } from "./context";
 
 export default function CustomDrawerContent(props: any) {
   const [familyProfile, setFamilyProfile] = useState(storage.get("profiles"));
+  const [calendarType, setCalendarType] = useContext(AuthContext);
   const router = useRouter();
   const [view, setView] = useState<"M" | "W" | "3" | "2" | "1">("3"); // month/week toggle
     
