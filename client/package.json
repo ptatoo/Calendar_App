@@ -21,6 +21,7 @@
     "@react-oauth/google": "^0.13.4",
     "@shopify/flash-list": "2.0.2",
     "@stream-io/flat-list-mvcp": "^0.10.3",
+    "date-fns": "^4.1.0",
     "dotenv": "^17.2.4",
     "expo": "~54.0.31",
     "expo-auth-session": "~7.0.10",
