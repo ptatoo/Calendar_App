@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -12,6 +12,7 @@ import {
 import { FlatList as RoundList } from "react-native-bidirectional-infinite-scroll";
 import DayContainer from "../components/dayContainer";
 import { useDate } from "../hooks/useDate";
+import { AuthContext } from "./context";
 
 // --- CONSTANTS ---
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -20,7 +21,7 @@ const CONTAINER_PADDING = 40;
 const CELL_SIZE = (SCREEN_WIDTH - CONTAINER_PADDING) / NUM_COLUMNS;
 const HOUR_HEIGHT = 40;
 const DAY_WIDTH = SCREEN_WIDTH / 3;
-const DATE_HEIGHT = 20;
+const DATE_HEIGHT = 40;
 const GRID_COLOR = "#f0f0f0";
 const INIT_DAYS_LOADED = 5;
 
@@ -41,13 +42,17 @@ export default function Index() {
   // --- STATE ---
   const [data, setData] = useState<string>("");
   const [events, setEvents] = useState<any[]>([]);
-  const [view, setView] = useState<"M" | "W" | "3" | "2" | "1">("3"); // month/week toggle
+  const { calendarType, setCalendarType } = useContext(AuthContext);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [startDay, setStartDay] = useState(INIT_DAYS_LOADED * -1);
   const [endDay, setEndDay] = useState(INIT_DAYS_LOADED);
   const days = useDate(startDay, endDay);
   const headerRef = useRef<FlatList>(null);
   const isUpdating = useRef(false);
+
+  useEffect(() => {
+    console.log("Type changed to:", calendarType);
+  }, [calendarType]);
 
   const renderDay = ({ item }: { item: { date: Date } }) => {
     return <DayContainer day={item.date} />;
@@ -65,6 +70,8 @@ export default function Index() {
       offset: xOffset,
       animated: false,
     });
+    const itemsScrolled = Math.floor(xOffset / DAY_WIDTH + 0.5);
+    console.log(itemsScrolled);
   };
 
   const getItemLayout = (data: any, index: number) => ({
@@ -176,10 +183,12 @@ const styles = StyleSheet.create({
   },
 
   date: {
+    padding: 10,
     width: DAY_WIDTH,
     height: DATE_HEIGHT,
     borderBottomWidth: 1,
     borderColor: GRID_COLOR,
+    backgroundColor: "#f0f0f0",
   },
 
   // --- WEEKDAY ROW ---

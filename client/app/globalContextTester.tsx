@@ -8,37 +8,28 @@ import { useAuth } from "../hooks/useAuth";
 export default function ContextTester420() {
   const authProps = useAuth();
   const profileProps = useProfiles(authProps.jwtToken?.sessionToken || null);
-  const accessTokenProps = useAccessToken(authProps.jwtToken?.sessionToken || null);
+  const accessTokenProps = useAccessToken(
+    authProps.jwtToken?.sessionToken || null,
+  );
   const calendarProps = useCalendar(authProps.jwtToken?.sessionToken || null);
 
   return (
     <ScrollView>
-      <Pressable  
-        style={styles.button}
-        onPress={profileProps.refetch}
-      >
+      <Pressable style={styles.button} onPress={profileProps.refetch}>
         <Text style={styles.buttonText}>profile</Text>
       </Pressable>
-      <Pressable 
-        style={styles.button} 
-        onPress={calendarProps.refetch}
-      >
+      <Pressable style={styles.button} onPress={calendarProps.refetch}>
         <Text style={styles.buttonText}>calendar</Text>
       </Pressable>
-      <Pressable 
-        style={styles.button} 
-        onPress={accessTokenProps.refetch}
-      >
+      <Pressable style={styles.button} onPress={accessTokenProps.refetch}>
         <Text style={styles.buttonText}>access</Text>
       </Pressable>
-      <Text style={styles.display}>
-        {JSON.stringify(authProps.jwtToken)}
-      </Text>
+      <Text style={styles.display}>{JSON.stringify(authProps.jwtToken)}</Text>
       <Text style={styles.display}>
         {JSON.stringify(profileProps.familyProfiles)}
       </Text>
       <Text style={styles.display}>
-        {JSON.stringify(storage.get('access_tokens'))}
+        {JSON.stringify(storage.get("access_tokens"))}
       </Text>
       <Text style={styles.display}>
         {
@@ -48,7 +39,6 @@ export default function ContextTester420() {
     </ScrollView>
   );
 }
-
 
 const styles = StyleSheet.create({
   homepg: {
