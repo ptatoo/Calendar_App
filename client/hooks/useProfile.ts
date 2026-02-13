@@ -16,8 +16,7 @@ export function useProfiles(JWTToken: string | null) {
 
     try {
       //Fetch from Backend
-      const data = await fetchFamilyProfiles(JWTToken);
-      console.log("pleaaase be called")
+      const data = await fetchFamilyProfiles(JWTToken)
       //Update State & Local Storage
       setFamilyProfiles(data);
       storage.save("profiles", data);

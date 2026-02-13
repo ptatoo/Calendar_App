@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchFamilyAccessTokens } from "../services/api";
 import { storage } from "../services/storage";
 
-
 export function useAccessToken(jwtToken: string | null) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
