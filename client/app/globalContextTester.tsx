@@ -1,6 +1,7 @@
 import { useAccessToken } from "@/hooks/useAccessToken";
 import { useCalendar } from "@/hooks/useCalendar";
 import { useProfiles } from "@/hooks/useProfile";
+import { storage } from "@/services/storage";
 import { normalizeEvent } from "@/utility/eventUtils";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { useAuth } from "../hooks/useAuth";
@@ -11,9 +12,7 @@ export default function ContextTester420() {
   const accessTokenProps = useAccessToken(
     authProps.jwtToken?.sessionToken || null,
   );
-  const calendarProps = useCalendar(
-    accessTokenProps.familyAccessTokens?.parent.accessToken ?? null,
-  );
+  const calendarProps = useCalendar(authProps.jwtToken?.sessionToken || null);
 
   return (
     <ScrollView>
@@ -31,14 +30,14 @@ export default function ContextTester420() {
         {JSON.stringify(profileProps.familyProfiles)}
       </Text>
       <Text style={styles.display}>
-        {JSON.stringify(accessTokenProps.familyAccessTokens)}
+        {JSON.stringify(storage.get("access_tokens"))}
       </Text>
       <Text style={styles.display}>
         {calendarProps.events
           ? calendarProps.events.items
               .map((item: any) => JSON.stringify(normalizeEvent(item), null, 2))
               .join("\n\n")
-          : "asdf"}
+          : "oopsie"}
       </Text>
     </ScrollView>
   );

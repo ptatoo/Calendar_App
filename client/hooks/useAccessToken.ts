@@ -4,9 +4,6 @@ import { fetchFamilyAccessTokens } from "../services/api";
 import { storage } from "../services/storage";
 
 export function useAccessToken(jwtToken: string | null) {
-  const [familyAccessTokens, setFamilyAccessTokens] = useState<FamilyAccessTokenObjs | null>(
-    () => storage.get("access_tokens")
-  ) ;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,59 +17,59 @@ export function useAccessToken(jwtToken: string | null) {
       //Fetch from Backend
       const data = await fetchFamilyAccessTokens(jwtToken)
       
-      //Update State & Local Storage
-      setFamilyAccessTokens(data);
+      //Update Local Storage
       storage.save("access_tokens", data);
-
+      return data;
     } catch (err: any) {
       console.error("Backend Profile Fetch Error:", err);
       setError(err.message);
+      return null;
     } finally {
       setIsLoading(false);
     }
   }, [jwtToken]);
 
+  
+  const getValidAccessToken = useCallback(async () => {
+    if (!jwtToken) return;
 
-  useEffect(() => {
-    const checkValid = async () => {
-      if (!jwtToken) return;
+    const storedData = storage.get("access_tokens") as FamilyAccessTokenObjs | null;
 
-      const storedData = storage.get("access_tokens") as FamilyAccessTokenObjs | null;
+    if(!storedData) {
+      return await fetchBackendAccessTokens();
+    }
 
-      if(!storedData) {
-        await await fetchBackendAccessTokens();
-        return;
-      }
-      const allTokens: AccessTokenObj[] = [
-        storedData.parent,       // Add the parent object
-        ...(storedData.children || [])
-      ];
-      
-      setFamilyAccessTokens(storedData);
+    const allTokens: AccessTokenObj[] = [
+      storedData.parent,       // Add the parent object
+      ...(storedData.children || [])
+    ];
 
-      // B. If data exists, check the Expiry Date
-      const SAFETY_BUFFER = 100 * 60 * 1000; // 5 minutes buffer
-      const now = Date.now();
+    // B. If data exists, check the Expiry Date
+    const SAFETY_BUFFER = 10 * 60 * 1000; // 5 minutes buffer
+    const now = Date.now();
 
-      for(const tokenObj of allTokens){
-        if(!tokenObj) continue;
+    for(const tokenObj of allTokens){
+      if(!tokenObj) continue;
 
-        const expiryDate = tokenObj.expiryDate;
-        const isExpired = !expiryDate || (now + SAFETY_BUFFER) > +expiryDate;
-             
-        if(isExpired){
-          console.log(`${tokenObj.id} totken is expired`);
-          await fetchBackendAccessTokens()
-          return;
-        }
+      const expiryDate = tokenObj.expiryDate;
+      const isExpired = !expiryDate || (now + SAFETY_BUFFER) > +expiryDate;
+            
+      if(isExpired){
+        console.log(`${tokenObj.id} totken is expired`);
+        return await fetchBackendAccessTokens();
       }
     }
-    checkValid();
+    return storedData;
+  }, [jwtToken, fetchBackendAccessTokens]);
+
+  useEffect(() => {
+    if(jwtToken)
+      fetchBackendAccessTokens();
   }, [jwtToken, fetchBackendAccessTokens]);
 
   const value = useMemo(() => ({
-    familyAccessTokens, isLoading, error, refetch: fetchBackendAccessTokens
-  }), [familyAccessTokens, isLoading, error, fetchBackendAccessTokens])
+    getValidAccessToken, isLoading, error, refetch: fetchBackendAccessTokens
+  }), [getValidAccessToken, isLoading, error, fetchBackendAccessTokens])
 
   return value;
-}
+} 
