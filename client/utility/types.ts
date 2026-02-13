@@ -20,10 +20,7 @@ export interface FamilyAccessTokenObjs {
   parent: AccessTokenObj;
   children: AccessTokenObj[]
 }
-export interface CalendarType {
-  type: "M" | "W" | "3" | "2" | "1";
-  setType: (newType: "M" | "W" | "3" | "2" | "1") => void;
-}
+export type CalendarView = "M" | "W" | "3" | "2" | "1";
 export interface AuthContextType {
   jwtToken: JwtTokenObj | null;
   setJwtToken: (jwtToken : JwtTokenObj | null) => void;
@@ -31,6 +28,6 @@ export interface AuthContextType {
   familyProfiles: FamilyProfileObjs | null;
   setFamilyProfiles: (familyProfile : FamilyProfileObjs | null) => void;
 
-  CalendarType: "M" | "W" | "3" | "2" | "1";
-  setCalendarType: (CalendarType: "M" | "W" | "3" | "2" | "1") => void;
+  calendarType: CalendarView;
+  setCalendarType: (calendarType: CalendarView) => void;
 }
