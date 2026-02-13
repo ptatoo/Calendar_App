@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
 
     activeButtonText: {
       color: "#333",
-      fontWeight: "650",
+      fontWeight: "600",
     },
     pressedButton: {
       transform: [{ scale: 0.96 }],
