@@ -35,6 +35,7 @@ export const storage = {
   get: (key: string) => {
     try {
       const val = localStorage.getItem(key);
+      if ((val ? JSON.parse(val) : null).error) throw console.error();
       return val ? JSON.parse(val) : null;
     } catch (error) {
       console.error(`Failed storage.web.ts:get [Storage] Load failed for "${key}":`, error);
