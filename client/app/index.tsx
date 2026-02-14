@@ -7,6 +7,8 @@ import { AuthContext } from "./context";
 import { useAuth } from "@/hooks/useAuth";
 import { useCalendar } from "@/hooks/useCalendar";
 import { useProfiles } from "@/hooks/useProfile";
+import { EventObj } from "@/utility/types";
+
 
 // --- MAIN COMPONENT ---
 export default function Index() {
@@ -17,7 +19,17 @@ export default function Index() {
   const { jwtToken } = useAuth();
   const { familyProfiles } = useProfiles(jwtToken?.sessionToken ?? null);
   const calendarProps = useCalendar(jwtToken?.sessionToken ?? null);
+    
+    const calendars = calendarProps.calendars;
 
+    const allEvents: EventObj[] = calendars
+      ? [
+          ...(calendars.parent?.events || []),
+          ...(calendars.children?.flatMap(child => child.events) || []),
+        ]
+      : [];
+    
+    console.log(allEvents);
   console.log(calendarProps.calendars);
 
   useEffect(() => {
@@ -33,7 +45,7 @@ export default function Index() {
       {(calendarType === "3" ||
         calendarType === "2" ||
         calendarType === "1") && (
-        <MultiDayContainer calendarType={calendarType} />
+        <MultiDayContainer calendarType={calendarType} events={allEvents}/>
       )}
 
       {calendarType === "M" && <MonthContainer />}
