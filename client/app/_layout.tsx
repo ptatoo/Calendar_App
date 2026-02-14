@@ -2,9 +2,9 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Drawer } from "expo-router/drawer";
 import { useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import CalendarHeader from "./calendar-header";
+import CalendarHeader from "../components/calendar-header";
+import CustomDrawerContent from "../components/custom-drawer-content";
 import { AuthProvider } from "./context";
-import CustomDrawerContent from "./custom-drawer-content";
 
 export default function RootLayout() {
   const [currentDate, setCurrentDate] = useState(new Date());

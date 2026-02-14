@@ -43,7 +43,6 @@ export const useAuth = () => {
     discovery,
   );
 
-
   useEffect(() => {
     const handleBackendLogin = async () => {
       if (!(response?.type === "success") || !request?.codeVerifier){ 

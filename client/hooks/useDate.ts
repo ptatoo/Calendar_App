@@ -1,11 +1,14 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-export function useDate(startDay: number, endDay: number) {
+export function useDate(defaultStart: number, defaultEnd: number) {
   const [days, setDays] = useState<{date: Date}[]>([]);
 
-  const updateDays = useCallback(() => {
+  const updateDays = useCallback((newStart?: number, newEnd?: number) => {
+    const start = newStart !== undefined ? newStart : defaultStart;
+    const end = newEnd !== undefined ? newEnd : defaultEnd;
+
     const newDays : {date: Date}[] = [];
-    for (let i = startDay; i < endDay; i++) {
+    for (let i = start; i < end; i++) {
       const date = new Date();
       date.setDate(date.getDate() + i);
 
@@ -13,12 +16,12 @@ export function useDate(startDay: number, endDay: number) {
     }
     setDays(newDays);
 
-  }, [startDay, endDay]);
+  }, [defaultStart, defaultEnd]);
 
   // Automatically fetch when the token changes
-  useMemo(() => {
+  useEffect(() => {
     updateDays();
   }, [updateDays]);
 
-  return days;
+  return { days, refetch: updateDays };
 }

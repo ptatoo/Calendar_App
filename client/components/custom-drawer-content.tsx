@@ -1,19 +1,20 @@
-import { storage } from "@/services/storage";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfiles } from "@/hooks/useProfile";
 import {
   DrawerContentScrollView,
   DrawerItemList,
 } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AuthContext } from "./context";
+import { AuthContext } from "../app/context";
 
 export default function CustomDrawerContent(props: any) {
-  const [familyProfile, setFamilyProfile] = useState(storage.get("profiles"));
+  const { jwtToken } = useAuth();
+  const { familyProfiles } = useProfiles(jwtToken?.sessionToken ?? null);
   const { calendarType, setCalendarType } = useContext(AuthContext);
   const router = useRouter();
-  const [view, setView] = useState<"M" | "W" | "3" | "2" | "1">("3"); // month/week toggle
 
   const getButtonStyle = (
     option: "1" | "2" | "3" | "W" | "M",
@@ -23,7 +24,8 @@ export default function CustomDrawerContent(props: any) {
     calendarType === option && styles.activeButton,
     pressed && styles.pressedButton,
   ];
-
+    
+    console.log(familyProfiles);
   return (
     <SafeAreaView style={styles.headerContainer}>
       <View>
@@ -31,10 +33,10 @@ export default function CustomDrawerContent(props: any) {
         make the Pressable component less transparent when pressed*/}
         <Pressable onPress={() => router.push("/login")}>
           <Text style={styles.username}>
-            {familyProfile ? familyProfile.parent.name : "Username"}
+            {familyProfiles.parent ? familyProfiles.parent.name : "Username"}
           </Text>
           <Text style={styles.email}>
-            {familyProfile ? familyProfile.parent.email : "Email"}
+            {familyProfiles.parent ? familyProfiles.parent.email : "Email"}
           </Text>
         </Pressable>
       </View>
@@ -43,9 +45,10 @@ export default function CustomDrawerContent(props: any) {
         {["1", "2", "3", "W", "M"].map((option) => (
           <Pressable
             key={option}
-            onPress={() =>
-              setCalendarType(option as "1" | "2" | "3" | "W" | "M")
-            }
+            onPress={() => {
+                setCalendarType(option as "1" | "2" | "3" | "W" | "M");
+                props.navigation.closeDrawer();
+            }}
             style={({ pressed }) =>
               getButtonStyle(option as "1" | "2" | "3" | "W" | "M", pressed)
             }

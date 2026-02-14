@@ -1,4 +1,5 @@
-import MultiDayContainer from "@/components/multiDayContainer";
+import MonthContainer from "@/components/month-container";
+import MultiDayContainer from "@/components/multi-day-container";
 import { useContext, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { AuthContext } from "./context";
@@ -22,6 +23,8 @@ export default function Index() {
         calendarType === "1") && (
         <MultiDayContainer calendarType={calendarType} />
       )}
+
+      {calendarType === "M" && <MonthContainer />}
     </View>
   );
 }

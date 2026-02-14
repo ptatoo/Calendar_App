@@ -45,16 +45,3 @@ export function formatHour(hour: number) {
   const hour12 = hour % 12 === 0 ? 12 : hour % 12;
   return `${hour12} ${suffix}`;
 }
-
-//generates a certain number of days after today
-export const generateDays = (count = 20) => {
-  const days = [];
-  for (let i = 0; i < count; i++) {
-    const date = new Date();
-    // This adds 'i' number of days to today's date
-    date.setDate(date.getDate() + i);
-
-    days.push({ date });
-  }
-  return days;
-};

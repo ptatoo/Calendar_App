@@ -11,13 +11,12 @@ import {
   View,
 } from "react-native";
 import { FlatList as RoundList } from "react-native-bidirectional-infinite-scroll";
-import DayContainer from "../components/dayContainer";
 import { useDate } from "../hooks/useDate";
+import DayContainer from "./single-day-container";
 
 // --- CONSTANTS ---
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const HOUR_HEIGHT = 40;
-const DAY_WIDTH = SCREEN_WIDTH / 3;
 const GRID_COLOR = "#f0f0f0";
 const INIT_DAYS_LOADED = 5;
 
@@ -45,8 +44,7 @@ export default function MultiDayContainer({
   //days generator
   const [startDay, setStartDay] = useState(INIT_DAYS_LOADED * -1);
   const [endDay, setEndDay] = useState(INIT_DAYS_LOADED);
-  const days = useDate(startDay, endDay);
-
+  const { days, refetch } = useDate(startDay, endDay);
   //technical stuff
   const headerRef = useRef<FlatList>(null);
   const isUpdating = useRef(false);
@@ -76,7 +74,6 @@ export default function MultiDayContainer({
       animated: false,
     });
     const itemsScrolled = Math.floor(xOffset / dayWidth + 0.5);
-    console.log(itemsScrolled);
   };
 
   //get layouts of item for "RoundList"
