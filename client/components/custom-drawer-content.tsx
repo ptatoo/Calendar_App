@@ -24,7 +24,8 @@ export default function CustomDrawerContent(props: any) {
     calendarType === option && styles.activeButton,
     pressed && styles.pressedButton,
   ];
-
+    
+    console.log(familyProfiles);
   return (
     <SafeAreaView style={styles.headerContainer}>
       <View>
@@ -32,10 +33,10 @@ export default function CustomDrawerContent(props: any) {
         make the Pressable component less transparent when pressed*/}
         <Pressable onPress={() => router.push("/login")}>
           <Text style={styles.username}>
-            {familyProfiles ? familyProfiles.parent.name : "Username"}
+            {familyProfiles.parent ? familyProfiles.parent.name : "Username"}
           </Text>
           <Text style={styles.email}>
-            {familyProfiles ? familyProfiles.parent.email : "Email"}
+            {familyProfiles.parent ? familyProfiles.parent.email : "Email"}
           </Text>
         </Pressable>
       </View>
@@ -44,9 +45,10 @@ export default function CustomDrawerContent(props: any) {
         {["1", "2", "3", "W", "M"].map((option) => (
           <Pressable
             key={option}
-            onPress={() =>
-              setCalendarType(option as "1" | "2" | "3" | "W" | "M")
-            }
+            onPress={() => {
+                setCalendarType(option as "1" | "2" | "3" | "W" | "M");
+                props.navigation.closeDrawer();
+            }}
             style={({ pressed }) =>
               getButtonStyle(option as "1" | "2" | "3" | "W" | "M", pressed)
             }

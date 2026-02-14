@@ -17,13 +17,21 @@ export function useProfiles(JWTToken: string | null) {
     try {
       //Fetch from Backend
       const data = await fetchFamilyProfiles(JWTToken)
+
+      //check if data is ok
+      if(data.error) {
+        console.error("Backend Profile Fetch Error:", data?.error);
+        setError(data?.error || "big error in profiles");
+        return;
+      }
+
       //Update State & Local Storage
       setFamilyProfiles(data);
       storage.save("profiles", data);
       
     } catch (err: any) {
       console.error("Backend Profile Fetch Error:", err);
-      setError(err.message);
+      setError(err.message || "big error in profiles");
     } finally {
       setIsLoading(false);
     }
