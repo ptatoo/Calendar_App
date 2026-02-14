@@ -29,7 +29,7 @@ export default function CalendarHeader(props: any) {
       {/* Extra Buttons on the Right */}
       <View style={styles.headerButtonContainer}>
         <Pressable style={styles.headerButton}>
-          <Text style={{ fontWeight: 500, fontSize: 14 }}>
+          <Text style={{ fontWeight: 500, fontSize: 16 }}>
             {currentDate.toLocaleString("default", { day: "numeric" })}
           </Text>
         </Pressable>
@@ -60,9 +60,11 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     backgroundColor: "#77a7f7",
-    borderRadius: 6,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
+    width: 40,
+    height: 40,
     aspectRatio: 1,
     fontWeight: "700",
 

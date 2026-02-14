@@ -1,4 +1,4 @@
-import { CalendarView } from "@/utility/types";
+import { CalendarView, EventObj } from "@/utility/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Dimensions,
@@ -13,6 +13,7 @@ import {
 import { FlatList as RoundList } from "react-native-bidirectional-infinite-scroll";
 import { useDate } from "../hooks/useDate";
 import DayContainer from "./single-day-container";
+
 
 // --- CONSTANTS ---
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -32,13 +33,12 @@ const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
   );
 };
 
+
 // --- MAIN COMPONENT ---
-export default function MultiDayContainer({
-  calendarType,
-}: {
-  calendarType: CalendarView;
-}) {
+export default function MultiDayContainer({ calendarType, events, }: { calendarType: CalendarView; events: EventObj[]; }) {
   //width
+    
+    console.log(events);
   const [dayWidth, setDayWidth] = useState(3);
 
   //days generator
@@ -56,6 +56,7 @@ export default function MultiDayContainer({
   const renderDate = ({ item }: { item: { date: Date } }) => {
     return <DayHeader day={item.date} dayWidth={dayWidth} />;
   };
+
 
   //update dayWidth of calendar
   useEffect(() => {
