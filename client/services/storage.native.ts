@@ -8,7 +8,7 @@ export const storage = {
         const jsonValue = JSON.stringify(value);
         storageDevice.set(key, jsonValue);
     } catch (e) {
-        console.log("Failed storage.web.ts:saveSecure\n", e);
+        console.log("Failed storage.NATIVE.ts:saveSecure\n", e);
     }
   },
 
@@ -17,7 +17,7 @@ export const storage = {
       const val = storageDevice.getString(key);
       return val ? JSON.parse(val) : null;
     } catch (error) {
-      console.error(`Failed storage.web.ts:get [Storage] Load failed for "${key}":`, error);
+      console.error(`Failed storage.NATIVE.ts:get [Storage] Load failed for "${key}":`, error);
       return null; // Return null so the app treats it as "empty" rather than crashing
     }
   },
@@ -32,7 +32,7 @@ export const storage = {
         const jsonValue = JSON.stringify(value);
         storageDevice.set(key, jsonValue);
     } catch (e) {
-        console.log("Failed storage.web.ts:save\n", e);
+        console.log("Failed storage.NATIVE.ts:save\n", e);
     }
   },
 
@@ -42,7 +42,7 @@ export const storage = {
       if ((val ? JSON.parse(val) : null).error) throw console.error();
       return val ? JSON.parse(val) : null;
     } catch (error) {
-      console.error(`Failed storage.web.ts:get [Storage] Load failed for "${key}":`, error);
+      console.error(`Failed storage.NATIVE.ts:get [Storage] Load failed for "${key}":`, error);
       return null; // Return null so the app treats it as "empty" rather than crashing
     }
   }
