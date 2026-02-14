@@ -1,4 +1,5 @@
 import { Dimensions, StyleSheet, View } from "react-native";
+import { EventObj } from "@/utility/types";
 
 // --- CONSTANTS ---
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -17,13 +18,12 @@ const HourTicks = () => {
   );
 };
 
-export default function DayContainer({
-  day,
-  dayWidth,
-}: {
+export default function DayContainer({ day, dayWidth, events, }: {
   day: Date;
   dayWidth: number;
+  events: EventObj[];
 }) {
+    console.log(day,events);
   return (
     <View
       key={day.toLocaleDateString()}

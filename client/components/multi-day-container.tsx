@@ -50,9 +50,15 @@ export default function MultiDayContainer({ calendarType, events, }: { calendarT
   const isUpdating = useRef(false);
 
   //render Flatlist Items
-  const renderDay = ({ item }: { item: { date: Date } }) => {
-    return <DayContainer day={item.date} dayWidth={dayWidth} />;
-  };
+    const renderDay = ({ item }: { item: { date: Date } }) => {
+      const day = item.date;
+      if (!day) return null; // skip invalid day
+
+      const eventsForDay = events.filter(event => event.start && event.start.toDateString() === day.toDateString());
+
+      return <DayContainer day={day} dayWidth={dayWidth} events={eventsForDay} />;
+    };
+
   const renderDate = ({ item }: { item: { date: Date } }) => {
     return <DayHeader day={item.date} dayWidth={dayWidth} />;
   };
