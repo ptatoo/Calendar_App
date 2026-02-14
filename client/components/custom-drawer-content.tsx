@@ -45,9 +45,10 @@ export default function CustomDrawerContent(props: any) {
         {["1", "2", "3", "W", "M"].map((option) => (
           <Pressable
             key={option}
-            onPress={() =>
-              setCalendarType(option as "1" | "2" | "3" | "W" | "M")
-            }
+            onPress={() => {
+                setCalendarType(option as "1" | "2" | "3" | "W" | "M");
+                props.navigation.closeDrawer();
+            }}
             style={({ pressed }) =>
               getButtonStyle(option as "1" | "2" | "3" | "W" | "M", pressed)
             }
