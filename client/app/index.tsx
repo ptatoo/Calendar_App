@@ -16,13 +16,16 @@ export default function Index() {
   const { calendarType, setCalendarType } = useContext(AuthContext);
   const { jwtToken } = useAuth();
   const { familyProfiles } = useProfiles(jwtToken?.sessionToken ?? null);
-  const { calendars } = useCalendar(jwtToken?.sessionToken ?? null);
+  const calendarProps = useCalendar(jwtToken?.sessionToken ?? null);
 
-  console.log(calendars);
+  console.log(calendarProps.calendars);
 
   useEffect(() => {
-    console.log("Type changed to:", calendarType);
-  }, [calendarType]);
+    //auto updates calendar when it changes
+    calendarProps.refetch();
+    console.log(calendarProps.calendars);
+    //console.log("Type changed to:", calendarType);
+  }, [jwtToken]);
 
   // --- DISPLAY ---
   return (
