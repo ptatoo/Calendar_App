@@ -1,44 +1,29 @@
-import { CalendarView, EventObj } from "@/utility/types";
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Dimensions,
-  FlatList,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { FlatList as RoundList } from "react-native-bidirectional-infinite-scroll";
-import { useDate } from "../hooks/useDate";
-import DayContainer from "./single-day-container";
-
+import { CalendarView, EventObj } from '@/utility/types';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList as RoundList } from 'react-native-bidirectional-infinite-scroll';
+import { useDate } from '../../hooks/useDate';
+import DayContainer from './day-container';
 
 // --- CONSTANTS ---
-const SCREEN_WIDTH = Dimensions.get("window").width;
+const SCREEN_WIDTH = Dimensions.get('window').width;
 const HOUR_HEIGHT = 40;
-const GRID_COLOR = "#f0f0f0";
+const GRID_COLOR = '#f0f0f0';
 const INIT_DAYS_LOADED = 5;
 
 const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
   return (
     <View style={[styles.date, { width: dayWidth }]}>
-      <Text style={{ height: 20, textAlign: "center" }}>
-        {day.toLocaleDateString("en-US", { weekday: "short" }) +
-          " " +
-          day.toLocaleDateString("en-US", { day: "numeric" })}
+      <Text style={{ height: 20, textAlign: 'center' }}>
+        {day.toLocaleDateString('en-US', { weekday: 'short' }) + ' ' + day.toLocaleDateString('en-US', { day: 'numeric' })}
       </Text>
     </View>
   );
 };
 
-
 // --- MAIN COMPONENT ---
-export default function MultiDayContainer({ calendarType, events, }: { calendarType: CalendarView; events: EventObj[]; }) {
+export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
   //width
-    
-    console.log(events);
   const [dayWidth, setDayWidth] = useState(3);
 
   //days generator
@@ -51,17 +36,22 @@ export default function MultiDayContainer({ calendarType, events, }: { calendarT
 
   //render Flatlist Items
   const renderDay = ({ item }: { item: { date: Date } }) => {
-    return <DayContainer day={item.date} dayWidth={dayWidth} />;
+    const day = item.date;
+    if (!day) return null; // skip invalid day
+
+    const eventsForDay = events.filter((event) => event.start && event.start.toDateString() === day.toDateString());
+
+    return <DayContainer day={day} dayWidth={dayWidth} events={eventsForDay} />;
   };
+
   const renderDate = ({ item }: { item: { date: Date } }) => {
     return <DayHeader day={item.date} dayWidth={dayWidth} />;
   };
 
-
   //update dayWidth of calendar
   useEffect(() => {
-    if (calendarType === "1") setDayWidth(SCREEN_WIDTH / 1);
-    else if (calendarType === "2") setDayWidth(SCREEN_WIDTH / 2);
+    if (calendarType === '1') setDayWidth(SCREEN_WIDTH / 1);
+    else if (calendarType === '2') setDayWidth(SCREEN_WIDTH / 2);
     else setDayWidth(SCREEN_WIDTH / 3);
   }, [calendarType]);
 
@@ -166,18 +156,18 @@ export default function MultiDayContainer({ calendarType, events, }: { calendarT
 // --- STYLES ---
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "white",
+    backgroundColor: 'white',
     flex: 1,
   },
 
   // --- DAY ---
   multiDayContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     flex: 1,
   },
 
   dateContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     height: HOUR_HEIGHT,
   },
 
@@ -186,6 +176,6 @@ const styles = StyleSheet.create({
     height: HOUR_HEIGHT,
     borderBottomWidth: 1,
     borderColor: GRID_COLOR,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: '#f0f0f0',
   },
 });
