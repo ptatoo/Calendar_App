@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { FlatList as RoundList } from 'react-native-bidirectional-infinite-scroll';
 import { useDate } from '../../hooks/useDate';
-import DayContainer from './single-day-container';
+import DayContainer from './day-container';
 
 // --- CONSTANTS ---
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -24,8 +24,6 @@ const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
 // --- MAIN COMPONENT ---
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
   //width
-
-  console.log(events);
   const [dayWidth, setDayWidth] = useState(3);
 
   //days generator
@@ -37,14 +35,14 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const isUpdating = useRef(false);
 
   //render Flatlist Items
-    const renderDay = ({ item }: { item: { date: Date } }) => {
-      const day = item.date;
-      if (!day) return null; // skip invalid day
+  const renderDay = ({ item }: { item: { date: Date } }) => {
+    const day = item.date;
+    if (!day) return null; // skip invalid day
 
-      const eventsForDay = events.filter(event => event.start && event.start.toDateString() === day.toDateString());
+    const eventsForDay = events.filter((event) => event.start && event.start.toDateString() === day.toDateString());
 
-      return <DayContainer day={day} dayWidth={dayWidth} events={eventsForDay} />;
-    };
+    return <DayContainer day={day} dayWidth={dayWidth} events={eventsForDay} />;
+  };
 
   const renderDate = ({ item }: { item: { date: Date } }) => {
     return <DayHeader day={item.date} dayWidth={dayWidth} />;

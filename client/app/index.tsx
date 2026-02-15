@@ -28,8 +28,6 @@ export default function Index() {
   useEffect(() => {
     //auto updates calendar when it changes
     calendarProps.refetch();
-    console.log(calendarProps.calendars);
-    //console.log("Type changed to:", calendarType);
   }, [jwtToken]);
 
   // --- DISPLAY ---
@@ -39,7 +37,7 @@ export default function Index() {
         <MultiDayContainer calendarType={calendarType} events={allEvents} />
       )}
 
-      {calendarType === 'M' && <MonthContainer />}
+      {calendarType === 'M' && <MonthContainer numWeeks={6} />}
     </View>
   );
 }
