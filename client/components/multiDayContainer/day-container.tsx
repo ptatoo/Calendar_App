@@ -1,6 +1,8 @@
 import { GRID_COLOR, HOUR_HEIGHT } from '@/utility/constants';
 import { EventObj } from '@/utility/types';
 import { StyleSheet, View } from 'react-native';
+import { EventContainer } from './event-container';
+
 
 const HourTicks = () => {
   return (
@@ -18,6 +20,9 @@ export default function DayContainer({ day, dayWidth, events }: { day: Date; day
     <View key={day.toLocaleDateString()} style={{ borderRightWidth: 1, borderColor: '#f0f0f0', width: dayWidth }}>
       <View style={[styles.dayContainer, { width: dayWidth }]}>
         <HourTicks />
+        {events.map((event) => {
+          return EventContainer(event, dayWidth)
+        })}
       </View>
     </View>
   );
