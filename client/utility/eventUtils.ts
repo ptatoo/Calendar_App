@@ -27,5 +27,19 @@ export const processCalendar = ( calendar : any) : EventObj[] => {
         return [];
     }
 
-    return calendar.items.map(processEvent);
+    return calendar.items.map(processEvent).sort(compareEvents);
 };
+
+export const compareEvents = (a: EventObj, b: EventObj): number => {
+    // 1. returns which 1 starts earlier
+    const startDiff = a.startDate.getTime() - b.startDate.getTime();
+    if (startDiff !== 0) return startDiff;
+
+    // 2. returns which 1 ends earlier
+    const endDiff = a.endDate.getTime() - b.endDate.getTime();
+    if (endDiff !== 0) return endDiff;
+
+    // 3. returns which id is smallest
+    return a.id.localeCompare(b.id);
+};
+
