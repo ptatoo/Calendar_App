@@ -1,9 +1,6 @@
+import { GRID_COLOR, HOUR_HEIGHT } from '@/utility/constants';
 import { EventObj } from '@/utility/types';
 import { StyleSheet, View } from 'react-native';
-
-// --- CONSTANTS ---
-const HOUR_HEIGHT = 40;
-const GRID_COLOR = '#f0f0f0';
 
 const HourTicks = () => {
   return (
