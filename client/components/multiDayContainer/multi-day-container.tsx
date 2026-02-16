@@ -1,10 +1,11 @@
 import { GRID_COLOR, HOUR_HEIGHT, INIT_DAYS_LOADED, NEW_DAYS_LOADED, SCREEN_WIDTH } from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
 import { isSameDay } from 'date-fns';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { FlatList, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { FlatList as RoundList } from 'react-native-bidirectional-infinite-scroll';
 import { useDate } from '../../hooks/useDate';
+import { DateContext } from '../calendar-context';
 import DayContainer from './day-container';
 
 const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
@@ -21,6 +22,7 @@ const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
   //width
   const [dayWidth, setDayWidth] = useState(3);
+  const context = useContext(DateContext);
 
   //days generator
   const [startDay, setStartDay] = useState(INIT_DAYS_LOADED * -1);
