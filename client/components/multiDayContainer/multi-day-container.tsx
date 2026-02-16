@@ -1,10 +1,11 @@
-import { GRID_COLOR, HOUR_HEIGHT, INIT_DAYS_LOADED, NEW_DAYS_LOADED, SCREEN_WIDTH } from '@/utility/constants';
+import { GRID_COLOR, HOUR_HEIGHT, INIT_DAYS_LOADED, SCREEN_WIDTH } from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
 import { isSameDay } from 'date-fns';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { FlatList, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { FlatList, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { FlatList as RoundList } from 'react-native-bidirectional-infinite-scroll';
-import { useDate } from '../../hooks/useDate';
+import { useCalendarRange } from '../../hooks/calendarHooks/useCalendarRange';
+import { useCalendarScroll } from '../../hooks/calendarHooks/useCalendarScroll';
 import DayContainer from './day-container';
 
 const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
@@ -19,16 +20,14 @@ const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
 
 // --- MAIN COMPONENT ---
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
+
   //width
   const [dayWidth, setDayWidth] = useState(3);
 
-  //days generator
-  const [startDay, setStartDay] = useState(INIT_DAYS_LOADED * -1);
-  const [endDay, setEndDay] = useState(INIT_DAYS_LOADED);
-  const { days, refetch } = useDate(startDay, endDay);
-  //technical stuff
-  const headerRef = useRef<FlatList>(null);
-  const isUpdating = useRef(false);
+  //hooks
+  const { days, loadForward, loadBackward } = useCalendarRange();
+  const { headerRef, handleScroll } = useCalendarScroll(dayWidth, loadBackward, loadForward);
+
 
   //render Flatlist Items
   const renderDay = ({ item }: { item: { date: Date } }) => {
@@ -45,39 +44,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     return <DayHeader day={item.date} dayWidth={dayWidth} />;
   };
 
-  //load more events foward and backward
-  const handleEndReached = useCallback(async () => {
-    if (isUpdating.current) return;
-    isUpdating.current = true;
-    try {
-      const newEnd = endDay + NEW_DAYS_LOADED;
-      setEndDay(newEnd);
-      await refetch(startDay, newEnd);
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 500);
-      });
-    } catch (error) {
-    } finally {
-      isUpdating.current = false;
-    }
-  }, [startDay, endDay, refetch]);
-  const handleStartReached = useCallback(async () => {
-    if (isUpdating.current) return;
-    isUpdating.current = true;
-    try {
-      const newStart = startDay - NEW_DAYS_LOADED;
-      setEndDay(newStart);
-      await refetch(newStart, endDay);
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 500);
-      });
-    } catch (error) {
-    } finally {
-      isUpdating.current = false;
-    }
-  }, [startDay, endDay, refetch]);
 
   //update dayWidth of calendar
   useEffect(() => {
@@ -85,26 +51,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     else if (calendarType === '2') setDayWidth(SCREEN_WIDTH / 2);
     else setDayWidth(SCREEN_WIDTH / 3);
   }, [calendarType]);
-
-  //moves the header with the calendar
-  const onGridScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const xOffset = event.nativeEvent.contentOffset.x;
-
-    // Directly tell the header to scroll to the same position
-    headerRef.current?.scrollToOffset({
-      offset: xOffset,
-      animated: false,
-    });
-    const itemsScrolled = Math.floor(xOffset / dayWidth + 0.5);
-
-    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
-
-    // Calculate how close to edge we are; if at edge, trigger load
-    const distanceFromEnd = contentSize.width - (contentOffset.x + layoutMeasurement.width);
-    if (distanceFromEnd < 200 && !isUpdating.current) {
-      handleEndReached();
-    }
-  };
 
   //get layouts of item for "RoundList"
   const getItemLayout = (data: any, index: number) => ({
@@ -150,7 +96,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
                 snapToInterval={dayWidth}
                 decelerationRate="fast"
                 snapToAlignment="start"
-                onScroll={onGridScroll}
+                onScroll={handleScroll}
                 data={days}
                 getItemLayout={getItemLayout}
                 initialScrollIndex={INIT_DAYS_LOADED}

@@ -1,4 +1,4 @@
-import { useDate } from '@/hooks/useDate';
+import { useDate } from '@/hooks/calendarHooks/useDate';
 import { useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { FlatList as RoundList } from 'react-native-bidirectional-infinite-scroll';
