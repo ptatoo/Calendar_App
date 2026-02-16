@@ -12,12 +12,11 @@ import { EventObj } from '@/utility/types';
 // --- MAIN COMPONENT ---
 export default function Index() {
   // --- STATE ---
-  const [data, setData] = useState<string>('');
-  const [events, setEvents] = useState<any[]>([]);
   const { calendarType, setCalendarType } = useContext(AuthContext);
   const { jwtToken } = useAuth();
   const { familyProfiles } = useProfiles(jwtToken?.sessionToken ?? null);
   const calendarProps = useCalendar(jwtToken?.sessionToken ?? null);
+  const [currentDay, setCurrentDay] = useState<Date>(new Date());
 
   const calendars = calendarProps.calendars;
 
