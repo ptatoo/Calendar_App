@@ -10,6 +10,7 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const HOUR_HEIGHT = 40;
 const GRID_COLOR = '#f0f0f0';
 const INIT_DAYS_LOADED = 5;
+const NEW_DAYS_LOADED = 10;
 
 const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
   return (
@@ -43,10 +44,43 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
 
     return <DayContainer day={day} dayWidth={dayWidth} events={eventsForDay} />;
   };
-
   const renderDate = ({ item }: { item: { date: Date } }) => {
     return <DayHeader day={item.date} dayWidth={dayWidth} />;
   };
+
+  //load more events foward and backward
+  const handleEndReached = useCallback(async () => {
+    if (isUpdating.current) return;
+    isUpdating.current = true;
+    try {
+      const newEnd = endDay + NEW_DAYS_LOADED;
+      setEndDay(newEnd);
+      await refetch(startDay, newEnd);
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 500);
+      });
+    } catch (error) {
+    } finally {
+      isUpdating.current = false;
+    }
+  }, [startDay, endDay, refetch]);
+  const handleStartReached = useCallback(async () => {
+    if (isUpdating.current) return;
+    isUpdating.current = true;
+    try {
+      const newStart = startDay - NEW_DAYS_LOADED;
+      setEndDay(newStart);
+      await refetch(newStart, endDay);
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 500);
+      });
+    } catch (error) {
+    } finally {
+      isUpdating.current = false;
+    }
+  }, [startDay, endDay, refetch]);
 
   //update dayWidth of calendar
   useEffect(() => {
@@ -65,6 +99,14 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
       animated: false,
     });
     const itemsScrolled = Math.floor(xOffset / dayWidth + 0.5);
+
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+
+    // Calculate how close to edge we are; if at edge, trigger load
+    const distanceFromEnd = contentSize.width - (contentOffset.x + layoutMeasurement.width);
+    if (distanceFromEnd < 200 && !isUpdating.current) {
+      handleEndReached();
+    }
   };
 
   //get layouts of item for "RoundList"
@@ -73,28 +115,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     offset: dayWidth * index,
     index,
   });
-
-  //load more events
-  const handleEndReached = useCallback(async () => {
-    if (isUpdating.current) return;
-
-    isUpdating.current = true;
-    setEndDay((prev) => prev + 10);
-
-    setTimeout(() => {
-      isUpdating.current = false;
-    }, 500);
-  }, []);
-  const handleStartReached = useCallback(async () => {
-    if (isUpdating.current) return;
-
-    isUpdating.current = true;
-    setStartDay((prev) => prev - 10);
-
-    setTimeout(() => {
-      isUpdating.current = false;
-    }, 500);
-  }, []);
 
   // --- DISPLAY ---
   return (
@@ -108,6 +128,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
             style={styles.dateContainer}
             data={days}
             renderItem={renderDate}
+            inverted={false}
             horizontal={true}
             scrollEnabled={false}
             snapToInterval={dayWidth}
@@ -136,13 +157,13 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
                 data={days}
                 getItemLayout={getItemLayout}
                 initialScrollIndex={INIT_DAYS_LOADED}
-                onStartReached={async () => {}}
                 onEndReached={async () => {}}
+                onStartReached={async () => {}}
                 renderItem={renderDay}
                 horizontal={true}
                 scrollEventThrottle={16}
-                onStartReachedThreshold={10} // Try a small pixel value or 0.1 ratio
-                onEndReachedThreshold={10}
+                onStartReachedThreshold={0.1} // Try a small pixel value or 0.1 ratio
+                onEndReachedThreshold={0.1}
                 keyExtractor={(item) => item.date.toISOString()}
               />
             )}
@@ -164,6 +185,9 @@ const styles = StyleSheet.create({
   multiDayContainer: {
     flexDirection: 'row',
     flex: 1,
+    minWidth: 0,
+    overflow: 'hidden',
+    display: 'flex',
   },
 
   dateContainer: {

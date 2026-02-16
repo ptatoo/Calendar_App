@@ -16,7 +16,7 @@ const HourTicks = () => {
 };
 
 export default function DayContainer({ day, dayWidth, events }: { day: Date; dayWidth: number; events: EventObj[] }) {
-  console.log(day, events);
+  //console.log(day, events);
   return (
     <View key={day.toLocaleDateString()} style={{ borderRightWidth: 1, borderColor: '#f0f0f0', width: dayWidth }}>
       <View style={[styles.dayContainer, { width: dayWidth }]}>
