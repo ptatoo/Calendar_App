@@ -19,11 +19,12 @@ const getEventLayout = (event : EventObj) => {
 
 export const EventContainer = (event: EventObj, dayWidth : number) => {
   const { top, height } = getEventLayout(event); // uses the math function we made
+  const width = dayWidth;
 
   return (
     <View 
       key={event.id} 
-      style={[styles.event, { top, height }, { width: dayWidth }]} // Apply calculated top/height
+      style={[styles.event, { top, height }, { width: width}]} // Apply calculated top/height
     >
       <Text style={styles.eventText}>{event.title}</Text>
     </View>
@@ -33,12 +34,12 @@ export const EventContainer = (event: EventObj, dayWidth : number) => {
 const styles = StyleSheet.create({
     event: {
     position: 'absolute', // Allows use of 'top'
-    left: 2,
+    left: 5,
     backgroundColor: '#dbeafe',
-    borderLeftWidth: 3,
+    borderLeftWidth: 8,
     borderLeftColor: '#2563eb',
-    borderRadius: 4,
-    padding: 2,
+    borderRadius: 8,
+    padding: 4,
     overflow: 'hidden',
   },
   eventText: {
