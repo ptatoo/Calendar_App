@@ -1,16 +1,11 @@
+import { GRID_COLOR, HOUR_HEIGHT, INIT_DAYS_LOADED, SCREEN_WIDTH } from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
+import { isSameDay } from 'date-fns';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { FlatList as RoundList } from 'react-native-bidirectional-infinite-scroll';
 import { useDate } from '../../hooks/useDate';
 import DayContainer from './day-container';
-
-// --- CONSTANTS ---
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const HOUR_HEIGHT = 40;
-const GRID_COLOR = '#f0f0f0';
-const INIT_DAYS_LOADED = 5;
-const NEW_DAYS_LOADED = 10;
 
 const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
   return (
@@ -40,7 +35,9 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     const day = item.date;
     if (!day) return null; // skip invalid day
 
-    const eventsForDay = events.filter((event) => event.start && event.start.toDateString() === day.toDateString());
+    //probably need a better method for this
+    const eventsForDay = events.filter((event) => event.startDate && isSameDay(day, event.startDate));
+    //probably need a better method of doing this
 
     return <DayContainer day={day} dayWidth={dayWidth} events={eventsForDay} />;
   };
