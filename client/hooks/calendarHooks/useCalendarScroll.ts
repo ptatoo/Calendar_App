@@ -19,6 +19,11 @@ export const useCalendarScroll = (dayWidth: number, onStartReached?: () => void,
 
         const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
 
+        // Calculate how close to edge we are; if at edge, trigger load
+        const distanceFromEnd = contentSize.width - (contentOffset.x + layoutMeasurement.width);
+        if (distanceFromEnd < 200) {
+            onEndReached?.();
+        }
     };
 
     return {

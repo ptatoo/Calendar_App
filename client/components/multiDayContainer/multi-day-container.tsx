@@ -1,7 +1,9 @@
+import { useCalendarRange } from '@/hooks/calendarHooks/useCalendarRange';
+import { useCalendarScroll } from '@/hooks/calendarHooks/useCalendarScroll';
 import { GRID_COLOR, HOUR_HEIGHT, INIT_DAYS_LOADED, SCREEN_WIDTH } from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
 import { isSameDay } from 'date-fns';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { FlatList as RoundList } from 'react-native-bidirectional-infinite-scroll';
 import { DateContext } from '../calendar-context';
@@ -22,15 +24,13 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
 
   //width
   const [dayWidth, setDayWidth] = useState(3);
+
+  //hooks
+  const { days, loadForward, loadBackward } = useCalendarRange();
+  const { headerRef, handleScroll } = useCalendarScroll(dayWidth, loadBackward, loadForward);
+
   const context = useContext(DateContext);
 
-  //days generator
-  const [startDay, setStartDay] = useState(INIT_DAYS_LOADED * -1);
-  const [endDay, setEndDay] = useState(INIT_DAYS_LOADED);
-  const { days, refetch } = useDate(startDay, endDay);
-  //technical stuff
-  const headerRef = useRef<FlatList>(null);
-  const isUpdating = useRef(false);
 
   //render Flatlist Items
   const renderDay = ({ item }: { item: { date: Date } }) => {
