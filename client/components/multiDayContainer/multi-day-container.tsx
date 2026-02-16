@@ -1,4 +1,4 @@
-import { GRID_COLOR, HOUR_HEIGHT, INIT_DAYS_LOADED, SCREEN_WIDTH } from '@/utility/constants';
+import { GRID_COLOR, HOUR_HEIGHT, INIT_DAYS_LOADED, NEW_DAYS_LOADED, SCREEN_WIDTH } from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
 import { isSameDay } from 'date-fns';
 import { useCallback, useEffect, useRef, useState } from 'react';
