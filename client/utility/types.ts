@@ -32,6 +32,11 @@ export interface AuthContextType {
   setCalendarType: (calendarType: CalendarView) => void;
 }
 
+export interface DateContextType {
+  curDate: Date,
+  setCurDate: (curDate: Date) => void;
+}
+
 export interface EventObj {
   id: string,
   title: string,

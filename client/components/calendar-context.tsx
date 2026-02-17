@@ -1,12 +1,11 @@
+import { DateContextType } from '@/utility/types';
 import React, { createContext, ReactNode, useState } from 'react';
 
-interface DateContextType {
-  curDate: Date;
-  setCurDate: React.Dispatch<React.SetStateAction<Date>>;
-}
-
 // 2. Initialize the context
-export const DateContext = createContext<DateContextType | undefined>(undefined);
+export const DateContext = createContext<DateContextType>({
+  curDate: new Date(),
+  setCurDate: () => {},
+});
 
 // 3. Create the Provider (The actual "Broadcaster")
 export const DateProvider = ({ children }: { children: ReactNode }) => {

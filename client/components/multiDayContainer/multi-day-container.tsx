@@ -21,7 +21,6 @@ const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
 
 // --- MAIN COMPONENT ---
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
-
   //width
   const [dayWidth, setDayWidth] = useState(3);
 
@@ -29,8 +28,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const { days, loadForward, loadBackward } = useCalendarRange();
   const { headerRef, handleScroll } = useCalendarScroll(dayWidth, loadBackward, loadForward);
 
-  const context = useContext(DateContext);
-
+  const { curDate, setCurDate } = useContext(DateContext);
 
   //render Flatlist Items
   const renderDay = ({ item }: { item: { date: Date } }) => {
@@ -46,7 +44,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const renderDate = ({ item }: { item: { date: Date } }) => {
     return <DayHeader day={item.date} dayWidth={dayWidth} />;
   };
-
 
   //update dayWidth of calendar
   useEffect(() => {
