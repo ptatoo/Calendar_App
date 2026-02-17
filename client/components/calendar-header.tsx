@@ -13,9 +13,11 @@ export default function CalendarHeader(props: any) {
   return (
     <View style={styles.headerContainer}>
       {/* Waffle */}
-      <Pressable onPress={() => navigation.dispatch(DrawerActions.openDrawer())} style={styles.waffle}>
-        <Ionicons name="menu" size={28} color="black" />
-      </Pressable>
+      <View style={{ justifyContent: 'center' }}>
+        <Pressable onPress={() => navigation.dispatch(DrawerActions.openDrawer())} style={styles.waffle}>
+          <Ionicons name="menu" size={28} color="black" />
+        </Pressable>
+      </View>
 
       {/* Date */}
       <View style={{ justifyContent: 'center' }}>
