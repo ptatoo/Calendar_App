@@ -1,7 +1,8 @@
-import { useAccessToken } from '@/hooks/useAccessToken';
-import { useAuth } from '@/hooks/useAuth';
-import { useProfiles } from '@/hooks/useProfile';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { useAccessToken } from '../hooks/useAccessToken';
+import { useAuth } from '../hooks/useAuth';
+import { useProfiles } from '../hooks/useProfile';
 
 export default function LoginButton() {
   const authProps = useAuth();
@@ -20,9 +21,6 @@ export default function LoginButton() {
         )}
       </Pressable>
 
-      <View>
-        <Text></Text>
-      </View>
       <View style={styles.tokenContainer}>
         <Text style={styles.label}>JWT Token:</Text>
         <Text style={styles.tokenText}>{authProps.jwtToken ? authProps.jwtToken.sessionToken : 'No token yet'}</Text>
