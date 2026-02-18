@@ -1,16 +1,15 @@
-import { useAccessToken } from "@/hooks/useAccessToken";
-import { useCalendar } from "@/hooks/useCalendar";
-import { useProfiles } from "@/hooks/useProfile";
-import { storage } from "@/services/storage";
-import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
-import { useAuth } from "../hooks/useAuth";
+import { useAccessToken } from '@/hooks/useAccessToken';
+import { useCalendar } from '@/hooks/useCalendar';
+import { useProfiles } from '@/hooks/useProfile';
+import { storage } from '@/services/storage';
+import { useEffect } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { useAuth } from '../hooks/useAuth';
 
 export default function ContextTester420() {
   const authProps = useAuth();
   const profileProps = useProfiles(authProps.jwtToken?.sessionToken || null);
-  const accessTokenProps = useAccessToken(
-    authProps.jwtToken?.sessionToken || null,
-  );
+  const accessTokenProps = useAccessToken(authProps.jwtToken?.sessionToken || null);
   const calendarProps = useCalendar(authProps.jwtToken?.sessionToken || null);
 
   return (
@@ -25,17 +24,9 @@ export default function ContextTester420() {
         <Text style={styles.buttonText}>access</Text>
       </Pressable>
       <Text style={styles.display}>{JSON.stringify(authProps.jwtToken)}</Text>
-      <Text style={styles.display}>
-        {JSON.stringify(profileProps.familyProfiles)}
-      </Text>
-      <Text style={styles.display}>
-        {JSON.stringify(storage.get("access_tokens"))}
-      </Text>
-      <Text style={styles.display}>
-        {
-          JSON.stringify(calendarProps.calendars,null,2)
-        }
-      </Text>
+      <Text style={styles.display}>{JSON.stringify(profileProps.familyProfiles)}</Text>
+      <Text style={styles.display}>{JSON.stringify(storage.get('access_tokens'))}</Text>
+      <Text style={styles.display}>{JSON.stringify(calendarProps.calendars, null, 2)}</Text>
     </ScrollView>
   );
 }
@@ -43,30 +34,30 @@ export default function ContextTester420() {
 const styles = StyleSheet.create({
   homepg: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     padding: 16,
   },
   button: {
     padding: 12,
-    backgroundColor: "#4285F4",
+    backgroundColor: '#4285F4',
     borderRadius: 6,
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 20,
   },
   buttonText: {
-    color: "white",
-    fontWeight: "600",
+    color: 'white',
+    fontWeight: '600',
   },
 
   display: {
     padding: 12,
-    backgroundColor: "#ff8989",
+    backgroundColor: '#ff8989',
     borderRadius: 6,
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 20,
   },
   displayText: {
-    color: "white",
-    fontWeight: "600",
+    color: 'white',
+    fontWeight: '600',
   },
 });

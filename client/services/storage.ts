@@ -41,5 +41,9 @@ export const storage = {
       console.error(`Failed storage.web.ts:get [Storage] Load failed for "${key}":`, error);
       return null; // Return null so the app treats it as "empty" rather than crashing
     }
-  }
+  },
+  
+  remove: (key: string) => {
+    localStorage.removeItem(key);
+  },
 };

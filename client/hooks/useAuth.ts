@@ -57,9 +57,12 @@ export const useAuth = () => {
         const { codeVerifier, redirectUri } = request;
         const jwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
 
+        storage.remove("access_tokens");
+        storage.remove("profiles");
+        storage.remove("calendars");
+
         storage.saveSecure('jwt_token', jwtToken); // saves into persistent storage
         setJwtToken(jwtToken); // sets global context
-        
       } catch (error : any) {
         setError(error.message);
       } finally {
