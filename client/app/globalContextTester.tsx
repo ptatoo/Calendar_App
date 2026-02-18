@@ -2,7 +2,6 @@ import { useAccessToken } from '@/hooks/useAccessToken';
 import { useCalendar } from '@/hooks/useCalendar';
 import { useProfiles } from '@/hooks/useProfile';
 import { storage } from '@/services/storage';
-import { useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
 
