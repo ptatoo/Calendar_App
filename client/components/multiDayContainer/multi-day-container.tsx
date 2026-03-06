@@ -65,7 +65,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   }, [calendarType]);
 
   //get layouts of item for "RoundList"
-  const getItemLayout = (data: any, index: number) => ({
+  const getHeaderLayout = (data: any, index: number) => ({
     length: dayWidth,
     offset: dayWidth * index,
     index,
