@@ -15,7 +15,7 @@ export const useCalendarScroll = (dayWidth: number, onStartReached?: () => void,
 
         // Directly tell the header to scroll to the same position
         headerRef.current?.scrollToOffset({
-        offset: xOffset,
+        offset: xOffset  - 30,
         animated: false,
         });
 

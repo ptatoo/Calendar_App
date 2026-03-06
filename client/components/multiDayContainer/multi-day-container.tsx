@@ -1,13 +1,16 @@
 import { useCalendarRange } from '@/hooks/calendarHooks/useCalendarRange';
 import { useCalendarScroll } from '@/hooks/calendarHooks/useCalendarScroll';
-import { GRID_COLOR, HOUR_HEIGHT, INIT_DAYS_LOADED, SCREEN_WIDTH } from '@/utility/constants';
+
+import { GRID_COLOR, HOUR_HEIGHT, HOUR_LABEL_WIDTH, INIT_DAYS_LOADED, SCREEN_WIDTH } from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
 import { isSameDay } from 'date-fns';
 import { useContext, useEffect, useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { FlatList as RoundList } from 'react-native-bidirectional-infinite-scroll';
+
 import { DateContext } from '../calendar-context';
 import DayContainer from './day-container';
+import HourGuide from './hour-guide';
 
 const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
   return (
@@ -45,11 +48,11 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     return <DayHeader day={item.date} dayWidth={dayWidth} />;
   };
 
-  //update dayWidth of calendar
+  //Set witdh of each day
   useEffect(() => {
-    if (calendarType === '1') setDayWidth(SCREEN_WIDTH / 1);
-    else if (calendarType === '2') setDayWidth(SCREEN_WIDTH / 2);
-    else setDayWidth(SCREEN_WIDTH / 3);
+    if (calendarType === '1') setDayWidth(SCREEN_WIDTH / 1 - HOUR_LABEL_WIDTH);
+    else if (calendarType === '2') setDayWidth(SCREEN_WIDTH / 2 - HOUR_LABEL_WIDTH);
+    else setDayWidth(SCREEN_WIDTH / 3 - HOUR_LABEL_WIDTH);
   }, [calendarType]);
 
   //get layouts of item for "RoundList"
@@ -66,6 +69,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
       <View style={{ borderRightWidth: 1, borderColor: GRID_COLOR, flex: 1 }}>
         {/* --- DATE HEADER --- */}
         <View style={{ height: HOUR_HEIGHT }}>
+          <View style={{ width: HOUR_LABEL_WIDTH }}></View>
           <FlatList
             ref={headerRef}
             style={styles.dateContainer}
@@ -85,9 +89,12 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
           style={{ flex: 1 }}
           contentContainerStyle={{
             height: HOUR_HEIGHT * 24,
+            flexDirection: 'row',
+            width: SCREEN_WIDTH,
           }}
           horizontal={false}
         >
+          <HourGuide hourHeight={HOUR_HEIGHT} labelWidth={HOUR_LABEL_WIDTH} />
           {/* --- HORIZONTAL SCROLL --- */}
           <View style={{ width: SCREEN_WIDTH, flex: 1 }}>
             {days.length > 0 && (
