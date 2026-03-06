@@ -1,51 +1,25 @@
-// hooks/useCalendarRange.ts
-import { INIT_DAYS_LOADED, NEW_DAYS_LOADED } from '@/utility/constants';
-import { useCallback, useRef, useState } from 'react';
-import { useDate } from '../../hooks/calendarHooks/useDate'; // Your existing hook
+// hooks/calendarHooks/useCalendarRange.ts
+import { FUTURE_BUFFER, PAST_BUFFER } from '@/utility/constants';
+import { addDays, startOfDay, subDays } from 'date-fns';
+import { useMemo } from 'react';
 
-export const useCalendarRange = () => {  
-  //days generator
-  const [startDay, setStartDay] = useState(INIT_DAYS_LOADED * -1);
-  const [endDay, setEndDay] = useState(INIT_DAYS_LOADED);
-  const { days, refetch } = useDate(startDay, endDay);
-  const isUpdating = useRef(false);
-
-  //load more events foward and backward
-  const loadForward = useCallback(async () => {
-    if (isUpdating.current) return;
-    isUpdating.current = true;
-    try {
-      const newEnd = endDay + NEW_DAYS_LOADED;
-      setEndDay(newEnd);
-      await refetch(startDay, newEnd);
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 500);
-      });
-    } catch (error) {
-    } finally {
-      isUpdating.current = false;
+export const useCalendarRange = () => {
+  // 1. Generate one massive array ONCE.
+  // No state updates, no re-renders, no stutter.
+  const days = useMemo(() => {
+    const today = startOfDay(new Date());
+    const start = subDays(today, PAST_BUFFER);
+    const end = addDays(today, FUTURE_BUFFER);
+    console.log(start)
+    console.log(end)
+    const range = [];
+    let current = start;
+    while (current <= end) {
+      range.push({ date: current });
+      current = addDays(current, 1);
     }
-  }, [startDay, endDay, refetch]);
+    return range;
+  }, []);
 
-  const loadBackward = useCallback(async () => {
-    if (isUpdating.current) return;
-    isUpdating.current = true;
-    try {
-      const newStart = startDay - NEW_DAYS_LOADED;
-      setStartDay(newStart);
-      await refetch(newStart, endDay);
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 500);
-      });
-    } catch (error) {
-    } finally {
-      isUpdating.current = false;
-    }
-  }, [startDay, endDay, refetch]);
-
-  return {
-    loadBackward, loadForward, days
-  };
-}
+  return { days, initialIndex: PAST_BUFFER };
+};

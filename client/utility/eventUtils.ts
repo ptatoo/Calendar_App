@@ -22,7 +22,7 @@ export const processEvent = ( item : any ) : EventObj => {
     };
 };
 
-export const processCalendar = ( calendar : any) : EventObj[] => {
+export const processCalendar = ( calendar : any ) : EventObj[] => {
     if (!calendar || !Array.isArray(calendar.items)) {
         return [];
     }

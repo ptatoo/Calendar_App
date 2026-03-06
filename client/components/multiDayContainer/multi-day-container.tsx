@@ -1,12 +1,12 @@
 import { useCalendarRange } from '@/hooks/calendarHooks/useCalendarRange';
 import { useCalendarScroll } from '@/hooks/calendarHooks/useCalendarScroll';
 
-import { GRID_COLOR, HOUR_HEIGHT, HOUR_LABEL_WIDTH, INIT_DAYS_LOADED, SCREEN_WIDTH } from '@/utility/constants';
+import { GRID_COLOR, HOUR_HEIGHT, HOUR_LABEL_WIDTH, SCREEN_WIDTH } from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { isSameDay } from 'date-fns';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { FlatList as RoundList } from 'react-native-bidirectional-infinite-scroll';
 
 import { DateContext } from '../calendar-context';
 import DayContainer from './day-container';
@@ -25,25 +25,34 @@ const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
 // --- MAIN COMPONENT ---
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
   //width
-  const [dayWidth, setDayWidth] = useState(3);
+  const [dayWidth, setDayWidth] = useState(SCREEN_WIDTH / 3); // Set default to avoid 0 width issues
+  const listRef = useRef<FlashListRef<any>>(null);
 
   //hooks
-  const { days, loadForward, loadBackward } = useCalendarRange();
-  const { headerRef, handleScroll } = useCalendarScroll(dayWidth, loadBackward, loadForward);
-
+  // Note: Ensure useCalendarRange initializes with a large past buffer (e.g. 365 days)
+  // so users don't hit the start edge immediately.
+  const { days, initialIndex } = useCalendarRange();
+  const { headerRef, handleScroll } = useCalendarScroll(dayWidth);
   const { curDate, setCurDate } = useContext(DateContext);
 
-  //render Flatlist Items
+  //update dayWidth
+  useEffect(() => {
+    if (calendarType === '1') setDayWidth(SCREEN_WIDTH / 1);
+    else if (calendarType === '2') setDayWidth(SCREEN_WIDTH / 2);
+    else setDayWidth(SCREEN_WIDTH / 3);
+  }, [calendarType]);
+
+  /////////////////////
+  //render logic
   const renderDay = ({ item }: { item: { date: Date } }) => {
     const day = item.date;
-    if (!day) return null; // skip invalid day
+    if (!day) return null;
 
-    //probably need a better method for this
     const eventsForDay = events.filter((event) => event.startDate && isSameDay(day, event.startDate));
-    //probably need a better method of doing this
 
     return <DayContainer day={day} dayWidth={dayWidth} events={eventsForDay} />;
   };
+
   const renderDate = ({ item }: { item: { date: Date } }) => {
     return <DayHeader day={item.date} dayWidth={dayWidth} />;
   };
@@ -75,14 +84,14 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
             style={styles.dateContainer}
             data={days}
             renderItem={renderDate}
-            inverted={false}
             horizontal={true}
             scrollEnabled={false}
-            snapToInterval={dayWidth}
-            decelerationRate="fast"
+            getItemLayout={getHeaderLayout}
             showsHorizontalScrollIndicator={false}
+            initialScrollIndex={0}
           />
         </View>
+
         {/* --- VERTICAL SCROLL --- */}
         <ScrollView
           nestedScrollEnabled={true}
@@ -98,23 +107,18 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
           {/* --- HORIZONTAL SCROLL --- */}
           <View style={{ width: SCREEN_WIDTH, flex: 1 }}>
             {days.length > 0 && (
-              <RoundList
-                style={styles.multiDayContainer}
-                snapToInterval={dayWidth}
-                decelerationRate="fast"
-                snapToAlignment="start"
-                onScroll={handleScroll}
+              <FlashList
+                ref={listRef}
                 data={days}
-                getItemLayout={getItemLayout}
-                initialScrollIndex={INIT_DAYS_LOADED}
-                onEndReached={async () => {}}
-                onStartReached={async () => {}}
                 renderItem={renderDay}
-                horizontal={true}
-                scrollEventThrottle={16}
-                onStartReachedThreshold={0.1} // Try a small pixel value or 0.1 ratio
-                onEndReachedThreshold={0.1}
-                keyExtractor={(item) => item.date.toISOString()}
+                snapToInterval={SCREEN_WIDTH}
+                horizontal
+                // 5. Start Body at Today (Matching Header)
+                initialScrollIndex={initialIndex - 1}
+                // 6. Sync logic
+                onScroll={handleScroll}
+                // 7. Render optimization
+                drawDistance={dayWidth * 5}
               />
             )}
           </View>
@@ -130,21 +134,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     flex: 1,
   },
-
-  // --- DAY ---
-  multiDayContainer: {
-    flexDirection: 'row',
-    flex: 1,
-    minWidth: 0,
-    overflow: 'hidden',
-    display: 'flex',
-  },
-
   dateContainer: {
     flexDirection: 'row',
     height: HOUR_HEIGHT,
   },
-
   date: {
     padding: 10,
     height: HOUR_HEIGHT,
