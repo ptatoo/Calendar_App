@@ -4,11 +4,12 @@ import { useCalendarScroll } from '@/hooks/calendarHooks/useCalendarScroll';
 import { GRID_COLOR, HOUR_HEIGHT, HOUR_LABEL_WIDTH, SCREEN_WIDTH } from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
-import { isSameDay } from 'date-fns';
-import { useContext, useEffect, useRef, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DateContext } from '../calendar-context';
+import { isSameDay } from 'date-fns';
+import { useEffect, useRef, useState } from 'react';
+import { FlatList, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+
 import DayContainer from './day-container';
 import HourGuide from './hour-guide';
 
@@ -25,17 +26,35 @@ const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
 // --- MAIN COMPONENT ---
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
   //width
-  const [dayWidth, setDayWidth] = useState(SCREEN_WIDTH / 3); // Set default to avoid 0 width issues
+  const [dayWidth, setDayWidth] = useState(SCREEN_WIDTH / 3);
   const listRef = useRef<FlashListRef<any>>(null);
 
-  //hooks
+  const [hourHeight, setHourHeight] = useState(60);
+  const [baseHeight, setBaseHeight] = useState(60);
+
+  const pinchGesture = Gesture.Pinch()
+    .onUpdate((event) => {
+      // Direct calculation
+      const scale = event.scale;
+      let newHeight = baseHeight * scale;
+
+      // Constraints
+      if (newHeight < 30) newHeight = 30;
+      if (newHeight > 200) newHeight = 200;
+
+      setHourHeight(newHeight);
+    })
+    .onEnd(() => {
+      setBaseHeight(hourHeight);
+    });
+
+  // hooks
   // Note: Ensure useCalendarRange initializes with a large past buffer (e.g. 365 days)
   // so users don't hit the start edge immediately.
   const { days, initialIndex } = useCalendarRange();
   const { headerRef, handleScroll } = useCalendarScroll(dayWidth);
-  const { curDate, setCurDate } = useContext(DateContext);
 
-  //update dayWidth
+  //update dayWidth based on num  days
   useEffect(() => {
     if (calendarType === '1') setDayWidth(SCREEN_WIDTH / 1);
     else if (calendarType === '2') setDayWidth(SCREEN_WIDTH / 2);
@@ -50,7 +69,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
 
     const eventsForDay = events.filter((event) => event.startDate && isSameDay(day, event.startDate));
 
-    return <DayContainer day={day} dayWidth={dayWidth} events={eventsForDay} />;
+    return <DayContainer day={day} dayWidth={dayWidth} events={eventsForDay} hourHeight={hourHeight} />;
   };
 
   const renderDate = ({ item }: { item: { date: Date } }) => {
@@ -73,58 +92,63 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
 
   // --- DISPLAY ---
   return (
-    <View style={styles.container}>
-      {/* --- MAIN CALENDAR --- */}
-      <View style={{ borderRightWidth: 1, borderColor: GRID_COLOR, flex: 1 }}>
-        {/* --- DATE HEADER --- */}
-        <View style={{ height: HOUR_HEIGHT }}>
-          <View style={{ width: HOUR_LABEL_WIDTH }}></View>
-          <FlatList
-            ref={headerRef}
-            style={styles.dateContainer}
-            data={days}
-            renderItem={renderDate}
-            horizontal={true}
-            scrollEnabled={false}
-            getItemLayout={getHeaderLayout}
-            showsHorizontalScrollIndicator={false}
-            initialScrollIndex={0}
-          />
-        </View>
-
-        {/* --- VERTICAL SCROLL --- */}
-        <ScrollView
-          nestedScrollEnabled={true}
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            height: HOUR_HEIGHT * 24,
-            flexDirection: 'row',
-            width: SCREEN_WIDTH,
-          }}
-          horizontal={false}
-        >
-          <HourGuide hourHeight={HOUR_HEIGHT} labelWidth={HOUR_LABEL_WIDTH} />
-          {/* --- HORIZONTAL SCROLL --- */}
-          <View style={{ width: SCREEN_WIDTH, flex: 1 }}>
-            {days.length > 0 && (
-              <FlashList
-                ref={listRef}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureDetector gesture={pinchGesture}>
+        <View style={styles.container}>
+          {/* --- MAIN CALENDAR --- */}
+          <View style={{ borderRightWidth: 1, borderColor: GRID_COLOR, flex: 1 }}>
+            {/* --- DATE HEADER --- */}
+            <View style={{ height: hourHeight }}>
+              <View style={{ width: HOUR_LABEL_WIDTH }}></View>
+              <FlatList
+                ref={headerRef}
+                style={styles.dateContainer}
                 data={days}
-                renderItem={renderDay}
-                snapToInterval={SCREEN_WIDTH}
-                horizontal
-                // 5. Start Body at Today (Matching Header)
-                initialScrollIndex={initialIndex - 1}
-                // 6. Sync logic
-                onScroll={handleScroll}
-                // 7. Render optimization
-                drawDistance={dayWidth * 5}
+                renderItem={renderDate}
+                horizontal={true}
+                scrollEnabled={false}
+                getItemLayout={getHeaderLayout}
+                showsHorizontalScrollIndicator={false}
+                initialScrollIndex={0}
               />
-            )}
+            </View>
+
+            {/* --- VERTICAL SCROLL --- */}
+            <ScrollView
+              nestedScrollEnabled={true}
+              style={{ flex: 1 }}
+              contentContainerStyle={{
+                height: hourHeight * 24,
+                flexDirection: 'row',
+                width: SCREEN_WIDTH,
+              }}
+              horizontal={false}
+            >
+              {/* --- HOUR GUIDE --- */}
+              <HourGuide hourHeight={hourHeight} labelWidth={HOUR_LABEL_WIDTH} />
+              {/* --- HORIZONTAL SCROLL --- */}
+              <View style={{ width: SCREEN_WIDTH, flex: 1 }}>
+                {days.length > 0 && (
+                  <FlashList
+                    ref={listRef}
+                    data={days}
+                    renderItem={renderDay}
+                    snapToInterval={SCREEN_WIDTH}
+                    horizontal
+                    // 5. Start Body at Today (Matching Header)
+                    initialScrollIndex={initialIndex - 1}
+                    // 6. Sync logic
+                    onScroll={handleScroll}
+                    // 7. Render optimization
+                    drawDistance={dayWidth * 5}
+                  />
+                )}
+              </View>
+            </ScrollView>
           </View>
-        </ScrollView>
-      </View>
-    </View>
+        </View>
+      </GestureDetector>
+    </GestureHandlerRootView>
   );
 }
 
