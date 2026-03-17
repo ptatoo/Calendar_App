@@ -1,7 +1,7 @@
 import { useCalendarRange } from '@/hooks/calendarHooks/useCalendarRange';
 import { useCalendarScroll } from '@/hooks/calendarHooks/useCalendarScroll';
 
-import { GRID_COLOR, HOUR_HEIGHT, HOUR_LABEL_WIDTH, SCREEN_WIDTH } from '@/utility/constants';
+import { DATE_HEADER_HEIGHT, GRID_COLOR, HOUR_HEIGHT, HOUR_LABEL_WIDTH, SCREEN_WIDTH } from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 
@@ -13,10 +13,10 @@ import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-g
 import DayContainer from './day-container';
 import HourGuide from './hour-guide';
 
-const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
+const DateHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
   return (
     <View style={[styles.date, { width: dayWidth }]}>
-      <Text style={{ height: 20, textAlign: 'center' }}>
+      <Text style={{ height: DATE_HEADER_HEIGHT, textAlign: 'center' }}>
         {day.toLocaleDateString('en-US', { weekday: 'short' }) + ' ' + day.toLocaleDateString('en-US', { day: 'numeric' })}
       </Text>
     </View>
@@ -26,7 +26,7 @@ const DayHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
 // --- MAIN COMPONENT ---
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
   //width
-  const [dayWidth, setDayWidth] = useState(SCREEN_WIDTH / 3);
+  const [dayWidth, setDayWidth] = useState((SCREEN_WIDTH - HOUR_LABEL_WIDTH) / 3);
   const listRef = useRef<FlashListRef<any>>(null);
 
   const [hourHeight, setHourHeight] = useState(60);
@@ -54,33 +54,24 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const { days, initialIndex } = useCalendarRange();
   const { headerRef, handleScroll } = useCalendarScroll(dayWidth);
 
-  //update dayWidth based on num  days
-  useEffect(() => {
-    if (calendarType === '1') setDayWidth(SCREEN_WIDTH / 1);
-    else if (calendarType === '2') setDayWidth(SCREEN_WIDTH / 2);
-    else setDayWidth(SCREEN_WIDTH / 3);
-  }, [calendarType]);
-
-  /////////////////////
-  //render logic
+  //==============
+  //render vertical day columns and date headers
   const renderDay = ({ item }: { item: { date: Date } }) => {
     const day = item.date;
     if (!day) return null;
 
     const eventsForDay = events.filter((event) => event.startDate && isSameDay(day, event.startDate));
-
     return <DayContainer day={day} dayWidth={dayWidth} events={eventsForDay} hourHeight={hourHeight} />;
   };
-
   const renderDate = ({ item }: { item: { date: Date } }) => {
-    return <DayHeader day={item.date} dayWidth={dayWidth} />;
+    return <DateHeader day={item.date} dayWidth={dayWidth} />;
   };
 
-  //Set witdh of each day
+  //Set witdh of each day column (accounting for the hour guide)
   useEffect(() => {
-    if (calendarType === '1') setDayWidth(SCREEN_WIDTH / 1 - HOUR_LABEL_WIDTH);
-    else if (calendarType === '2') setDayWidth(SCREEN_WIDTH / 2 - HOUR_LABEL_WIDTH);
-    else setDayWidth(SCREEN_WIDTH / 3 - HOUR_LABEL_WIDTH);
+    if (calendarType === '1') setDayWidth((SCREEN_WIDTH - HOUR_LABEL_WIDTH) / 1);
+    else if (calendarType === '2') setDayWidth((SCREEN_WIDTH - HOUR_LABEL_WIDTH) / 2);
+    else setDayWidth((SCREEN_WIDTH - HOUR_LABEL_WIDTH) / 3);
   }, [calendarType]);
 
   //get layouts of item for "RoundList"
@@ -98,8 +89,10 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
           {/* --- MAIN CALENDAR --- */}
           <View style={{ borderRightWidth: 1, borderColor: GRID_COLOR, flex: 1 }}>
             {/* --- DATE HEADER --- */}
-            <View style={{ height: hourHeight }}>
+            <View style={{ height: DATE_HEADER_HEIGHT, flexDirection: 'row' }}>
+              {/* --- DATE HEADER HOUR GUIDE --- */}
               <View style={{ width: HOUR_LABEL_WIDTH }}></View>
+              {/* --- DATE HORIZONTAL SCROLL --- */}
               <FlatList
                 ref={headerRef}
                 style={styles.dateContainer}
@@ -164,7 +157,7 @@ const styles = StyleSheet.create({
   },
   date: {
     padding: 10,
-    height: HOUR_HEIGHT,
+    height: DATE_HEADER_HEIGHT,
     borderBottomWidth: 1,
     borderColor: GRID_COLOR,
     backgroundColor: '#f0f0f0',

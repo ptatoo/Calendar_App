@@ -17,7 +17,8 @@ export const useCalendarScroll = (dayWidth: number) => {
 
     // Sync header position
     headerRef.current?.scrollToOffset({
-      offset: xOffset,
+      //NEED TO FIX
+      offset: xOffset - 30/2,
       animated: false,
     });
   };

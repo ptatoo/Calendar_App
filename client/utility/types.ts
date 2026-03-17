@@ -57,3 +57,8 @@ export interface FamilyCalendarState {
   parent: CalendarData;       // You (The User)
   children: CalendarData[];   // The Kids
 }
+
+export interface EventWithOffset {
+  event: EventObj;
+  offset: number;
+}
