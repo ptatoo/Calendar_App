@@ -12,19 +12,19 @@ export default function CalendarHeader(props: any) {
 
   return (
     <View style={styles.headerContainer}>
-      {/* Waffle */}
+      {/* --- Waffle --- */}
       <View style={{ justifyContent: 'center' }}>
         <Pressable onPress={() => navigation.dispatch(DrawerActions.openDrawer())} style={styles.waffle}>
           <Ionicons name="menu" size={28} color="black" />
         </Pressable>
       </View>
 
-      {/* Date */}
+      {/* --- Date --- */}
       <View style={{ justifyContent: 'center' }}>
         <Text style={{ fontWeight: 500, fontSize: 22 }}>{curDate.toLocaleString('default', { month: 'long' })}</Text>
       </View>
 
-      {/* Extra Buttons on the Right */}
+      {/* --- Extra Buttons on the Right --- */}
       <View style={styles.headerButtonContainer}>
         <Pressable style={styles.headerButton}>
           <Text style={{ fontWeight: 500, fontSize: 16 }}>{currentDate.toLocaleString('default', { day: 'numeric' })}</Text>

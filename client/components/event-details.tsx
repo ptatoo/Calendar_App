@@ -1,8 +1,9 @@
 import { EventObj } from '@/utility/types';
-import React from 'react';
-import { Dimensions, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { BottomSheetBackdrop, BottomSheetBackdropProps, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface Props {
   isVisible: boolean;
@@ -11,96 +12,123 @@ interface Props {
 }
 
 export default function EventDetails({ isVisible, event, onClose }: Props) {
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const snapPoints = useMemo(() => ['35%', '92%'], []);
+
+  useEffect(() => {
+    if (isVisible && event) {
+      requestAnimationFrame(() => {
+        bottomSheetModalRef.current?.present();
+      });
+    } else {
+      bottomSheetModalRef.current?.dismiss();
+    }
+  }, [isVisible, event]);
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0}
+        onPress={() => {
+          onClose(); // Sets state to false immediately
+          bottomSheetModalRef.current?.dismiss();
+        }}
+      />
+    ),
+    [],
+  );
+
+  // We return null only if there's no event, but keep the View structure
+  // so the absolute positioning works correctly.
   if (!event) return null;
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={isVisible}
-      onRequestClose={onClose} // Handles Android back button
+    /* This View forces the sheet to occupy the full screen coordinate space */
+    <BottomSheetModal
+      ref={bottomSheetModalRef}
+      index={0}
+      snapPoints={snapPoints}
+      topInset={0}
+      //onDismiss={onClose} // Important: trigger your parent's close logic
+      backdropComponent={renderBackdrop}
+      enablePanDownToClose={true}
+      animationConfigs={{
+        duration: 200, // Faster exit = Backdrop unmounts faster
+      }}
+      handleStyle={styles.handleContainer}
     >
-      <View style={styles.modalOverlay}>
-        {/* --- TOUCHABLE AREA ABOVE SHEET --- */}
-        <Pressable style={styles.dismissArea} onPress={onClose} />
-
-        <View style={styles.sheetContainer}>
-          {/* Visual Grab Handle */}
-          <View style={styles.handle} />
-
-          <View style={styles.header}>
-            <Text style={styles.title}>{event.title}</Text>
-            <Pressable onPress={onClose} hitSlop={10}>
-              <Text style={styles.closeX}>✕</Text>
-            </Pressable>
-          </View>
-
-          <View>
-            <Text style={styles.organizer}>Organized by {event.organizer}</Text>
-            <Text style={styles.description}>{event.description}</Text>
-            {/* Add more details like time, location, etc. here */}
-          </View>
+      <BottomSheetScrollView contentContainerStyle={styles.contentContainer}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{event.title}</Text>
         </View>
-      </View>
-    </Modal>
+
+        <View style={styles.body}>
+          <Text style={styles.organizer}>Organized by {event.organizer}</Text>
+          <View style={styles.divider} />
+          <Text style={styles.description}>{event.description}</Text>
+          <View style={{ height: 100 }} />
+        </View>
+      </BottomSheetScrollView>
+    </BottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
+  // This is the "magic" style that makes it overlay everything
+  absoluteOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 9999,
+    elevation: 9999,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
   },
-  dismissArea: {
-    flex: 1, // Takes up the top 2/3 of the screen
+  contentContainer: {
+    padding: 24,
   },
-  sheetContainer: {
-    backgroundColor: 'white',
-    height: SCREEN_HEIGHT / 3,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-    paddingTop: 12,
+  handleContainer: {
+    backgroundColor: 'white', // Matches your sheet color
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    // Shadow logic
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
+    shadowOffset: { width: 0, height: -2 }, // Negative height pushes shadow UP
     shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 20,
+    shadowRadius: 4,
+    elevation: 10,
   },
-  handle: {
+  handleIndicator: {
+    backgroundColor: '#D1D5DB',
     width: 40,
-    height: 5,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 10,
-    alignSelf: 'center',
-    marginBottom: 20,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
     marginBottom: 16,
   },
   title: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#111827',
-    flex: 1,
   },
-  closeX: {
-    fontSize: 20,
-    color: '#9CA3AF',
-    fontWeight: '600',
-    marginLeft: 10,
+  body: {
+    marginTop: 8,
   },
   organizer: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#6B7280',
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F3F4F6',
+    marginBottom: 16,
   },
   description: {
-    fontSize: 16,
+    fontSize: 18,
+    lineHeight: 28,
     color: '#374151',
-    lineHeight: 24,
   },
 });

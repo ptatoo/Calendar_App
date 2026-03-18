@@ -16,6 +16,8 @@ export default function Index() {
   const calendarProps = useCalendar(jwtToken?.sessionToken ?? null);
   const [currentDay, setCurrentDay] = useState<Date>(new Date());
 
+  const [eventDetailsVisible, setEventDetailsVisible] = useState<boolean>(true);
+
   const calendars = calendarProps.calendars;
 
   const allEvents: EventObj[] = calendars

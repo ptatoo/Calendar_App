@@ -8,8 +8,9 @@ import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { isSameDay } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
+import EventDetails from '../event-details';
 import DayContainer from './day-container';
 import HourGuide from './hour-guide';
 
@@ -32,6 +33,11 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const [hourHeight, setHourHeight] = useState(60);
   const [baseHeight, setBaseHeight] = useState(60);
 
+  const [selectedEvent, setSelectedEvent] = useState<EventObj | null>(null);
+  const [eventDetailsVisible, setEventDetailsVisible] = useState<boolean>(false);
+  console.log('visibility: ' + eventDetailsVisible);
+
+  //change hourHeight with GestureDectector
   const pinchGesture = Gesture.Pinch()
     .onUpdate((event) => {
       // Direct calculation
@@ -54,14 +60,22 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const { days, initialIndex } = useCalendarRange();
   const { headerRef, handleScroll } = useCalendarScroll(dayWidth);
 
-  //==============
   //render vertical day columns and date headers
   const renderDay = ({ item }: { item: { date: Date } }) => {
     const day = item.date;
     if (!day) return null;
 
     const eventsForDay = events.filter((event) => event.startDate && isSameDay(day, event.startDate));
-    return <DayContainer day={day} dayWidth={dayWidth} events={eventsForDay} hourHeight={hourHeight} />;
+    return (
+      <DayContainer
+        day={day}
+        dayWidth={dayWidth}
+        events={eventsForDay}
+        hourHeight={hourHeight}
+        showEventDetails={setEventDetailsVisible}
+        setSelectedEvent={setSelectedEvent}
+      />
+    );
   };
   const renderDate = ({ item }: { item: { date: Date } }) => {
     return <DateHeader day={item.date} dayWidth={dayWidth} />;
@@ -83,7 +97,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
 
   // --- DISPLAY ---
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <>
       <GestureDetector gesture={pinchGesture}>
         <View style={styles.container}>
           {/* --- MAIN CALENDAR --- */}
@@ -143,7 +157,8 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
           </View>
         </View>
       </GestureDetector>
-    </GestureHandlerRootView>
+      <EventDetails event={selectedEvent} isVisible={eventDetailsVisible} onClose={() => setEventDetailsVisible(false)} />
+    </>
   );
 }
 

@@ -1,8 +1,7 @@
 import { GRID_COLOR } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import EventDetails from '../event-details';
 import EventContainer from './event-container';
 
 const HourTicks = ({ hourHeight }: { hourHeight: number }) => {
@@ -21,13 +20,16 @@ export default function DayContainer({
   dayWidth,
   hourHeight,
   events,
+  setSelectedEvent,
+  showEventDetails,
 }: {
   day: Date;
   dayWidth: number;
   hourHeight: number;
   events: EventObj[];
+  setSelectedEvent: (event: EventObj) => void;
+  showEventDetails: (visibility: boolean) => void;
 }) {
-  const [selectedEvent, setSelectedEvent] = useState<EventObj | null>(null);
   const eventsWithOffsets = useMemo(() => {
     //Sort by start time ascending order
     const sortedEvents = [...events].sort((a, b) => {
@@ -76,12 +78,11 @@ export default function DayContainer({
             // Pass the setter down
             onSelect={() => {
               setSelectedEvent(item.event);
+              showEventDetails(true);
             }}
           />
         ))}
       </View>
-      {/* Render ONE sheet for the whole day column */}
-      <EventDetails isVisible={!!selectedEvent} event={selectedEvent} onClose={() => setSelectedEvent(null)} />
     </View>
   );
 }
