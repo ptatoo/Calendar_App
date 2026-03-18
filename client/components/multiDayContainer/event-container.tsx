@@ -1,8 +1,10 @@
+import { EVENT_GAP, EVENT_OFFSET } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
 import { differenceInMinutes, getHours, getMinutes } from 'date-fns';
 import { StyleSheet, Text, View } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
 
-//maybe move this to a util file
+//TODO: MOVE THIS TO A NEW FILE
 const getEventLayout = (event: EventObj, offset: number, hourHeight: number, dayWidth: number, columnWidth: number) => {
   const startHour = getHours(event.startDate);
   const startMin = getMinutes(event.startDate);
@@ -15,53 +17,80 @@ const getEventLayout = (event: EventObj, offset: number, hourHeight: number, day
   return {
     top: minutesFromMidnight * pixelsPerMinute,
     height: durationInMinutes * pixelsPerMinute,
-    // Each offset shifts the event to the right by one column width
     left: left,
-    width: dayWidth - left,
+    width: dayWidth - left - EVENT_GAP,
   };
 };
 
-export const EventContainer = (eventWithOffset: EventWithOffset, dayWidth: number, hourHeight: number) => {
+//TODO: MAKE THIS LOOK PRETTY
+export default function EventContainer({
+  eventWithOffset,
+  dayWidth,
+  hourHeight,
+  onSelect,
+}: {
+  eventWithOffset: EventWithOffset;
+  dayWidth: number;
+  hourHeight: number;
+  onSelect: () => void;
+}) {
   const { event, offset } = eventWithOffset;
-  const COLUMN_WIDTH = dayWidth * 0.8;
   const { top, height, left, width } = getEventLayout(
     event,
     offset,
     hourHeight,
     dayWidth,
-    15, // This is the horizontal "step" for each offset (e.g., 30px)
+    EVENT_OFFSET, //horizontal offset step
   );
 
   return (
-    <View
-      key={event.id}
-      style={[
-        styles.event,
-        {
-          top,
-          height,
-          left,
-          width,
-          zIndex: offset,
-        },
-      ]}
-    >
-      <Text style={styles.eventText} numberOfLines={1}>
-        {event.title}
-      </Text>
-    </View>
+    <>
+      {/* --- EVENT CONTAINER --- */}
+      <Pressable
+        onPress={() => {
+          onSelect();
+        }}
+        delayLongPress={0}
+        style={[
+          styles.eventContainer,
+          {
+            top,
+            height,
+            left,
+            width,
+            zIndex: offset + 100, // Boost this to ensure it's on top of grid lines
+            elevation: offset + 100, // Required for Android layering
+          },
+        ]}
+        hitSlop={5}
+      >
+        {/* --- EVENT LEFT BAR --- */}
+        <View key={event.id} style={styles.event}>
+          {/* --- EVENT TITLE --- */}
+          <Text style={styles.eventText} numberOfLines={1}>
+            {event.title}
+          </Text>
+        </View>
+      </Pressable>
+    </>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  event: {
+  eventContainer: {
+    borderWidth: 1,
+    borderColor: 'white',
+    overflow: 'hidden',
     position: 'absolute', // Allows use of 'top'
+    borderRadius: 8,
+  },
+  event: {
+    flex: 1,
     backgroundColor: '#dbeafe',
     borderLeftWidth: 8,
     borderLeftColor: '#2563eb',
     borderRadius: 8,
     padding: 4,
-    overflow: 'hidden',
   },
   eventText: {
     fontSize: 15,

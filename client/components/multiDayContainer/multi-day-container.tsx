@@ -48,6 +48,11 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
       setBaseHeight(hourHeight);
     });
 
+  const composedGesture = Gesture.Simultaneous(
+    pinchGesture,
+    Gesture.Native(), // This is the secret ingredient
+  );
+
   // hooks
   // Note: Ensure useCalendarRange initializes with a large past buffer (e.g. 365 days)
   // so users don't hit the start edge immediately.
@@ -84,7 +89,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   // --- DISPLAY ---
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <GestureDetector gesture={pinchGesture}>
+      <GestureDetector gesture={composedGesture}>
         <View style={styles.container}>
           {/* --- MAIN CALENDAR --- */}
           <View style={{ borderRightWidth: 1, borderColor: GRID_COLOR, flex: 1 }}>
@@ -134,6 +139,8 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
                     onScroll={handleScroll}
                     // 7. Render optimization
                     drawDistance={dayWidth * 5}
+                    nestedScrollEnabled={true}
+                    // This ensures the list doesn't swallow touches meant for the items
                   />
                 )}
               </View>

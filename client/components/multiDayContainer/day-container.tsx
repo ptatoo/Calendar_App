@@ -1,8 +1,9 @@
 import { GRID_COLOR } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { EventContainer } from './event-container';
+import EventDetails from '../event-details';
+import EventContainer from './event-container';
 
 const HourTicks = ({ hourHeight }: { hourHeight: number }) => {
   return (
@@ -14,6 +15,7 @@ const HourTicks = ({ hourHeight }: { hourHeight: number }) => {
   );
 };
 
+//TODO: MOVE EVENTS_WITH_OFFSETS USEMEMO SOMEWHERE ELSE (AKA A HOOK)
 export default function DayContainer({
   day,
   dayWidth,
@@ -25,6 +27,7 @@ export default function DayContainer({
   hourHeight: number;
   events: EventObj[];
 }) {
+  const [selectedEvent, setSelectedEvent] = useState<EventObj | null>(null);
   const eventsWithOffsets = useMemo(() => {
     //Sort by start time ascending order
     const sortedEvents = [...events].sort((a, b) => {
@@ -62,12 +65,23 @@ export default function DayContainer({
   //console.log(day, events);
   return (
     <View key={day.toLocaleDateString()} style={{ borderRightWidth: 1, borderColor: '#f0f0f0', width: dayWidth }}>
-      <View style={[styles.dayContainer, { width: dayWidth }]}>
+      <View style={[styles.dayContainer, { width: dayWidth, zIndex: 999 }]} pointerEvents="box-none">
         <HourTicks hourHeight={hourHeight} />
-        {eventsWithOffsets.map((event) => {
-          return EventContainer(event, dayWidth, hourHeight);
-        })}
+        {eventsWithOffsets.map((item) => (
+          <EventContainer
+            key={item.event.id}
+            eventWithOffset={item}
+            dayWidth={dayWidth}
+            hourHeight={hourHeight}
+            // Pass the setter down
+            onSelect={() => {
+              setSelectedEvent(item.event);
+            }}
+          />
+        ))}
       </View>
+      {/* Render ONE sheet for the whole day column */}
+      <EventDetails isVisible={!!selectedEvent} event={selectedEvent} onClose={() => setSelectedEvent(null)} />
     </View>
   );
 }

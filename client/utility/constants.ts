@@ -2,9 +2,11 @@ import { Dimensions } from 'react-native';
 
 // --- CONSTANTS ---
 export const SCREEN_WIDTH = Dimensions.get('window').width;
-export const HOUR_HEIGHT = 40;
+export const HOUR_HEIGHT = 30;
 export const HOUR_LABEL_WIDTH = 30;
 export const DATE_HEADER_HEIGHT = 40;
+export const EVENT_GAP = 10;
+export const EVENT_OFFSET = 15;
 
 export const GRID_COLOR = '#f0f0f0';
 export const PAST_BUFFER = 2000; // ~6 years back
