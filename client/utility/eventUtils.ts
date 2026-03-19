@@ -27,7 +27,13 @@ export const processCalendar = ( calendar : any ) : EventObj[] => {
         return [];
     }
 
-    return calendar.items.map(processEvent).sort(compareEvents);
+    return calendar.items
+    .filter((item: any) => {
+            const status = item.status?.toLowerCase().trim();
+            return status !== 'cancelled';
+        })
+        .map(processEvent)
+        .sort(compareEvents);
 };
 
 export const compareEvents = (a: EventObj, b: EventObj): number => {

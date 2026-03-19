@@ -1,7 +1,7 @@
 import { useCalendarRange } from '@/hooks/calendarHooks/useCalendarRange';
 import { useCalendarScroll } from '@/hooks/calendarHooks/useCalendarScroll';
 
-import { DATE_HEADER_HEIGHT, GRID_COLOR, HOUR_HEIGHT, HOUR_LABEL_WIDTH, SCREEN_WIDTH } from '@/utility/constants';
+import { DATE_HEADER_HEIGHT, GRID_COLOR, HEADER_BACKGROUND_COLOR, HOUR_HEIGHT, HOUR_LABEL_WIDTH, SCREEN_WIDTH } from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 
@@ -30,12 +30,11 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const [dayWidth, setDayWidth] = useState((SCREEN_WIDTH - HOUR_LABEL_WIDTH) / 3);
   const listRef = useRef<FlashListRef<any>>(null);
 
-  const [hourHeight, setHourHeight] = useState(60);
-  const [baseHeight, setBaseHeight] = useState(60);
+  const [hourHeight, setHourHeight] = useState(HOUR_HEIGHT);
+  const [baseHeight, setBaseHeight] = useState(HOUR_HEIGHT);
 
   const [selectedEvent, setSelectedEvent] = useState<EventObj | null>(null);
   const [eventDetailsVisible, setEventDetailsVisible] = useState<boolean>(false);
-  console.log('visibility: ' + eventDetailsVisible);
 
   //change hourHeight with GestureDectector
   const pinchGesture = Gesture.Pinch()
@@ -72,6 +71,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
         dayWidth={dayWidth}
         events={eventsForDay}
         hourHeight={hourHeight}
+        handlePress={handlePress}
         showEventDetails={setEventDetailsVisible}
         setSelectedEvent={setSelectedEvent}
       />
@@ -95,6 +95,24 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     index,
   });
 
+  // open and close eventDetails
+  const [isLoading, setIsLoading] = useState(false);
+  const handlePress = (event: EventObj | null) => {
+    //handle loading state
+    if (isLoading) return;
+    setIsLoading(true);
+
+    if (!event) {
+      setEventDetailsVisible(false);
+    } else {
+      setEventDetailsVisible(true);
+      setSelectedEvent(event);
+    }
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 400);
+  };
+
   // --- DISPLAY ---
   return (
     <>
@@ -105,7 +123,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
             {/* --- DATE HEADER --- */}
             <View style={{ height: DATE_HEADER_HEIGHT, flexDirection: 'row' }}>
               {/* --- DATE HEADER HOUR GUIDE --- */}
-              <View style={{ width: HOUR_LABEL_WIDTH }}></View>
+              <View style={styles.dateHourGuide} />
               {/* --- DATE HORIZONTAL SCROLL --- */}
               <FlatList
                 ref={headerRef}
@@ -157,6 +175,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
           </View>
         </View>
       </GestureDetector>
+      {/* --- EVENT DETAILS --- */}
       <EventDetails event={selectedEvent} isVisible={eventDetailsVisible} onClose={() => setEventDetailsVisible(false)} />
     </>
   );
@@ -170,13 +189,17 @@ const styles = StyleSheet.create({
   },
   dateContainer: {
     flexDirection: 'row',
-    height: HOUR_HEIGHT,
+    height: DATE_HEADER_HEIGHT,
   },
   date: {
     padding: 10,
     height: DATE_HEADER_HEIGHT,
-    borderBottomWidth: 1,
     borderColor: GRID_COLOR,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: HEADER_BACKGROUND_COLOR,
+  },
+  dateHourGuide: {
+    width: HOUR_LABEL_WIDTH,
+    backgroundColor: HEADER_BACKGROUND_COLOR,
+    height: DATE_HEADER_HEIGHT,
   },
 });

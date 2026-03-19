@@ -36,8 +36,11 @@ export const fetchFamilyAccessTokens = async (jwtToken : string) => {
 
 // Google Api Fetching
 export const fetchCalendar = async (accessToken: string) => {
+    const url = new URL("https://www.googleapis.com/calendar/v3/calendars/primary/events");
+    url.searchParams.append("showDeleted", "false");
+
     const res = await fetch(
-      "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+      url.toString(),
       {
         method: "GET",
         headers: {

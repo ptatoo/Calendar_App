@@ -1,7 +1,7 @@
 import { GRID_COLOR } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import EventContainer from './event-container';
 
 const HourTicks = ({ hourHeight }: { hourHeight: number }) => {
@@ -22,6 +22,7 @@ export default function DayContainer({
   events,
   setSelectedEvent,
   showEventDetails,
+  handlePress,
 }: {
   day: Date;
   dayWidth: number;
@@ -29,6 +30,7 @@ export default function DayContainer({
   events: EventObj[];
   setSelectedEvent: (event: EventObj) => void;
   showEventDetails: (visibility: boolean) => void;
+  handlePress: (event: EventObj | null) => void;
 }) {
   const eventsWithOffsets = useMemo(() => {
     //Sort by start time ascending order
@@ -69,6 +71,7 @@ export default function DayContainer({
     <View key={day.toLocaleDateString()} style={{ borderRightWidth: 1, borderColor: '#f0f0f0', width: dayWidth }}>
       <View style={[styles.dayContainer, { width: dayWidth, zIndex: 999 }]} pointerEvents="box-none">
         <HourTicks hourHeight={hourHeight} />
+        {/* --- EVENTS --- */}
         {eventsWithOffsets.map((item) => (
           <EventContainer
             key={item.event.id}
@@ -77,11 +80,17 @@ export default function DayContainer({
             hourHeight={hourHeight}
             // Pass the setter down
             onSelect={() => {
-              setSelectedEvent(item.event);
-              showEventDetails(true);
+              handlePress(item.event);
             }}
           />
         ))}
+        {/* --- CLOSE EVENT DETAILS BUTTON --- */}
+        <Pressable
+          onPress={() => {
+            handlePress(null);
+          }}
+          style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: 'transparent' }]}
+        />
       </View>
     </View>
   );

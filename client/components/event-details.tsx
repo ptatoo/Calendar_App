@@ -1,6 +1,6 @@
 import { EventObj } from '@/utility/types';
-import { BottomSheetBackdrop, BottomSheetBackdropProps, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -15,48 +15,27 @@ export default function EventDetails({ isVisible, event, onClose }: Props) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ['35%', '92%'], []);
 
+  // Use a ref to track if the sheet is actually "presented" to avoid double-calls
   useEffect(() => {
     if (isVisible && event) {
-      requestAnimationFrame(() => {
-        bottomSheetModalRef.current?.present();
-      });
-    } else {
+      bottomSheetModalRef.current?.present();
+    } else if (!isVisible) {
       bottomSheetModalRef.current?.dismiss();
     }
   }, [isVisible, event]);
 
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0}
-        onPress={() => {
-          onClose(); // Sets state to false immediately
-          bottomSheetModalRef.current?.dismiss();
-        }}
-      />
-    ),
-    [],
-  );
-
-  // We return null only if there's no event, but keep the View structure
-  // so the absolute positioning works correctly.
   if (!event) return null;
 
   return (
-    /* This View forces the sheet to occupy the full screen coordinate space */
     <BottomSheetModal
       ref={bottomSheetModalRef}
       index={0}
       snapPoints={snapPoints}
-      topInset={0}
-      //onDismiss={onClose} // Important: trigger your parent's close logic
-      backdropComponent={renderBackdrop}
       enablePanDownToClose={true}
+      // This allows touches to pass through the container to the buttons behind it
+      containerStyle={{ pointerEvents: 'box-none' }}
       animationConfigs={{
-        duration: 200, // Faster exit = Backdrop unmounts faster
+        duration: 250,
       }}
       handleStyle={styles.handleContainer}
     >
@@ -77,7 +56,6 @@ export default function EventDetails({ isVisible, event, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
-  // This is the "magic" style that makes it overlay everything
   absoluteOverlay: {
     position: 'absolute',
     top: 0,
