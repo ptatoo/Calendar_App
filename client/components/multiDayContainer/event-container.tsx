@@ -1,5 +1,6 @@
-import { EVENT_GAP, EVENT_OFFSET } from '@/utility/constants';
+import { DEFAULT_COLORS, EVENT_GAP, EVENT_OFFSET } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
+
 import { differenceInMinutes, getHours, getMinutes } from 'date-fns';
 import { StyleSheet, Text, View } from 'react-native';
 import { Pressable } from 'react-native-gesture-handler';
@@ -20,6 +21,27 @@ const getEventLayout = (event: EventObj, offset: number, hourHeight: number, day
     left: left,
     width: dayWidth - left - EVENT_GAP,
   };
+};
+
+const lightenColor = (hex: string, percent: number): string => {
+  // Remove the hash if it exists
+  let color = hex.replace(/^#/, '');
+
+  // Parse the RGB components
+  let r = parseInt(color.substring(0, 2), 16);
+  let g = parseInt(color.substring(2, 4), 16);
+  let b = parseInt(color.substring(4, 6), 16);
+
+  // Lighten each channel
+  // Formula: current + (255 - current) * percent
+  r = Math.floor(r + (255 - r) * (percent / 100));
+  g = Math.floor(g + (255 - g) * (percent / 100));
+  b = Math.floor(b + (255 - b) * (percent / 100));
+
+  // Convert back to hex and pad with zeros if necessary
+  const toHex = (c: number) => c.toString(16).padStart(2, '0');
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 };
 
 //TODO: MAKE THIS LOOK PRETTY
@@ -43,6 +65,10 @@ export default function EventContainer({
     EVENT_OFFSET, //horizontal offset step
   );
 
+  const colors = [3, 5, 7, 9, 14, 21];
+  const rawColor = DEFAULT_COLORS[colors[Math.floor(Math.random() * 6)]];
+  const color = lightenColor(rawColor, 50);
+
   return (
     <>
       {/* --- EVENT CONTAINER --- */}
@@ -58,14 +84,14 @@ export default function EventContainer({
             height,
             left,
             width,
-            zIndex: offset + 100, // Boost this to ensure it's on top of grid lines
+            zIndex: offset + 100,
             elevation: offset + 100, // Required for Android layering
           },
         ]}
         hitSlop={5}
       >
         {/* --- EVENT LEFT BAR --- */}
-        <View key={event.id} style={styles.event}>
+        <View key={event.id} style={[styles.event, { backgroundColor: color, borderLeftColor: rawColor }]}>
           {/* --- EVENT TITLE --- */}
           <Text style={styles.eventText} numberOfLines={1}>
             {event.title}
@@ -86,9 +112,7 @@ const styles = StyleSheet.create({
   },
   event: {
     flex: 1,
-    backgroundColor: '#dbeafe',
     borderLeftWidth: 8,
-    borderLeftColor: '#2563eb',
     borderRadius: 8,
     padding: 4,
   },

@@ -12,9 +12,9 @@ export const GRID_COLOR = '#f0f0f0';
 export const HEADER_BACKGROUND_COLOR = '#f0f0f0';
 
 export const DEFAULT_COLORS = [
-    'ac725e', 'd06b64', 'f83a22', 'fa573c', 'ff7537', 'ffad46', 'fbe983', 'fad165',
-    '4986e7', '9fc6e7', '9fe1e7', '92e1c0', '42d692', '16a765', '7bd148', 'b3dc6c',
-    '444746', 'cabdbf', 'cca6ac', 'f691b2', 'cd74e6', 'a47ae2', '9a9cff', 'b99aff',
+    '#ac725e', '#d06b64', '#f83a22', '#fa573c', '#ff7537', '#ffad46', '#fbe983', '#fad165',
+    '#4986e7', '#9fc6e7', '#9fe1e7', '#92e1c0', '#42d692', '#16a765', '#7bd148', '#b3dc6c',
+    '#444746', '#cabdbf', '#cca6ac', '#f691b2', '#cd74e6', '#a47ae2', '#9a9cff', '#b99aff',
 ]
 
 export const PAST_BUFFER = 2000; // ~6 years back
