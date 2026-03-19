@@ -1,25 +1,52 @@
 import MonthContainer from '@/components/monthContainer/month-container';
 import MultiDayContainer from '@/components/multiDayContainer/multi-day-container';
-import { useContext } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { AuthContext } from './context';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendar } from '@/hooks/useCalendar';
-import { EventObj } from '@/utility/types';
 
 // --- MAIN COMPONENT ---
 export default function Index() {
   // --- STATE ---
   const { calendarType, setCalendarType } = useContext(AuthContext);
   const { jwtToken } = useAuth();
-  const calendarProps = useCalendar(jwtToken?.sessionToken ?? null);
 
+  const calendarProps = useCalendar(jwtToken?.sessionToken ?? null);
   const calendars = calendarProps.calendars;
 
-  const allEvents: EventObj[] = calendars
-    ? [...(calendars.parent?.events || []), ...(calendars.children?.flatMap((child) => child.events) || [])]
-    : [];
+  // Combine all CalendarDatas into one array
+  const allAvailableCalendars = useMemo(() => {
+    if (!calendars) return [];
+
+    return [...(calendars.parent || []), ...(calendars.children || [])];
+  }, [calendars]);
+
+  // Holds all available Calendar Ids
+  const [visibleCalendarIds, setVisibleCalendarIds] = useState<string[]>([]);
+
+  //set available IDs on render
+  useEffect(() => {
+    if (allAvailableCalendars.length > 0 && visibleCalendarIds.length === 0) {
+      const initialIds = allAvailableCalendars.map((cal) => cal.id);
+      setVisibleCalendarIds(initialIds);
+    }
+  }, [allAvailableCalendars]);
+
+  //list all events
+  const allEvents = useMemo(() => {
+    return (
+      allAvailableCalendars
+        // toggle event visibilty based on calendar ID
+        .filter((cal) => visibleCalendarIds.includes(cal.id))
+        .flatMap((cal) =>
+          cal.events.map((event) => ({
+            ...event,
+          })),
+        )
+    );
+  }, [allAvailableCalendars, visibleCalendarIds]);
 
   // --- DISPLAY ---
   return (

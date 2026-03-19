@@ -5,12 +5,13 @@ import { DATE_HEADER_HEIGHT, GRID_COLOR, HEADER_BACKGROUND_COLOR, HOUR_HEIGHT, H
 import { CalendarView, EventObj } from '@/utility/types';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 
+import { useIsFocused } from '@react-navigation/native';
 import { isSameDay } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
-import EventDetails from '../event-details';
+import EventDetails from '../eventDetailsContainer/event-details';
 import DayContainer from './day-container';
 import HourGuide from './hour-guide';
 
@@ -113,6 +114,22 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     }, 400);
   };
 
+  //temporary: forces calendar to initialindex on rerender
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    if (isFocused && listRef.current && initialIndex !== undefined) {
+      // We use a small delay to ensure the FlashList internal engine is ready
+      const timeout = setTimeout(() => {
+        listRef.current?.scrollToIndex({
+          index: initialIndex,
+          animated: false,
+        });
+      }, 50); // 50ms is usually enough to bridge the mount gap
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isFocused, initialIndex]);
+
   // --- DISPLAY ---
   return (
     <>
@@ -152,21 +169,22 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
               {/* --- HOUR GUIDE --- */}
               <HourGuide hourHeight={hourHeight} labelWidth={HOUR_LABEL_WIDTH} />
               {/* --- HORIZONTAL SCROLL --- */}
-              <View style={{ width: SCREEN_WIDTH, flex: 1 }}>
+              <View style={{ width: SCREEN_WIDTH, flex: 1, opacity: isFocused ? 1 : 0 }}>
                 {days.length > 0 && (
                   <FlashList
+                    key={`calendar-${calendarType}`}
                     ref={listRef}
                     data={days}
                     renderItem={renderDay}
-                    snapToInterval={SCREEN_WIDTH}
+                    snapToInterval={dayWidth}
                     horizontal
-                    // 5. Start Body at Today (Matching Header)
                     initialScrollIndex={initialIndex - 1}
-                    // 6. Sync logic
                     onScroll={handleScroll}
                     // 7. Render optimization
                     drawDistance={dayWidth * 5}
                     nestedScrollEnabled={true}
+                    keyExtractor={(item) => item.date.toISOString()}
+
                     // This ensures the list doesn't swallow touches meant for the items
                   />
                 )}

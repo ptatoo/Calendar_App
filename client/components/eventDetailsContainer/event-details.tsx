@@ -1,7 +1,10 @@
+import { getEventTimeDisplay } from '@/utility/eventUtils';
 import { EventObj } from '@/utility/types';
+
 import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text } from 'react-native';
+import { EventExpandedView } from './event-details-expanded-view';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -13,7 +16,8 @@ interface Props {
 
 export default function EventDetails({ isVisible, event, onClose }: Props) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const snapPoints = useMemo(() => ['35%', '92%'], []);
+  const snapPoints = useMemo(() => ['20%', '92%'], []);
+  const [currentIndex, setCurrentIndex] = React.useState(0);
 
   // Use a ref to track if the sheet is actually "presented" to avoid double-calls
   useEffect(() => {
@@ -25,6 +29,7 @@ export default function EventDetails({ isVisible, event, onClose }: Props) {
   }, [isVisible, event]);
 
   if (!event) return null;
+  const { primary, secondary } = getEventTimeDisplay(event);
 
   return (
     <BottomSheetModal
@@ -38,36 +43,31 @@ export default function EventDetails({ isVisible, event, onClose }: Props) {
         duration: 250,
       }}
       handleStyle={styles.handleContainer}
+      onChange={(index) => {
+        setCurrentIndex(index);
+        console.log('Current Sheet Index:', index); // This should be 0 or 1
+        if (index === -1) {
+          onClose();
+        }
+      }}
     >
       <BottomSheetScrollView contentContainerStyle={styles.contentContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{event.title}</Text>
-        </View>
-
-        <View style={styles.body}>
-          <Text style={styles.organizer}>Organized by {event.organizer}</Text>
-          <View style={styles.divider} />
-          <Text style={styles.description}>{event.description}</Text>
-          <View style={{ height: 100 }} />
-        </View>
+        {/* --- TITLE --- */}
+        <Text style={styles.title} numberOfLines={1}>
+          {event.title}
+        </Text>
+        {/* --- HOURS --- */}
+        <Text style={styles.timeRow}>{primary}</Text>
+        {/* --- DATE --- */}
+        <Text style={styles.dateRow}>{secondary}</Text>
+        {/* --- EXPANDED CONTENT --- */}
+        {currentIndex > 0 && <EventExpandedView event={event} />}
       </BottomSheetScrollView>
     </BottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  absoluteOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    zIndex: 9999,
-    elevation: 9999,
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-  },
-  contentContainer: {
-    padding: 24,
-  },
   handleContainer: {
     backgroundColor: 'white', // Matches your sheet color
     borderTopLeftRadius: 15,
@@ -79,34 +79,25 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 10,
   },
-  handleIndicator: {
-    backgroundColor: '#D1D5DB',
-    width: 40,
-  },
-  header: {
-    marginBottom: 16,
+  contentContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 8,
   },
   title: {
-    fontSize: 26,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '700',
     color: '#111827',
+    marginBottom: 8,
   },
-  body: {
-    marginTop: 8,
-  },
-  organizer: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 16,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#F3F4F6',
-    marginBottom: 16,
-  },
-  description: {
+  timeRow: {
     fontSize: 18,
-    lineHeight: 28,
-    color: '#374151',
+    color: '#374151', // Darker gray for the "Actionable" time
+    fontWeight: '500',
+    lineHeight: 24,
+  },
+  dateRow: {
+    fontSize: 16,
+    color: '#6B7280', // Lighter gray for the date
+    marginTop: 2,
   },
 });

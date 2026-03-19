@@ -51,3 +51,35 @@ export const fetchCalendar = async (accessToken: string) => {
     );
     return await res.json();
 }
+// Google Api: Fetch Calendar Events
+export const fetchGivenCalendar = async (accessToken: string, calendarId: string = "primary", isPrimary: boolean = false) => {
+    const encodedId = (!isPrimary) ? encodeURIComponent(calendarId) : encodeURIComponent("primary");
+    const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events`);
+    url.searchParams.append("showDeleted", "false");
+    url.searchParams.append("singleEvents", "true");
+    url.searchParams.append("orderBy", "startTime");
+
+    const res = await fetch(
+      url.toString(),
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    return await res.json();
+}
+
+// Google Api: Fetch Calendar List
+export const fetchCalendarList = async (accessToken: string) => {
+  const res = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+  return await res.json();
+};

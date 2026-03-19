@@ -17,5 +17,5 @@ export const DEFAULT_COLORS = [
     '#444746', '#cabdbf', '#cca6ac', '#f691b2', '#cd74e6', '#a47ae2', '#9a9cff', '#b99aff',
 ]
 
-export const PAST_BUFFER = 2000; // ~6 years back
-export const FUTURE_BUFFER = 2000; // ~6 years forward
+export const PAST_BUFFER = 100; // ~6 years back
+export const FUTURE_BUFFER = 100; // ~6 years forward

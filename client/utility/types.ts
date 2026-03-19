@@ -38,23 +38,40 @@ export interface DateContextType {
 }
 
 export interface EventObj {
+  //event data
   id: string,
   title: string,
   description: string,
+  location: string;
   organizer: string,
   allDay: boolean,
   startDate: Date,
   endDate: Date,
+  eventType: string;
+
+  //recurrence
+  recurrence?: string[];
+  sequence: number; 
+  reminders: {
+    useDefault: boolean;
+    overrides?: { method: string; minutes: number }[];
+  };
+  recurringEventId?: string;
+
+  //calendar data
+  calendarId: string;
+  displayColor: string;
 }
 
 export interface CalendarData {
+  id: string;
   owner: string;
   name: string;
   color: string;
   events: EventObj[]; // The actual calendar events
 }
 export interface FamilyCalendarState {
-  parent: CalendarData;       // You (The User)
+  parent: CalendarData[];       // You (The User)
   children: CalendarData[];   // The Kids
 }
 

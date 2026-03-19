@@ -1,4 +1,4 @@
-import { DEFAULT_COLORS, EVENT_GAP, EVENT_OFFSET } from '@/utility/constants';
+import { EVENT_GAP, EVENT_OFFSET } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
 
 import { differenceInMinutes, getHours, getMinutes } from 'date-fns';
@@ -66,7 +66,7 @@ export default function EventContainer({
   );
 
   const colors = [3, 5, 7, 9, 14, 21];
-  const rawColor = DEFAULT_COLORS[colors[Math.floor(Math.random() * 6)]];
+  const rawColor = event.displayColor;
   const color = lightenColor(rawColor, 50);
 
   return (
