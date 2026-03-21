@@ -1,6 +1,7 @@
+import { EventsContext } from "@/components/calendar-events-context";
 import { processCalendar } from "@/utility/eventUtils";
-import { CalendarData, FamilyCalendarState } from "@/utility/types";
-import { useCallback, useEffect, useState } from "react";
+import { CalendarData, calendarObj, FamilyCalendarState } from "@/utility/types";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { fetchCalendarList, fetchGivenCalendar } from "../services/api";
 import { storage } from "../services/storage";
 import { useAccessToken } from "./useAccessToken";
@@ -8,6 +9,7 @@ import { useAccessToken } from "./useAccessToken";
 export function useCalendar(jwtToken: string | null) {
   // 1. States
   const { getValidAccessToken } = useAccessToken(jwtToken);
+  const { calendarObjs, setCalendarObj } = useContext(EventsContext);
 
   const [calendars, setCalendars] = useState<FamilyCalendarState | null>(() => {
     return storage.get("calendar") || null;
@@ -28,6 +30,19 @@ export function useCalendar(jwtToken: string | null) {
       // 2.2 Fetch Calendar List
       const calendarListRes = await fetchCalendarList(tokens.parent.accessToken);
       const parentCalendarsMetadata = calendarListRes.items || [];
+      
+      const newCalendarIds: calendarObj[] = [];
+      parentCalendarsMetadata.map((cal: any) => {
+        const curCalendarObj: calendarObj = {
+          calendarName: cal.summary,
+          calendarId: cal.id,
+          calendarDefaultColor: cal.backgroundColor || "#4285F4",
+          calendarCustomColor: cal.backgroundColor || "#4285F4"
+        }
+        newCalendarIds.push(curCalendarObj);
+      })
+
+      setCalendarObj(newCalendarIds);
 
       // 2.3 Fetch Parent Calendars
       const parentCalendarPromises = parentCalendarsMetadata.map(async (cal: any) => {

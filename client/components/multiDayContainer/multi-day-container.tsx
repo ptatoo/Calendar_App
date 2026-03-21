@@ -1,18 +1,11 @@
 import { useCalendarRange } from '@/hooks/calendarHooks/useCalendarRange';
-import {
-  DATE_HEADER_HEIGHT,
-  GRID_COLOR,
-  HEADER_BACKGROUND_COLOR,
-  HOUR_HEIGHT,
-  HOUR_LABEL_WIDTH,
-  SCREEN_WIDTH,
-} from '@/utility/constants';
+import { DATE_HEADER_HEIGHT, GRID_COLOR, HEADER_BACKGROUND_COLOR, HOUR_HEIGHT, HOUR_LABEL_WIDTH, SCREEN_WIDTH } from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useIsFocused } from '@react-navigation/native';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { isSameDay } from 'date-fns';
-import { useEffect, useRef, useState, useMemo } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import EventDetails from '../eventDetailsContainer/event-details';
@@ -30,24 +23,14 @@ const DateHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
         <Text style={[styles.dateText, isToday && styles.todayText]}>
           {day.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
         </Text>
-        <Text style={[styles.dateNumber, isToday && styles.todayNumber]}>
-          {day.toLocaleDateString('en-US', { day: 'numeric' })}
-        </Text>
+        <Text style={[styles.dateNumber, isToday && styles.todayNumber]}>{day.toLocaleDateString('en-US', { day: 'numeric' })}</Text>
       </View>
     </View>
   );
 };
 
-export default function MultiDayContainer({
-  calendarType,
-  events,
-}: {
-  calendarType: CalendarView;
-  events: EventObj[];
-}) {
-  const [dayWidth, setDayWidth] = useState(
-    Math.floor((SCREEN_WIDTH - HOUR_LABEL_WIDTH) / 3)
-  );
+export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
+  const [dayWidth, setDayWidth] = useState(Math.floor((SCREEN_WIDTH - HOUR_LABEL_WIDTH) / 3));
 
   const listRef = useRef<FlashListRef<any>>(null);
   const headerRef = useRef<FlatList>(null);
@@ -61,15 +44,9 @@ export default function MultiDayContainer({
 
   const { days, initialIndex } = useCalendarRange();
 
-  const timedEvents = useMemo(
-    () => events.filter((e) => !e.allDay || String(e.allDay) === 'false'),
-    [events]
-  );
+  const timedEvents = useMemo(() => events.filter((e) => !e.allDay || String(e.allDay) === 'false'), [events]);
 
-  const allDayEvents = useMemo(
-    () => events.filter((e) => e.allDay === true || String(e.allDay) === 'true'),
-    [events]
-  );
+  const allDayEvents = useMemo(() => events.filter((e) => e.allDay === true || String(e.allDay) === 'true'), [events]);
 
   // 🔥 SINGLE SOURCE OF TRUTH SCROLL
   const onMainScroll = (event: any) => {
@@ -79,20 +56,25 @@ export default function MultiDayContainer({
     allDayRef.current?.scrollToOffset({ offset: x, animated: false });
   };
 
+  //update the event and visibilty of event details
   const handlePress = (event: EventObj | null) => {
-    if (!event) return;
+    if (!event) {
+      //a null event means hide the event details
+      setEventDetailsVisible(false);
+    }
     setSelectedEvent(event);
     setEventDetailsVisible(true);
   };
 
+  //set witdh of each day column (accounting for the hour guide)
   useEffect(() => {
     const dividers = parseInt(calendarType) || 3;
     const width = Math.floor((SCREEN_WIDTH - HOUR_LABEL_WIDTH) / dividers);
     setDayWidth(width);
   }, [calendarType]);
 
+  //temporary: forces calendar to initialIndex on rerender
   const isFocused = useIsFocused();
-
   useEffect(() => {
     if (isFocused && listRef.current && initialIndex !== undefined) {
       setTimeout(() => {
@@ -118,24 +100,23 @@ export default function MultiDayContainer({
           .onEnd(() => setBaseHeight(hourHeight))}
       >
         <View style={styles.container}>
-          {/* HEADER */}
+          {/* --- HEADER --- */}
           <View style={styles.headerWrapper}>
             <View style={styles.dateHourGuide} />
 
             <FlatList
               ref={headerRef}
               data={days}
-              renderItem={({ item }) => (
-                <DateHeader day={item.date} dayWidth={dayWidth} />
-              )}
+              renderItem={({ item }) => <DateHeader day={item.date} dayWidth={dayWidth} />}
               horizontal
               scrollEnabled={false}
               getItemLayout={getItemLayout}
               style={{ width: GRID_WIDTH }}
+              scrollEventThrottle={15}
             />
           </View>
 
-          {/* ALL DAY */}
+          {/* --- ALL DAY --- */}
           <View style={styles.allDayRow}>
             <View style={styles.allDaySpacer}>
               <Text style={styles.debugLabel}>ALL-DAY</Text>
@@ -149,9 +130,7 @@ export default function MultiDayContainer({
               getItemLayout={getItemLayout}
               style={{ width: GRID_WIDTH }}
               renderItem={({ item }) => {
-                const dayEvents = allDayEvents.filter((e) =>
-                  isSameDay(item.date, new Date(e.startDate))
-                );
+                const dayEvents = allDayEvents.filter((e) => isSameDay(item.date, new Date(e.startDate)));
 
                 return (
                   <View style={[styles.allDayColumn, { width: dayWidth }]}>
@@ -162,8 +141,7 @@ export default function MultiDayContainer({
                         style={[
                           styles.allDayChip,
                           {
-                            backgroundColor:
-                              event.displayColor || '#3B82F6',
+                            backgroundColor: event.displayColor || '#3B82F6',
                           },
                         ]}
                       >
@@ -196,9 +174,7 @@ export default function MultiDayContainer({
                 <DayContainer
                   day={item.date}
                   dayWidth={dayWidth}
-                  events={timedEvents.filter((e) =>
-                    isSameDay(item.date, new Date(e.startDate))
-                  )}
+                  events={timedEvents.filter((e) => isSameDay(item.date, new Date(e.startDate)))}
                   hourHeight={hourHeight}
                   handlePress={handlePress}
                   showEventDetails={setEventDetailsVisible}
@@ -208,7 +184,6 @@ export default function MultiDayContainer({
               horizontal
               onScroll={onMainScroll}
               scrollEventThrottle={16}
-              estimatedItemSize={dayWidth}
               keyExtractor={(item) => item.date.toISOString()}
               style={{ width: GRID_WIDTH }}
             />
@@ -216,11 +191,7 @@ export default function MultiDayContainer({
         </View>
       </GestureDetector>
 
-      <EventDetails
-        event={selectedEvent}
-        isVisible={eventDetailsVisible}
-        onClose={() => setEventDetailsVisible(false)}
-      />
+      <EventDetails event={selectedEvent} isVisible={eventDetailsVisible} onClose={() => setEventDetailsVisible(false)} />
     </>
   );
 }

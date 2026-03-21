@@ -37,6 +37,18 @@ export interface DateContextType {
   setCurDate: (curDate: Date) => void;
 }
 
+export interface EventsContextType {
+  calendarObjs: calendarObj[] | null;
+  setCalendarObj: (calendarObjs: calendarObj[] | null) => void;
+}
+
+export interface calendarObj {
+  calendarName: string;
+  calendarId: string;
+  calendarDefaultColor: string;
+  calendarCustomColor: string;
+}
+
 export interface EventObj {
   //event data
   id: string,

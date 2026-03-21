@@ -2,6 +2,8 @@ import MonthContainer from '@/components/monthContainer/month-container';
 import MultiDayContainer from '@/components/multiDayContainer/multi-day-container';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
+
+import { EventsContext } from '@/components/calendar-events-context';
 import { AuthContext } from './context';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -11,7 +13,13 @@ import { useCalendar } from '@/hooks/useCalendar';
 export default function Index() {
   // --- STATE ---
   const { calendarType, setCalendarType } = useContext(AuthContext);
+  const { calendarObjs } = useContext(EventsContext);
+
   const { jwtToken } = useAuth();
+
+  useEffect(() => {
+    console.log(calendarObjs);
+  }, [calendarObjs]);
 
   const calendarProps = useCalendar(jwtToken?.sessionToken ?? null);
   const calendars = calendarProps.calendars;

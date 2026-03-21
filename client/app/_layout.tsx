@@ -1,11 +1,15 @@
-import { DateProvider } from '@/components/calendar-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { Drawer } from 'expo-router/drawer';
 import { useState } from 'react';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
 import CalendarHeader from '../components/calendar-header';
-import CustomDrawerContent from '../components/custom-drawer-content';
+import CustomDrawerContent from '../components/custom-drawer/custom-drawer-content';
+
+//Proivders
+import { DateProvider } from '@/components/calendar-context';
+import { EventsProvider } from '@/components/calendar-events-context';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider } from './context';
 
 export default function RootLayout() {
@@ -18,35 +22,37 @@ export default function RootLayout() {
       <BottomSheetModalProvider>
         <AuthProvider>
           <DateProvider>
-            <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
-              <Drawer.Screen
-                name="index"
-                options={{
-                  header: ({ options }) => <CalendarHeader />,
+            <EventsProvider>
+              <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
+                <Drawer.Screen
+                  name="index"
+                  options={{
+                    header: ({ options }) => <CalendarHeader />,
 
-                  headerTitle: 'Calender',
-                  drawerLabel: 'Calendar',
-                  drawerIcon: ({ size, color }) => <Ionicons name="home-outline" size={size} color={color} />,
-                }}
-              />
-              <Drawer.Screen
-                name="login"
-                options={{
-                  headerShown: false,
-                  headerTitle: 'Login',
-                  drawerLabel: 'Login',
-                  drawerIcon: ({ size, color }) => <Ionicons name="person-outline" size={size} color={color} />,
-                }}
-              />
-              <Drawer.Screen
-                name="backend_console"
-                options={{
-                  headerTitle: 'Backend Console',
-                  drawerLabel: 'Backend Console',
-                  drawerIcon: ({ size, color }) => <Ionicons size={size} color={color} />,
-                }}
-              />
-            </Drawer>
+                    headerTitle: 'Calender',
+                    drawerLabel: 'Calendar',
+                    drawerIcon: ({ size, color }) => <Ionicons name="home-outline" size={size} color={color} />,
+                  }}
+                />
+                <Drawer.Screen
+                  name="login"
+                  options={{
+                    headerShown: false,
+                    headerTitle: 'Login',
+                    drawerLabel: 'Login',
+                    drawerIcon: ({ size, color }) => <Ionicons name="person-outline" size={size} color={color} />,
+                  }}
+                />
+                <Drawer.Screen
+                  name="backend_console"
+                  options={{
+                    headerTitle: 'Backend Console',
+                    drawerLabel: 'Backend Console',
+                    drawerIcon: ({ size, color }) => <Ionicons size={size} color={color} />,
+                  }}
+                />
+              </Drawer>
+            </EventsProvider>
           </DateProvider>
         </AuthProvider>
       </BottomSheetModalProvider>
