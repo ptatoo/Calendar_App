@@ -3,17 +3,20 @@ import { useProfiles } from '@/hooks/useProfile';
 import { useRouter } from 'expo-router';
 import { useContext } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AuthContext } from '../../app/context';
 import { EventsContext } from '../calendar-events-context';
+
+import CalendarDrawerList from './calendar-drawer-list';
 
 export default function CustomDrawerContent(props: any) {
   const { jwtToken } = useAuth();
   const { familyProfiles } = useProfiles(jwtToken?.sessionToken ?? null);
   const { calendarType, setCalendarType } = useContext(AuthContext);
   const router = useRouter();
-  const { calendarObjs } = useContext(EventsContext);
+  const { calendarObjs, setCalendarObj } = useContext(EventsContext);
 
   const getButtonStyle = (option: '1' | '2' | '3' | 'W' | 'M', pressed: boolean) => [
     styles.viewButton,
@@ -21,41 +24,50 @@ export default function CustomDrawerContent(props: any) {
     pressed && styles.pressedButton,
   ];
 
+  //toggle visibility of specific calendar
+  const toggleCalendar = (id: string) => {
+    setCalendarObj((prev) => {
+      if (!prev) return null;
+
+      const next = prev.map((cal) => (cal.calendarId === id ? { ...cal, shown: !cal.shown } : cal));
+      return next;
+    });
+  };
+
   return (
     <SafeAreaView style={styles.headerContainer}>
-      <View>
-        {/* make the parent name title case, decrease spacing in between the two 
-        make the Pressable component less transparent when pressed*/}
-        <Pressable onPress={() => router.push('/login')}>
-          <Text style={styles.username}>{familyProfiles && familyProfiles.parent ? familyProfiles.parent.name : 'Username'}</Text>
-          <Text style={styles.email}>{familyProfiles && familyProfiles.parent ? familyProfiles.parent.email : 'Email'}</Text>
-        </Pressable>
-      </View>
-      {/* here for convenience. only for testing */}
-      <View style={styles.viewToggleContainer}>
-        {['1', '2', '3', 'W', 'M'].map((option) => (
-          <Pressable
-            key={option}
-            onPress={() => {
-              setCalendarType(option as '1' | '2' | '3' | 'W' | 'M');
-              props.navigation.closeDrawer();
-            }}
-            style={({ pressed }) => getButtonStyle(option as '1' | '2' | '3' | 'W' | 'M', pressed)}
-          >
-            <Text style={[styles.viewButtonText, calendarType === option && styles.activeButtonText]}>
-              {option === 'W' ? 'week' : option === 'M' ? 'month' : `${option} day${option !== '1' ? 's' : ''}`}
-            </Text>
+      <ScrollView style={{ flex: 1 }}>
+        <View>
+          {/* --- USER INFO --- */}
+          <Pressable onPress={() => router.push('/login')}>
+            <Text style={styles.username}>{familyProfiles && familyProfiles.parent ? familyProfiles.parent.name : 'Username'}</Text>
+            <Text style={styles.email}>{familyProfiles && familyProfiles.parent ? familyProfiles.parent.email : 'Email'}</Text>
           </Pressable>
-        ))}
-      </View>
-      <>
-        {calendarObjs?.map((calendarObj) => {
-          <View></View>;
-        })}
-      </>
-      {/* <DrawerContentScrollView {...props}>
-        <DrawerItemList {...props} />
-      </DrawerContentScrollView> */}
+        </View>
+        {/* --- CALENDAR TYPE TOGGLE --- */}
+        <View style={styles.viewToggleContainer}>
+          {['1', '2', '3', 'W', 'M'].map((option) => (
+            <Pressable
+              key={option}
+              onPress={() => {
+                setCalendarType(option as '1' | '2' | '3' | 'W' | 'M');
+                props.navigation.closeDrawer();
+              }}
+              style={({ pressed }) => getButtonStyle(option as '1' | '2' | '3' | 'W' | 'M', pressed)}
+            >
+              <Text style={[styles.viewButtonText, calendarType === option && styles.activeButtonText]}>
+                {option === 'W' ? 'week' : option === 'M' ? 'month' : `${option} day${option !== '1' ? 's' : ''}`}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        {/* --- CALENDAR VISIBILITY TOGGLE --- */}
+        <View style={{ flex: 1 }}>
+          {calendarObjs?.map((calendarObj) => (
+            <CalendarDrawerList calendarObj={calendarObj} onToggle={toggleCalendar} />
+          ))}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

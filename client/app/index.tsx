@@ -1,6 +1,6 @@
 import MonthContainer from '@/components/monthContainer/month-container';
 import MultiDayContainer from '@/components/multiDayContainer/multi-day-container';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useMemo } from 'react';
 import { View } from 'react-native';
 
 import { EventsContext } from '@/components/calendar-events-context';
@@ -14,12 +14,9 @@ export default function Index() {
   // --- STATE ---
   const { calendarType, setCalendarType } = useContext(AuthContext);
   const { calendarObjs } = useContext(EventsContext);
+  // Holds all available Calendar Ids
 
   const { jwtToken } = useAuth();
-
-  useEffect(() => {
-    console.log(calendarObjs);
-  }, [calendarObjs]);
 
   const calendarProps = useCalendar(jwtToken?.sessionToken ?? null);
   const calendars = calendarProps.calendars;
@@ -31,16 +28,10 @@ export default function Index() {
     return [...(calendars.parent || []), ...(calendars.children || [])];
   }, [calendars]);
 
-  // Holds all available Calendar Ids
-  const [visibleCalendarIds, setVisibleCalendarIds] = useState<string[]>([]);
-
-  //set available IDs on render
-  useEffect(() => {
-    if (allAvailableCalendars.length > 0 && visibleCalendarIds.length === 0) {
-      const initialIds = allAvailableCalendars.map((cal) => cal.id);
-      setVisibleCalendarIds(initialIds);
-    }
-  }, [allAvailableCalendars]);
+  //Set Available IDs on render
+  const visibleCalendarIds = useMemo(() => {
+    return calendarObjs ? calendarObjs.filter((cal) => cal.shown).map((cal) => cal.calendarId) : [];
+  }, [calendarObjs]);
 
   //list all events
   const allEvents = useMemo(() => {

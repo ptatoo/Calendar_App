@@ -37,7 +37,8 @@ export function useCalendar(jwtToken: string | null) {
           calendarName: cal.summary,
           calendarId: cal.id,
           calendarDefaultColor: cal.backgroundColor || "#4285F4",
-          calendarCustomColor: cal.backgroundColor || "#4285F4"
+          calendarCustomColor: cal.backgroundColor || "#4285F4",
+          shown: true
         }
         newCalendarIds.push(curCalendarObj);
       })

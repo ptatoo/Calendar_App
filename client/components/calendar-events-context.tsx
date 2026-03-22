@@ -1,5 +1,5 @@
 import { calendarObj, EventsContextType } from '@/utility/types';
-import { createContext, ReactNode, useState } from 'react';
+import { createContext, ReactNode, useState, Dispatch, SetStateAction } from 'react';
 
 export const EventsContext = createContext<EventsContextType>({
   calendarObjs: null,

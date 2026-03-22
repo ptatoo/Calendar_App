@@ -116,7 +116,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
             />
           </View>
 
-          {/* --- ALL DAY --- */}
+          {/* --- ALL DAY HEADER --- */}
           <View style={styles.allDayRow}>
             <View style={styles.allDaySpacer}>
               <Text style={styles.debugLabel}>ALL-DAY</Text>
@@ -156,7 +156,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
             />
           </View>
 
-          {/* MAIN GRID */}
+          {/* --- MAIN GRID --- */}
           <ScrollView
             nestedScrollEnabled
             style={{ flex: 1 }}

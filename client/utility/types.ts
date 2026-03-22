@@ -1,3 +1,5 @@
+import { Dispatch, SetStateAction } from "react";
+
 export interface JwtTokenObj {
   sessionToken: string;
   expiryDate: string;
@@ -37,9 +39,10 @@ export interface DateContextType {
   setCurDate: (curDate: Date) => void;
 }
 
+// Personal Data Created in this app
 export interface EventsContextType {
   calendarObjs: calendarObj[] | null;
-  setCalendarObj: (calendarObjs: calendarObj[] | null) => void;
+  setCalendarObj: Dispatch<SetStateAction<calendarObj[] | null>>;
 }
 
 export interface calendarObj {
@@ -47,8 +50,10 @@ export interface calendarObj {
   calendarId: string;
   calendarDefaultColor: string;
   calendarCustomColor: string;
+  shown: boolean,
 }
 
+//Raw calendar data from google API
 export interface EventObj {
   //event data
   id: string,
@@ -80,11 +85,12 @@ export interface CalendarData {
   owner: string;
   name: string;
   color: string;
-  events: EventObj[]; // The actual calendar events
+  events: EventObj[];
 }
+
 export interface FamilyCalendarState {
-  parent: CalendarData[];       // You (The User)
-  children: CalendarData[];   // The Kids
+  parent: CalendarData[];
+  children: CalendarData[];
 }
 
 export interface EventWithOffset {
