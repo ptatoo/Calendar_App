@@ -9,6 +9,8 @@ import { AuthContext } from './context';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendar } from '@/hooks/useCalendar';
 
+import { postInviteAdd } from '@/services/api';
+
 // --- MAIN COMPONENT ---
 export default function Index() {
   // --- STATE ---
@@ -20,6 +22,9 @@ export default function Index() {
 
   const calendarProps = useCalendar(jwtToken?.sessionToken ?? null);
   const calendars = calendarProps.calendars;
+
+  const output = postInviteAdd(jwtToken?.sessionToken || '', 'i.alexander.song@gmail.com');
+  console.log(output);
 
   // Combine all CalendarDatas into one array
   const allAvailableCalendars = useMemo(() => {

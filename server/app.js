@@ -345,5 +345,100 @@ app.get('/delink', (req, res) => {
   
 });
 
+// ===========================================================
+// INVITATION FUNCTIONS 
+// ===========================================================
+
+// Send an Invitation
+// The user calling this (Host) is offering their calendar to the Invitee
+app.post('/api/invite/add', authenticate, async (req, res) => {
+  try {
+    const hostId = req.userId; // The person sending the invite (the "Child-to-be")
+    const { inviteeEmail } = req.body;
+
+    const inviteeId = db.getIdByEmail(inviteeEmail);
+
+    if (!inviteeId) return res.status(400).json({ error: 'USER_NOT_FOUND' });
+
+    db.addInvitation(hostId, inviteeId);
+    res.status(200).json({ message: 'Invitation sent' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to send invitation' });
+  }
+});
+
+// Accept an Invitation
+// The Invitee accepts, making the Host their "Child" in the system
+app.post('/api/invite/accept', authenticate, async (req, res) => {
+  try {
+    const inviteeId = req.userId; // The person accepting (the "Parent")
+    const { hostEmail } = req.body;
+
+    const hostId = db.getIdByEmail(hostEmail);
+    if (!hostId) return res.status(400).json({ error: "Host no longer exists"});
+
+    // Link them in the userChildren table
+    db.linkParentChildren(inviteeId, [hostId]);
+
+    // Remove the invitation
+    db.removeInvitation(hostId, inviteeId);
+
+    res.status(200).json({ message: 'Invitation accepted and linked' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to accept invitation' });
+  }
+});
+
+// Remove/Decline an Invitation
+// Either party can cancel a pending invitation
+app.post('/api/invite/remove', authenticate, async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { otherEmail } = req.body;
+
+    const otherId = db.getIdByEmail(otherEmail);
+    if (!otherId) return res.status(400).json({ error: "Person longer exists"});
+
+    // We try removing in both directions since we don't know who is who
+    // Usually, you'd specify who is the host in the request.
+    db.removeInvitation(otherId, userId); // User is invitee
+    db.removeInvitation(userId, otherId); // User is host
+
+    res.status(200).json({ message: 'Invitation removed' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to remove invitation' });
+  }
+});
+
+// Get Invitations for the current user (as an Invitee)
+app.get('/api/invite/my-invites', authenticate, async (req, res) => {
+  try {
+    const invites = db.getInvitationsByInvitee(req.userId);
+    
+    // Map IDs back to Emails for the UI
+    const invitesWithEmails = invites.map(invite => {
+      const hostProfile = db.getUserProfile(invite.hostId);
+      return {
+        email: hostProfile.email,
+        name: hostProfile.name,
+        picture: hostProfile.picture
+      };
+    });
+
+    res.json(invitesWithEmails);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch invitations' });
+  }
+});
+
+// Get Invitations sent by the current user (as a Host)
+app.get('/api/invite/sent-invites', authenticate, async (req, res) => {
+  try {
+    const invites = db.getInvitationsByHost(req.userId);
+    res.json(invites);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch sent invitations' });
+  }
+});
 
 app.listen(3001, () => console.log('Server running on port 3001'));

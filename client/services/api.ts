@@ -83,3 +83,26 @@ export const fetchCalendarList = async (accessToken: string) => {
   });
   return await res.json();
 };
+
+// ===========================================================
+// INVITATION FUNCTIONS 
+// ===========================================================
+
+export const postInviteAdd = async(jwtToken: string, email: string) => {
+  try {
+  const res = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_LINK!}/api/invite/add`, {
+        method : 'POST',
+        headers: { 
+            "Content-Type": "application/json", 
+            "Authorization": `Bearer ${jwtToken}`
+        },
+        body: JSON.stringify({
+          inviteeEmail: email
+        })
+    });
+    return await res.json();
+  } catch (error) {
+    console.error(error);
+  }
+
+}

@@ -1,6 +1,7 @@
 const sqlite = require('better-sqlite3');
 const appDb = new sqlite('data/appDb.db');
 
+//Stores Data Per User
 appDb.prepare(`
   CREATE TABLE IF NOT EXISTS userInfo (
     id TEXT PRIMARY KEY NOT NULL,
@@ -11,11 +12,20 @@ appDb.prepare(`
   )
 `).run();
 
+//Stores Relationships Between Users
 appDb.prepare(`
   CREATE TABLE IF NOT EXISTS userChildren (
     parentId TEXT NOT NULL,
     childId TEXT NOT NULL,
     PRIMARY KEY (parentId, childId)
+  )
+`).run();
+
+appDb.prepare(`
+  CREATE TABLE IF NOT EXISTS invitations (
+    HostId TEXT NOT NULL,
+    InviteeId TEXT NOT NULL,
+    PRIMARY KEY (hostId, inviteeId)
   )
 `).run();
 
@@ -31,6 +41,15 @@ const saveUserProfile = (googleId, email, name, picture, refreshToken) => {
   `);
   return stmt.run(googleId, email, name, picture, refreshToken);
 }
+
+//saves a user request into invitations table 
+const addInvitation = (hostId, inviteeId) => {
+  const stmt = appDb.prepare(`
+    INSERT OR IGNORE INTO invitations (hostId, inviteeId) 
+    VALUES (?, ?)
+  `);
+  return stmt.run(hostId, inviteeId);
+};
 
 //params: parent user id, array of children id
 //do: associates list of children id into
@@ -113,6 +132,45 @@ const getChildren = (parentId) => {
   return rows.map(row => row.childId);
 };
 
+// ===========================================================
+// INVITATION FUNCTIONS 
+// ===========================================================
+
+// params: email
+// returns: user calendar id
+const getIdByEmail = (email) => {
+  const stmt = appDb.prepare(`SELECT id FROM userInfo WHERE email = ?`);
+  const user = stmt.get(email);
+  return user ? user.id : null;
+};
+
+// Removes a specific pair.
+const removeInvitation = (hostId, inviteeId) => {
+  const stmt = appDb.prepare(`
+    DELETE FROM invitations 
+    WHERE hostId = ? AND inviteeId = ?
+  `);
+  return stmt.run(hostId, inviteeId);
+};
+
+// Params: Invitee Id
+// Gets all pairs for a specific Invitee.
+// Return: [{ hostId: '...', inviteeId: '...' }]
+const getInvitationsByInvitee = (inviteeId) => {
+  const stmt = appDb.prepare(`
+    SELECT hostId, inviteeId 
+    FROM invitations 
+    WHERE inviteeId = ?
+  `);
+  return stmt.all(inviteeId);
+};
+
+// Parms: host Id
+// Get all pairs for a specific Host
+const getInvitationsByHost = (hostId) => {
+  return appDb.prepare(`SELECT * FROM invitations WHERE hostId = ?`).all(hostId);
+};
+
 //debug
 function getAllData(tableName) {
     const rows = appDb.prepare(`SELECT * FROM ${tableName}`).all();
@@ -130,5 +188,11 @@ module.exports = {
   linkParentChildren, 
   delinkParentChildren,
   
+  getIdByEmail,
+  addInvitation,
+  removeInvitation,
+  getInvitationsByInvitee,
+  getInvitationsByHost,
+
   getAllData
 };
