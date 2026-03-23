@@ -15,11 +15,13 @@ import { isSameDay } from 'date-fns';
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { DateContext } from '../calendar-context';
+import { DateContext } from '../contexts/calendar-context';
 
 import EventDetails from '../eventDetailsContainer/event-details';
 import DayContainer from './day-container';
 import HourGuide from './hour-guide';
+
+import LoginModal from '../loginContainer/loginModal';
 
 const GRID_WIDTH = SCREEN_WIDTH - HOUR_LABEL_WIDTH;
 
@@ -203,6 +205,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
       </GestureDetector>
 
       <EventDetails event={selectedEvent} isVisible={eventDetailsVisible} onClose={() => setEventDetailsVisible(false)} />
+      <LoginModal isVisible={true} onClose={() => {}} />
     </>
   );
 }

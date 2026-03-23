@@ -7,7 +7,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AuthContext } from '../../app/context';
-import { EventsContext } from '../calendar-events-context';
+import { EventsContext } from '../contexts/calendar-events-context';
 
 import CalendarDrawerList from './calendar-drawer-list';
 

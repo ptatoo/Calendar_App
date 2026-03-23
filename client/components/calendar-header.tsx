@@ -3,7 +3,7 @@ import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useContext, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { DateContext } from './calendar-context';
+import { DateContext } from './contexts/calendar-context';
 
 export default function CalendarHeader(props: any) {
   const navigation = useNavigation();
