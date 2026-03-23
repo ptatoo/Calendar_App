@@ -17,7 +17,7 @@ export default function LoginButton() {
         ) : authProps.jwtToken ? (
           <Text style={styles.buttonText}> logged in as f </Text>
         ) : (
-          <Text style={styles.buttonText}> login pls. </Text>
+          <Text style={styles.buttonText}> login pls!!! </Text>
         )}
       </Pressable>
 
