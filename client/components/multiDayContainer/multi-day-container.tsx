@@ -1,12 +1,21 @@
 import { useCalendarRange } from '@/hooks/calendarHooks/useCalendarRange';
-import { DATE_HEADER_HEIGHT, GRID_COLOR, HEADER_BACKGROUND_COLOR, HOUR_HEIGHT, HOUR_LABEL_WIDTH, SCREEN_WIDTH } from '@/utility/constants';
+import {
+  DATE_HEADER_HEIGHT,
+  GRID_COLOR,
+  HEADER_BACKGROUND_COLOR,
+  HOUR_HEIGHT,
+  HOUR_LABEL_WIDTH,
+  PAST_BUFFER,
+  SCREEN_WIDTH,
+} from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
 import { useIsFocused } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { isSameDay } from 'date-fns';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { DateContext } from '../calendar-context';
 
 import EventDetails from '../eventDetailsContainer/event-details';
 import DayContainer from './day-container';
@@ -43,6 +52,8 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const [eventDetailsVisible, setEventDetailsVisible] = useState(false);
 
   const { days, initialIndex } = useCalendarRange();
+  const { setCurDate } = useContext(DateContext);
+  const today = new Date();
 
   const timedEvents = useMemo(() => events.filter((e) => !e.allDay || String(e.allDay) === 'false'), [events]);
 
@@ -51,6 +62,8 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   // 🔥 SINGLE SOURCE OF TRUTH SCROLL
   const onMainScroll = (event: any) => {
     const x = event.nativeEvent.contentOffset.x;
+    const itemsScrolled = Math.floor(x / dayWidth + 0.5);
+    setCurDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - PAST_BUFFER + itemsScrolled));
 
     headerRef.current?.scrollToOffset({ offset: x, animated: false });
     allDayRef.current?.scrollToOffset({ offset: x, animated: false });

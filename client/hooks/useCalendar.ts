@@ -44,17 +44,18 @@ export function useCalendar(jwtToken: string | null) {
       })
 
       setCalendarObj(newCalendarIds);
+      console.log(parentCalendarsMetadata);
 
-      // 2.3 Fetch Parent Calendars
+      // 2.3 Fetch Parent Calendar Events
       const parentCalendarPromises = parentCalendarsMetadata.map(async (cal: any) => {
         const rawEvents = await fetchGivenCalendar(tokens.parent.accessToken, cal.id, cal.primary );
 
         return {
           id: cal.id,
-          owner: tokens.parent.email,
+          owner: cal.dataOwner,
           name: cal.summary,
           color: cal.backgroundColor || "#4285F4", // Use Google's color or fallback blue
-          events: processCalendar(rawEvents, cal.id, cal.backgroundColor || "#4285F4")
+          events: processCalendar(rawEvents, cal.id, cal.backgroundColor || "#4285F4", tokens.parent.email)
         } as CalendarData;
       });
 
@@ -68,7 +69,7 @@ export function useCalendar(jwtToken: string | null) {
           owner: childRaw.summary,
           name: "Child Calendar",
           color: "#34A853",
-          events: processCalendar(childRaw, "primary", "#34A853") // Using your original processCalendar
+          events: processCalendar(childRaw, "primary", "#34A853", childRaw.summary) // Using your original processCalendar
         } as CalendarData;
       });
 
@@ -80,6 +81,8 @@ export function useCalendar(jwtToken: string | null) {
         parent: allParentCalendars,
         children: allChildCalendars,
       };
+
+      console.log(formattedFamilyCalendars);
 
       // 2.5 Update State & Local Storage
       setCalendars(formattedFamilyCalendars);
