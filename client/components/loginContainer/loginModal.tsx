@@ -1,6 +1,7 @@
 import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import React, { useEffect, useMemo, useRef } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
+import LoginButton from './login';
 
 interface Props {
   isVisible: boolean;
@@ -33,11 +34,7 @@ export default function LoginModal({ isVisible, onClose }: Props) {
     >
       {/* --- LOGIN COMPONENT --- */}
       <BottomSheetScrollView contentContainerStyle={styles.contentContainer}>
-        {/* --- TITLE --- */}
-        <Text style={styles.title} numberOfLines={1}>
-          LOGIN MODAL
-        </Text>
-        {/* --- EXPANDED CONTENT --- */}
+        <LoginButton />
       </BottomSheetScrollView>
     </BottomSheetModal>
   );
