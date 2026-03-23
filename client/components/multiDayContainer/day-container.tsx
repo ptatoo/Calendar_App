@@ -1,8 +1,31 @@
 import { GRID_COLOR } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import EventContainer from './event-container';
+import { isSameDay } from 'date-fns';
+
+// time indicator component
+const TimeIndicator = ({ hourHeight }: { hourHeight: number }) => {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+  
+  // Logic: (Hours * height per hour) + (Minutes percentage of an hour)
+  const topOffset = (hours + minutes / 60) * hourHeight;
+
+  return (
+    <View style={[styles.timeLine, { top: topOffset }]} pointerEvents="none">
+      <View style={styles.timeDot} />
+    </View>
+  );
+};
 
 const HourTicks = ({ hourHeight }: { hourHeight: number }) => {
   return (
@@ -32,6 +55,10 @@ export default function DayContainer({
   showEventDetails: (visibility: boolean) => void;
   handlePress: (event: EventObj | null) => void;
 }) {
+    
+    const isToday = isSameDay(day, new Date());
+    
+    
   const eventsWithOffsets = useMemo(() => {
     //Sort by start time ascending order
     const sortedEvents = [...events].sort((a, b) => {
@@ -71,6 +98,7 @@ export default function DayContainer({
     <View key={day.toLocaleDateString()} style={{ borderRightWidth: 1, borderColor: '#f0f0f0', width: dayWidth }}>
       <View style={[styles.dayContainer, { width: dayWidth, zIndex: 999 }]} pointerEvents="box-none">
         <HourTicks hourHeight={hourHeight} />
+          {isToday && <TimeIndicator hourHeight={hourHeight} />}
         {/* --- EVENTS --- */}
         {eventsWithOffsets.map((item) => (
           <EventContainer
@@ -99,10 +127,27 @@ export default function DayContainer({
 const styles = StyleSheet.create({
   dayContainer: {
     flex: 1,
+    position: 'relative', // for absolute positioning of indicator
   },
   hourRow: {
     borderBottomWidth: 1,
     borderColor: GRID_COLOR,
-    paddingLeft: 5,
+  },
+  timeLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: '#2563EB',
+    zIndex: 10, // higher than hourticks
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timeDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#2563EB',
+    marginLeft: -5,
   },
 });
