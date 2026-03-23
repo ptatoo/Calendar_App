@@ -104,5 +104,4 @@ export const postInviteAdd = async(jwtToken: string, email: string) => {
   } catch (error) {
     console.error(error);
   }
-
 }

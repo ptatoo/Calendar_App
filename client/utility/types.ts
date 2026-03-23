@@ -42,6 +42,8 @@ export interface DateContextType {
 // Personal Data Created in this app
 export interface EventsContextType {
   calendarObjs: calendarObj[] | null;
+  allEvents: EventObj[];
+  isLoading: boolean;
   setCalendarObj: Dispatch<SetStateAction<calendarObj[] | null>>;
 }
 

@@ -39,7 +39,9 @@ const DateHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
 };
 
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
-  const [dayWidth, setDayWidth] = useState(Math.floor((SCREEN_WIDTH - HOUR_LABEL_WIDTH) / 3));
+  //set witdh of each day column (accounting for the hour guide)
+  const dividers = parseInt(calendarType) || 3;
+  const dayWidth = Math.floor((SCREEN_WIDTH - HOUR_LABEL_WIDTH) / dividers);
 
   const listRef = useRef<FlashListRef<any>>(null);
   const headerRef = useRef<FlatList>(null);
@@ -79,12 +81,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     setEventDetailsVisible(true);
   };
 
-  //set witdh of each day column (accounting for the hour guide)
-  useEffect(() => {
-    const dividers = parseInt(calendarType) || 3;
-    const width = Math.floor((SCREEN_WIDTH - HOUR_LABEL_WIDTH) / dividers);
-    setDayWidth(width);
-  }, [calendarType]);
+  // const dayEvents = allDayMap[item.date.toDateString()] || [];
 
   //temporary: forces calendar to initialIndex on rerender
   const isFocused = useIsFocused();
@@ -180,7 +177,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
           >
             <HourGuide hourHeight={hourHeight} labelWidth={HOUR_LABEL_WIDTH} />
 
-            <FlashList
+            <FlashList<any>
               ref={listRef}
               data={days}
               renderItem={({ item }) => (
@@ -199,6 +196,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
               scrollEventThrottle={16}
               keyExtractor={(item) => item.date.toISOString()}
               style={{ width: GRID_WIDTH }}
+              initialScrollIndex={PAST_BUFFER}
             />
           </ScrollView>
         </View>

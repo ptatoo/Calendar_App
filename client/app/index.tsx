@@ -1,13 +1,12 @@
 import MonthContainer from '@/components/monthContainer/month-container';
 import MultiDayContainer from '@/components/multiDayContainer/multi-day-container';
-import { useContext, useMemo } from 'react';
+import { useContext } from 'react';
 import { View } from 'react-native';
 
 import { EventsContext } from '@/components/calendar-events-context';
 import { AuthContext } from './context';
 
 import { useAuth } from '@/hooks/useAuth';
-import { useCalendar } from '@/hooks/useCalendar';
 
 import { postInviteAdd } from '@/services/api';
 
@@ -15,42 +14,44 @@ import { postInviteAdd } from '@/services/api';
 export default function Index() {
   // --- STATE ---
   const { calendarType, setCalendarType } = useContext(AuthContext);
-  const { calendarObjs } = useContext(EventsContext);
+  const { calendarObjs, allEvents, isLoading } = useContext(EventsContext);
   // Holds all available Calendar Ids
 
   const { jwtToken } = useAuth();
 
-  const calendarProps = useCalendar(jwtToken?.sessionToken ?? null);
-  const calendars = calendarProps.calendars;
+  //const calendarProps = useCalendar(jwtToken?.sessionToken ?? null);
+  //const calendars = calendarProps.calendars;
 
   const output = postInviteAdd(jwtToken?.sessionToken || '', 'i.alexander.song@gmail.com');
   console.log(output);
 
   // Combine all CalendarDatas into one array
-  const allAvailableCalendars = useMemo(() => {
-    if (!calendars) return [];
+  // const allAvailableCalendars = useMemo(() => {
+  //   if (!calendars) return [];
 
-    return [...(calendars.parent || []), ...(calendars.children || [])];
-  }, [calendars]);
+  //   return [...(calendars.parent || []), ...(calendars.children || [])];
+  // }, [calendars]);
 
-  //Set Available IDs on render
-  const visibleCalendarIds = useMemo(() => {
-    return calendarObjs ? calendarObjs.filter((cal) => cal.shown).map((cal) => cal.calendarId) : [];
-  }, [calendarObjs]);
+  // //Set Available IDs on render
+  // const visibleCalendarIds = useMemo(() => {
+  //   return calendarObjs ? calendarObjs.filter((cal) => cal.shown).map((cal) => cal.calendarId) : [];
+  // }, [calendarObjs]);
 
-  //list all events
-  const allEvents = useMemo(() => {
-    return (
-      allAvailableCalendars
-        // toggle event visibilty based on calendar ID
-        .filter((cal) => visibleCalendarIds.includes(cal.id))
-        .flatMap((cal) =>
-          cal.events.map((event) => ({
-            ...event,
-          })),
-        )
-    );
-  }, [allAvailableCalendars, visibleCalendarIds]);
+  // //list all events
+  // const allEvents = useMemo(() => {
+  //   return (
+  //     allAvailableCalendars
+  //       // toggle event visibilty based on calendar ID
+  //       .filter((cal) => visibleCalendarIds.includes(cal.id))
+  //       .flatMap((cal) =>
+  //         cal.events.map((event) => ({
+  //           ...event,
+  //         })),
+  //       )
+  //   );
+  // }, [allAvailableCalendars, visibleCalendarIds]);
+
+  console.log(allEvents);
 
   // --- DISPLAY ---
   return (

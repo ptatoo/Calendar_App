@@ -1,6 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Drawer } from 'expo-router/drawer';
-import { useState } from 'react';
 
 import CalendarHeader from '../components/calendar-header';
 import CustomDrawerContent from '../components/custom-drawer/custom-drawer-content';
@@ -13,10 +12,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider } from './context';
 
 export default function RootLayout() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-
-  const month = currentDate.getMonth();
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <BottomSheetModalProvider>

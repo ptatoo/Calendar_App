@@ -1,15 +1,21 @@
-import { EventsContext } from "@/components/calendar-events-context";
 import { processCalendar } from "@/utility/eventUtils";
 import { CalendarData, calendarObj, FamilyCalendarState } from "@/utility/types";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchCalendarList, fetchGivenCalendar } from "../services/api";
 import { storage } from "../services/storage";
 import { useAccessToken } from "./useAccessToken";
 
+
+//given the JWT: does the following:
+//fetches parent calendar List
+//fetches parent and child calendar events
+//returns them
+//used by the eventContext to store globally
 export function useCalendar(jwtToken: string | null) {
   // 1. States
   const { getValidAccessToken } = useAccessToken(jwtToken);
-  const { calendarObjs, setCalendarObj } = useContext(EventsContext);
+  const [newCalendarIds, setNewCalendarIds] = useState<calendarObj[]>([]);
+
 
   const [calendars, setCalendars] = useState<FamilyCalendarState | null>(() => {
     return storage.get("calendar") || null;
@@ -27,7 +33,7 @@ export function useCalendar(jwtToken: string | null) {
       // 2.1 Get a Guaranteed Valid Token (Waits for refresh if needed)
       const tokens = await getValidAccessToken();
 
-      // 2.2 Fetch Calendar List
+      // 2.2 Fetch Parent Calendar List
       const calendarListRes = await fetchCalendarList(tokens.parent.accessToken);
       const parentCalendarsMetadata = calendarListRes.items || [];
       
@@ -43,8 +49,7 @@ export function useCalendar(jwtToken: string | null) {
         newCalendarIds.push(curCalendarObj);
       })
 
-      setCalendarObj(newCalendarIds);
-      console.log(parentCalendarsMetadata);
+      setNewCalendarIds(newCalendarIds);
 
       // 2.3 Fetch Parent Calendar Events
       const parentCalendarPromises = parentCalendarsMetadata.map(async (cal: any) => {
@@ -62,6 +67,7 @@ export function useCalendar(jwtToken: string | null) {
       const allParentCalendars = await Promise.all(parentCalendarPromises);
 
       // 2.4 Handle Children (just their primary)
+      // Note: Children Calendar Lists have not been implemented
       const childPromises = (tokens.children || []).map(async (token: any) => {
         const childRaw = await fetchGivenCalendar(token.accessToken, "primary");
         return {
@@ -82,8 +88,6 @@ export function useCalendar(jwtToken: string | null) {
         children: allChildCalendars,
       };
 
-      console.log(formattedFamilyCalendars);
-
       // 2.5 Update State & Local Storage
       setCalendars(formattedFamilyCalendars);
       storage.save("calendar", formattedFamilyCalendars);
@@ -101,5 +105,5 @@ export function useCalendar(jwtToken: string | null) {
     fetchUserEvents();
   }, [fetchUserEvents]);
 
-  return { calendars, isLoading, error, refetch : fetchUserEvents };
+  return { calendars, newCalendarIds, isLoading, error, refetch : fetchUserEvents };
 }
