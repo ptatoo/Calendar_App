@@ -105,3 +105,55 @@ export const postInviteAdd = async(jwtToken: string, email: string) => {
     console.error(error);
   }
 }
+
+export const postInviteAccept = async(jwtToken: string, email: string) => {
+  try {
+  const res = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_LINK!}/api/invite/accept`, {
+        method : 'POST',
+        headers: { 
+            "Content-Type": "application/json", 
+            "Authorization": `Bearer ${jwtToken}`
+        },
+        body: JSON.stringify({
+          hostEmail: email
+        })
+    });
+    return await res.json();
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+import { ProfileObj } from "@/utility/types";
+
+export const getInviteMyInvites = async(jwtToken: string) => {
+  try {
+  const res = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_LINK!}/api/invite/my-invites`, {
+        method : 'GET',
+        headers: { 
+            "Content-Type": "application/json", 
+            "Authorization": `Bearer ${jwtToken}`
+        }
+    });
+    const data = await res.json();
+    return data as ProfileObj[];
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const getInviteSentInvites = async(jwtToken: string) => {
+  try {
+  const res = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_LINK!}/api/invite/sent-invites`, {
+        method : 'GET',
+        headers: { 
+            "Content-Type": "application/json", 
+            "Authorization": `Bearer ${jwtToken}`
+        }
+    });
+    const data = await res.json();
+    return data as ProfileObj[];
+  } catch (error) {
+    console.error(error);
+  }
+}

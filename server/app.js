@@ -417,7 +417,7 @@ app.get('/api/invite/my-invites', authenticate, async (req, res) => {
     
     // Map IDs back to Emails for the UI
     const invitesWithEmails = invites.map(invite => {
-      const hostProfile = db.getUserProfile(invite.hostId);
+      const hostProfile = db.getUserProfile(invite.HostId);
       return {
         email: hostProfile.email,
         name: hostProfile.name,
@@ -435,7 +435,18 @@ app.get('/api/invite/my-invites', authenticate, async (req, res) => {
 app.get('/api/invite/sent-invites', authenticate, async (req, res) => {
   try {
     const invites = db.getInvitationsByHost(req.userId);
-    res.json(invites);
+
+    // Map IDs back to Emails for the UI
+    const invitesWithEmails = invites.map(invite => {
+      const inviteeProfile = db.getUserProfile(invite.InviteeId);
+      return {
+        email: inviteeProfile.email,
+        name: inviteeProfile.name,
+        picture: inviteeProfile.picture
+      };
+    });
+
+    res.json(invitesWithEmails);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch sent invitations' });
   }
