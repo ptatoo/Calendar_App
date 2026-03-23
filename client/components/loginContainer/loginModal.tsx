@@ -1,6 +1,10 @@
 import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import React, { useEffect, useMemo, useRef } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
+
+import { useAuth } from '@/hooks/useAuth';
+import { useInvites } from '@/hooks/useInvites';
+
 import LoginButton from './login';
 
 interface Props {
@@ -9,6 +13,8 @@ interface Props {
 }
 
 export default function LoginModal({ isVisible, onClose }: Props) {
+  const { jwtToken } = useAuth();
+  const { receivedInvites, sentInvites, sendInvite, acceptInvite, isLoading } = useInvites(jwtToken?.sessionToken || '');
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ['98%'], []);
 
@@ -34,6 +40,10 @@ export default function LoginModal({ isVisible, onClose }: Props) {
     >
       {/* --- LOGIN COMPONENT --- */}
       <BottomSheetScrollView contentContainerStyle={styles.contentContainer}>
+        <Text style={styles.title} numberOfLines={1}>
+          LOGIN MODAL
+        </Text>
+        {/* <Text style={styles.title}>{sentInvites}</Text> */}
         <LoginButton />
       </BottomSheetScrollView>
     </BottomSheetModal>
