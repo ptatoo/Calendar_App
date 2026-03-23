@@ -1,13 +1,16 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useProfiles } from '@/hooks/useProfile';
-import { useRouter } from 'expo-router';
 import { useContext } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useNavigation } from 'expo-router';
+
+//Global Contexts
 import { AuthContext } from '../../app/context';
 import { EventsContext } from '../contexts/calendar-events-context';
+import { UIContext } from '../contexts/ui-context';
 
 import CalendarDrawerList from './calendar-drawer-list';
 
@@ -15,8 +18,9 @@ export default function CustomDrawerContent(props: any) {
   const { jwtToken } = useAuth();
   const { familyProfiles } = useProfiles(jwtToken?.sessionToken ?? null);
   const { calendarType, setCalendarType } = useContext(AuthContext);
-  const router = useRouter();
   const { calendarObjs, setCalendarObj } = useContext(EventsContext);
+  const { setLoginVisible } = useContext(UIContext);
+  const navigation = useNavigation();
 
   const getButtonStyle = (option: '1' | '2' | '3' | 'W' | 'M', pressed: boolean) => [
     styles.viewButton,
@@ -34,12 +38,18 @@ export default function CustomDrawerContent(props: any) {
     });
   };
 
+  //open up settings/login page
+  const handleSettingspress = () => {
+    props.navigation.closeDrawer();
+    setLoginVisible(true);
+  };
+
   return (
     <SafeAreaView style={styles.headerContainer}>
       <ScrollView style={{ flex: 1 }}>
         <View>
           {/* --- USER INFO --- */}
-          <Pressable onPress={() => router.push('/login')}>
+          <Pressable onPress={handleSettingspress}>
             <Text style={styles.username}>{familyProfiles && familyProfiles.parent ? familyProfiles.parent.name : 'Username'}</Text>
             <Text style={styles.email}>{familyProfiles && familyProfiles.parent ? familyProfiles.parent.email : 'Email'}</Text>
           </Pressable>

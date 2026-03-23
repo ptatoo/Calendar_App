@@ -1,21 +1,25 @@
+//Components
+import LoginModal from '@/components/loginContainer/loginModal';
 import MonthContainer from '@/components/monthContainer/month-container';
 import MultiDayContainer from '@/components/multiDayContainer/multi-day-container';
+
+import { useAuth } from '@/hooks/useAuth';
 import { useContext } from 'react';
 import { View } from 'react-native';
 
+//Global Contexts
 import { EventsContext } from '@/components/contexts/calendar-events-context';
+import { UIContext } from '@/components/contexts/ui-context';
 import { AuthContext } from './context';
-
-import { useAuth } from '@/hooks/useAuth';
 
 import { postInviteAdd } from '@/services/api';
 
 // --- MAIN COMPONENT ---
 export default function Index() {
   // --- STATE ---
-  const { calendarType, setCalendarType } = useContext(AuthContext);
-  const { calendarObjs, allEvents, isLoading } = useContext(EventsContext);
-  // Holds all available Calendar Ids
+  const { calendarType } = useContext(AuthContext);
+  const { allEvents, isLoading } = useContext(EventsContext);
+  const { isLoginVisible, setLoginVisible } = useContext(UIContext);
 
   const { jwtToken } = useAuth();
 
@@ -32,6 +36,8 @@ export default function Index() {
       )}
 
       {calendarType === 'M' && <MonthContainer numWeeks={6} />}
+
+      <LoginModal isVisible={isLoginVisible} onClose={() => setLoginVisible(false)} />
     </View>
   );
 }

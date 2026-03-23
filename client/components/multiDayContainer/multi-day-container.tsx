@@ -21,8 +21,6 @@ import EventDetails from '../eventDetailsContainer/event-details';
 import DayContainer from './day-container';
 import HourGuide from './hour-guide';
 
-import LoginModal from '../loginContainer/loginModal';
-
 const GRID_WIDTH = SCREEN_WIDTH - HOUR_LABEL_WIDTH;
 
 const DateHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
@@ -205,7 +203,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
       </GestureDetector>
 
       <EventDetails event={selectedEvent} isVisible={eventDetailsVisible} onClose={() => setEventDetailsVisible(false)} />
-      <LoginModal isVisible={true} onClose={() => {}} />
     </>
   );
 }

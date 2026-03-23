@@ -26,7 +26,7 @@ export default function LoginModal({ isVisible, onClose }: Props) {
       snapPoints={snapPoints}
       enablePanDownToClose={true}
       animationConfigs={{
-        duration: 250,
+        duration: 500,
       }}
       onDismiss={onClose}
       handleStyle={styles.handleContainer}
