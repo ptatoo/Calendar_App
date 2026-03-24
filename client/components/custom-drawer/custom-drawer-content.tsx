@@ -38,8 +38,6 @@ export default function CustomDrawerContent(props: any) {
     pressed && styles.pressedButton,
   ];
 
-  console.log(groupedData);
-
   //toggle visibility of specific calendar
   const toggleCalendar = (id: string) => {
     setCalendarObj((prev) => {
