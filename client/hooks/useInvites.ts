@@ -1,8 +1,8 @@
 import {
-    getInviteMyInvites,
-    getInviteSentInvites,
-    postInviteAccept,
-    postInviteAdd
+  getInviteMyInvites,
+  getInviteSentInvites,
+  postInviteAccept,
+  postInviteAdd
 } from '@/services/api';
 import { ProfileObj } from '@/utility/types';
 import { useCallback, useEffect, useState } from 'react';
@@ -37,7 +37,7 @@ export const useInvites = (jwtToken: string | null) => {
 
   useEffect(() => {
     refreshInvites();
-  }, [refreshInvites]);
+  }, [refreshInvites, jwtToken]);
 
   // --- SEND INVITE ---
   const sendInvite = async (email: string) => {
@@ -61,6 +61,7 @@ export const useInvites = (jwtToken: string | null) => {
   const acceptInvite = async (email: string) => {
     if (!jwtToken) return;
     try {
+    console.log("trying to accept");
       const result = await postInviteAccept(jwtToken, email);
       Alert.alert("Accepted", `You now have access to ${email}'s calendar.`);
       refreshInvites(); // Refresh pending invites

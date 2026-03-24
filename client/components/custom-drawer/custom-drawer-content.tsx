@@ -32,6 +32,8 @@ export default function CustomDrawerContent(props: any) {
   const { calendarObjs, setCalendarObj } = useContext(EventsContext);
   const { setLoginVisible } = useContext(UIContext);
 
+  console.log(familyProfiles);
+
   const getButtonStyle = (option: '1' | '2' | '3' | 'W' | 'M', pressed: boolean) => [
     styles.viewButton,
     calendarType === option && styles.activeButton,
@@ -56,19 +58,19 @@ export default function CustomDrawerContent(props: any) {
 
   return (
     <SafeAreaView style={styles.headerContainer}>
+      {/* --- USER INFO --- */}
+      <View style={styles.profile}>
+        <Pressable onPress={handleSettingspress} style={{ flexDirection: 'row', gap: 10 }}>
+          <View style={{ width: 42, height: 42, backgroundColor: '#4986e7', borderRadius: 8 }}></View>
+          <View>
+            <Text style={styles.username}>
+              {familyProfiles && familyProfiles.parent ? toTitleCase(familyProfiles.parent.name) : 'Username'}
+            </Text>
+            <Text style={styles.email}>{familyProfiles && familyProfiles.parent ? familyProfiles.parent.email : 'Email'}</Text>
+          </View>
+        </Pressable>
+      </View>
       <ScrollView style={{ flex: 1 }}>
-        {/* --- USER INFO --- */}
-        <View style={styles.profile}>
-          <Pressable onPress={handleSettingspress} style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ width: 42, height: 42, backgroundColor: '#4986e7', borderRadius: 8 }}></View>
-            <View>
-              <Text style={styles.username}>
-                {familyProfiles && familyProfiles.parent ? toTitleCase(familyProfiles.parent.name) : 'Username'}
-              </Text>
-              <Text style={styles.email}>{familyProfiles && familyProfiles.parent ? familyProfiles.parent.email : 'Email'}</Text>
-            </View>
-          </Pressable>
-        </View>
         {/* --- CALENDAR TYPE TOGGLE --- */}
         <View style={styles.viewToggleContainer}>
           <Text style={styles.headerText}>View Mode</Text>
