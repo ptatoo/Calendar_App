@@ -10,13 +10,14 @@ import { EventsProvider } from '@/components/contexts/calendar-events-context';
 import { UIProvider } from '@/components/contexts/ui-context';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AuthProvider } from './context';
+import { AuthProvider } from '../components/contexts/auth-context';
 
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider>
-        <AuthProvider>
+      <AuthProvider>
+        {' '}
+        <BottomSheetModalProvider>
           <DateProvider>
             <EventsProvider>
               <UIProvider>
@@ -32,15 +33,6 @@ export default function RootLayout() {
                     }}
                   />
                   <Drawer.Screen
-                    name="login"
-                    options={{
-                      headerShown: false,
-                      headerTitle: 'Login',
-                      drawerLabel: 'Login',
-                      drawerIcon: ({ size, color }) => <Ionicons name="person-outline" size={size} color={color} />,
-                    }}
-                  />
-                  <Drawer.Screen
                     name="backend_console"
                     options={{
                       headerTitle: 'Backend Console',
@@ -52,8 +44,8 @@ export default function RootLayout() {
               </UIProvider>
             </EventsProvider>
           </DateProvider>
-        </AuthProvider>
-      </BottomSheetModalProvider>
+        </BottomSheetModalProvider>
+      </AuthProvider>
     </GestureHandlerRootView>
   );
 }

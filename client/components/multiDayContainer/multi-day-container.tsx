@@ -115,18 +115,18 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     offset: dayWidth * index,
     index,
   });
-    
-    // snap to today
-    useEffect(() => {
-      // check if the date in context is "Today"
-      const isToday = isSameDay(curDate, new Date());
-      if (isToday && listRef.current) {
-        listRef.current.scrollToIndex({
-          index: PAST_BUFFER,
-          animated: true,
-        });
-      }
-    }, [curDate]); // every time the header button updates curDate, this runs
+
+  // snap to today
+  useEffect(() => {
+    // check if the date in context is "Today"
+    const isToday = isSameDay(curDate, new Date());
+    if (isToday && listRef.current) {
+      listRef.current.scrollToIndex({
+        index: PAST_BUFFER,
+        animated: true,
+      });
+    }
+  }, [curDate]); // every time the header button updates curDate, this runs
 
   return (
     <>
@@ -139,7 +139,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
           .onEnd(() => setBaseHeight(hourHeight))}
       >
         <View style={styles.container}>
-          {/* --- HEADER --- */}
+          {/* --- DATE HEADER --- */}
           <View style={styles.headerWrapper}>
             <View style={styles.dateHourGuide} />
 

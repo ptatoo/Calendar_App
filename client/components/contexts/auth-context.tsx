@@ -1,3 +1,4 @@
+import { fetchJwtToken } from '@/services/api';
 import { storage } from '@/services/storage';
 import { AuthContextType, CalendarView, FamilyProfileObjs, JwtTokenObj } from '@/utility/types';
 import { createContext, ReactNode, useEffect, useState } from 'react';
@@ -11,6 +12,8 @@ export const AuthContext = createContext<AuthContextType>({
 
   calendarType: '3',
   setCalendarType: () => {},
+
+  loginWithCode: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -39,6 +42,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     hydrateContext();
   }, []);
 
+  //send Code to backend for JWT Token
+  const loginWithCode = async (code: string, codeVerifier: string, redirectUri: string) => {
+    try {
+      const newJwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
+
+      // Clear old data
+      storage.remove('access_tokens');
+      storage.remove('profiles');
+      storage.remove('calendars');
+
+      // Save and Update State
+      await storage.saveSecure('jwt_token', newJwtToken);
+      setJwtToken(newJwtToken as JwtTokenObj);
+      return newJwtToken;
+    } catch (error) {
+      console.error('Backend Login Failed', error);
+      throw error;
+    }
+  };
+
   if (!isHydrated) return null;
 
   return (
@@ -50,6 +73,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setFamilyProfiles,
         calendarType,
         setCalendarType,
+        loginWithCode,
       }}
     >
       {children}

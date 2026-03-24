@@ -1,4 +1,4 @@
-import { AuthContext } from "@/app/context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { fetchFamilyProfiles } from "../services/api";
 import { storage } from "../services/storage";

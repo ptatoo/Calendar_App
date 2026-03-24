@@ -1,10 +1,8 @@
-import { AuthContext } from "@/app/context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from 'expo-web-browser';
 import { useContext, useEffect, useState } from "react";
 import { Platform } from "react-native";
-import { fetchJwtToken } from "../services/api";
-import { storage } from '../services/storage';
 
 const discovery = {
   authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
@@ -17,8 +15,9 @@ WebBrowser.maybeCompleteAuthSession();
 export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const {jwtToken, setJwtToken} = useContext(AuthContext);
+  const {jwtToken, loginWithCode} = useContext(AuthContext);
 
+  //recieve code from google oauth
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
       clientId: Platform.select({
@@ -43,34 +42,24 @@ export const useAuth = () => {
     discovery,
   );
 
+  //send that code to backend for JWTToken
   useEffect(() => {
-    const handleBackendLogin = async () => {
-      if (!(response?.type === "success") || !request?.codeVerifier){ 
-        if(response?.type === "error") setError("oopsie, error");
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-      try{
-        const { code } = response.params;
-        const { codeVerifier, redirectUri } = request;
-        const jwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
-
-        storage.remove("access_tokens");
-        storage.remove("profiles");
-        storage.remove("calendars");
-
-        storage.saveSecure('jwt_token', jwtToken); // saves into persistent storage
-        setJwtToken(jwtToken); // sets global context
-      } catch (error : any) {
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
+    const processLogin = async () => {
+      if (response?.type === "success" && request?.codeVerifier) {
+        setIsLoading(true);
+        try {
+          const { code } = response.params;
+          // Call the function defined in the Provider
+          await loginWithCode(code, request.codeVerifier, request.redirectUri);
+        } catch (err) {
+          setError("Login failed");
+        } finally {
+          setIsLoading(false);
+        }
       }
     };
-    handleBackendLogin();
-  }, [response, request, setJwtToken]);
+    processLogin();
+  }, [response]); // depends on the response from Google
 
   return { jwtToken, isLoading, error, request, promptAsync };
 };

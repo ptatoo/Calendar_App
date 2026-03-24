@@ -38,7 +38,7 @@ export default function LoginButton() {
         </Pressable>
       </Animated.View>
       {/* hide jwt token */}
-      <View style={{ display: 'none' }}>
+      <View style={{}}>
         <View style={styles.tokenContainer}>
           <Text style={styles.label}>JWT Token:</Text>
           <Text style={styles.tokenText}>{authProps.jwtToken ? authProps.jwtToken.sessionToken : 'No token yet'}</Text>

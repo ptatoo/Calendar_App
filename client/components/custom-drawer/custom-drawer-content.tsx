@@ -7,7 +7,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 //Global Contexts
-import { AuthContext } from '../../app/context';
+import { AuthContext } from '../contexts/auth-context';
 import { EventsContext } from '../contexts/calendar-events-context';
 import { UIContext } from '../contexts/ui-context';
 

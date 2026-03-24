@@ -9,7 +9,7 @@ import { View } from 'react-native';
 //Global Contexts
 import { EventsContext } from '@/components/contexts/calendar-events-context';
 import { UIContext } from '@/components/contexts/ui-context';
-import { AuthContext } from './context';
+import { AuthContext } from '../components/contexts/auth-context';
 
 // --- MAIN COMPONENT ---
 export default function Index() {

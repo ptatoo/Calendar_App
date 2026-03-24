@@ -32,6 +32,8 @@ export interface AuthContextType {
 
   calendarType: CalendarView;
   setCalendarType: (calendarType: CalendarView) => void;
+
+  loginWithCode: (code: string, codeVerifier: string, redirectUri: string) => void;
 }
 
 export interface DateContextType {
