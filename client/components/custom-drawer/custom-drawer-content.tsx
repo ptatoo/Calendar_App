@@ -32,8 +32,6 @@ export default function CustomDrawerContent(props: any) {
   const { calendarObjs, setCalendarObj } = useContext(EventsContext);
   const { setLoginVisible } = useContext(UIContext);
 
-  console.log(familyProfiles);
-
   const getButtonStyle = (option: '1' | '2' | '3' | 'W' | 'M', pressed: boolean) => [
     styles.viewButton,
     calendarType === option && styles.activeButton,

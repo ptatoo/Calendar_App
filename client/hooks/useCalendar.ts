@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { fetchCalendarList, fetchGivenCalendar } from "../services/api";
 import { storage } from "../services/storage";
 import { useAccessToken } from "./useAccessToken";
+import { useProfiles } from "./useProfile";
 
 
 //given the JWT: does the following:
@@ -14,8 +15,8 @@ import { useAccessToken } from "./useAccessToken";
 export function useCalendar(jwtToken: string | null) {
   // 1. States
   const { getValidAccessToken } = useAccessToken(jwtToken);
-  const [newCalendarIds, setNewCalendarIds] = useState<calendarObj[]>([]);
-
+  const { familyProfiles } = useProfiles(jwtToken);
+  const [calendarIds, setNewCalendarIds] = useState<calendarObj[]>([]);
 
   const [calendars, setCalendars] = useState<FamilyCalendarState | null>(() => {
     return storage.get("calendar") || null;
@@ -26,6 +27,7 @@ export function useCalendar(jwtToken: string | null) {
   // 2. Fetch Events
   const fetchUserEvents = useCallback(async () => {
     if (!jwtToken) return;
+    if (!familyProfiles) return;
     setIsLoading(true);
     setError(null);
 
@@ -37,19 +39,15 @@ export function useCalendar(jwtToken: string | null) {
       const calendarListRes = await fetchCalendarList(tokens.parent.accessToken);
       const parentCalendarsMetadata = calendarListRes.items || [];
       
-      const newCalendarIds: calendarObj[] = [];
-      parentCalendarsMetadata.map((cal: any) => {
-        const curCalendarObj: calendarObj = {
+      const parentCalendarObjs: calendarObj[] = parentCalendarsMetadata.map((cal: any) => (
+        {
           calendarName: cal.summary,
           calendarId: cal.id,
           calendarDefaultColor: cal.backgroundColor || "#4285F4",
           calendarCustomColor: cal.backgroundColor || "#4285F4",
-          shown: true
-        }
-        newCalendarIds.push(curCalendarObj);
-      })
-
-      setNewCalendarIds(newCalendarIds);
+          shown: true,
+          ownerId: familyProfiles.parent.id
+        }));
 
       // 2.3 Fetch Parent Calendar Events
       const parentCalendarPromises = parentCalendarsMetadata.map(async (cal: any) => {
@@ -66,30 +64,63 @@ export function useCalendar(jwtToken: string | null) {
 
       const allParentCalendars = await Promise.all(parentCalendarPromises);
 
-      // 2.4 Handle Children (just their primary)
-      // Note: Children Calendar Lists have not been implemented
-      const childPromises = (tokens.children || []).map(async (token: any) => {
-        const childRaw = await fetchGivenCalendar(token.accessToken, "primary");
-        return {
-          id: "primary",
-          owner: childRaw.summary,
-          name: "Child Calendar",
-          color: "#34A853",
-          events: processCalendar(childRaw, "primary", "#34A853", childRaw.summary) // Using your original processCalendar
-        } as CalendarData;
+      // 2.4 Fetch metadata for ALL children
+      const childrenMetadataPromises = (tokens.children || []).map(async (token: any) => {
+        try {
+          const res = await fetchCalendarList(token.accessToken);
+          const items = res.items || [];
+          
+          // Return both the metadata and the token (we need the token for the event fetch)
+          return { token, items };
+        } catch (err) {
+          console.error(`Failed to fetch calendar list for child ${token.id}`, err);
+          return { token, items: [] };
+        }
       });
 
-      const allChildCalendars = await Promise.all(childPromises);
+      const childrenMetadataResults = await Promise.all(childrenMetadataPromises);
 
-      // 2.4 Combine for final state
+      // 2.5 Fetch every single calendar found across all children
+      const allChildEventPromises = childrenMetadataResults.flatMap(({ token, items }) => {
+        return items.map(async (cal: any) => {
+          // This mirrors the parent fetch structure exactly
+          const rawEvents = await fetchGivenCalendar(token.accessToken, cal.id, cal.primary);
+
+          return {
+            id: cal.id,
+            owner: token.id, 
+            name: cal.summary,
+            color: cal.backgroundColor || "#34A853",
+            events: processCalendar(rawEvents, cal.id, cal.backgroundColor || "#34A853", token.email)
+          } as CalendarData;
+        });
+      });
+
+      const allChildCalendars = await Promise.all(allChildEventPromises);
+
+      // 2.6 Map and Create all Child CalendarObjs
+      const childrenCalendarMetadata: calendarObj[] = childrenMetadataResults.flatMap(({ token, items }) => {
+        return items.map((cal: any) => ({
+          calendarName: cal.summary,
+          calendarId: cal.id,
+          calendarDefaultColor: cal.backgroundColor || "#4285F4",
+          calendarCustomColor: cal.backgroundColor || "#4285F4",
+          shown: true,
+          ownerId: token.id
+        }));
+      });
+
+      // 2.7 Combine for final state
       const formattedFamilyCalendars: FamilyCalendarState = {
-        // Option A: If your UI expects 1 parent object, pick the first one (primary)
         parent: allParentCalendars,
         children: allChildCalendars,
       };
+     
+      const allCalendars = [...parentCalendarObjs, ...childrenCalendarMetadata];
 
-      // 2.5 Update State & Local Storage
+      // 2.8 Update State & Local Storage
       setCalendars(formattedFamilyCalendars);
+      setNewCalendarIds(allCalendars);
       storage.save("calendar", formattedFamilyCalendars);
       
     } catch (err: any) {
@@ -98,12 +129,12 @@ export function useCalendar(jwtToken: string | null) {
     } finally {
       setIsLoading(false);
     }
-  }, [jwtToken, getValidAccessToken]);
+  }, [jwtToken, getValidAccessToken, familyProfiles]);
 
   // 3. Automatically fetch when the token changes
   useEffect(() => {
     fetchUserEvents();
   }, [fetchUserEvents]);
 
-  return { calendars, newCalendarIds, isLoading, error, refetch : fetchUserEvents };
+  return { calendars, newCalendarIds: calendarIds, isLoading, error, refetch : fetchUserEvents };
 }

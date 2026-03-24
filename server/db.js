@@ -23,8 +23,8 @@ appDb.prepare(`
 
 appDb.prepare(`
   CREATE TABLE IF NOT EXISTS invitations (
-    HostId TEXT NOT NULL,
-    InviteeId TEXT NOT NULL,
+    hostId TEXT NOT NULL,
+    inviteeId TEXT NOT NULL,
     PRIMARY KEY (hostId, inviteeId)
   )
 `).run();

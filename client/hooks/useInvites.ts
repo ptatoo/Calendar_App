@@ -24,8 +24,6 @@ export const useInvites = (jwtToken: string | null) => {
         getInviteMyInvites(jwtToken),
         getInviteSentInvites(jwtToken)
       ]);
-      console.log("sent: " + JSON.stringify(sent));
-      console.log("recieved: " + JSON.stringify(received));
       setReceivedInvites(received || []);
       setSentInvites(sent || []);
     } catch (err: any) {

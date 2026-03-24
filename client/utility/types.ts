@@ -23,6 +23,7 @@ export interface FamilyAccessTokenObjs {
   children: AccessTokenObj[]
 }
 export type CalendarView = "M" | "W" | "3" | "2" | "1";
+
 export interface AuthContextType {
   jwtToken: JwtTokenObj | null;
   setJwtToken: (jwtToken : JwtTokenObj | null) => void;
@@ -52,6 +53,7 @@ export interface EventsContextType {
 export interface calendarObj {
   calendarName: string;
   calendarId: string;
+  ownerId: string,
   calendarDefaultColor: string;
   calendarCustomColor: string;
   shown: boolean,

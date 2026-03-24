@@ -58,7 +58,7 @@ const getAccessToken = async (userId, refreshToken) => {
   try {
     const cachedToken = accessTokenCache.get(userId);
 
-    //if exists AND still valid 1 min into thte future
+    //if exists AND still valid 1 min into the future
     if(cachedToken && cachedToken.expiryDate  > (Date.now() + 60000)){
       console.log("Using RAM cache for:", userId);
       return cachedToken;
@@ -175,6 +175,7 @@ app.post('/api/get-family-access-tokens', authenticate, async (req, res) => {
     const parentData = db.getUserRefreshToken(parentId);
     const childrenData = db.getChildrenRefreshToken(parentId);
     
+    //get parent access token
     const parentAccessToken = await getAccessToken(parentId, parentData.refreshToken);
     const parentJson = {
       id: parentData.id,
@@ -182,9 +183,10 @@ app.post('/api/get-family-access-tokens', authenticate, async (req, res) => {
       expiryDate: parentAccessToken.expiryDate
     }
 
+    //get children access tokens
     const childrenJson = await Promise.all(
       childrenData.map(async (child) => {
-        const tokenObj = await getAccessToken(parentId, child.refreshToken);
+        const tokenObj = await getAccessToken(child.id, child.refreshToken);
         
         return {
           id: child.id,
@@ -417,7 +419,7 @@ app.get('/api/invite/my-invites', authenticate, async (req, res) => {
     
     // Map IDs back to Emails for the UI
     const invitesWithEmails = invites.map(invite => {
-      const hostProfile = db.getUserProfile(invite.HostId);
+      const hostProfile = db.getUserProfile(invite.hostId);
       return {
         email: hostProfile.email,
         name: hostProfile.name,
@@ -438,7 +440,7 @@ app.get('/api/invite/sent-invites', authenticate, async (req, res) => {
 
     // Map IDs back to Emails for the UI
     const invitesWithEmails = invites.map(invite => {
-      const inviteeProfile = db.getUserProfile(invite.InviteeId);
+      const inviteeProfile = db.getUserProfile(invite.inviteeId);
       return {
         email: inviteeProfile.email,
         name: inviteeProfile.name,
