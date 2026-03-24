@@ -73,7 +73,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const [eventDetailsVisible, setEventDetailsVisible] = useState(false);
 
   const { days, initialIndex } = useCalendarRange();
-  const { setCurDate } = useContext(DateContext);
+  const { curDate, setCurDate } = useContext(DateContext);
   const today = new Date();
 
   const timedEvents = useMemo(() => events.filter((e) => !e.allDay || String(e.allDay) === 'false'), [events]);
@@ -115,6 +115,18 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     offset: dayWidth * index,
     index,
   });
+    
+    // snap to today
+    useEffect(() => {
+      // check if the date in context is "Today"
+      const isToday = isSameDay(curDate, new Date());
+      if (isToday && listRef.current) {
+        listRef.current.scrollToIndex({
+          index: PAST_BUFFER,
+          animated: true,
+        });
+      }
+    }, [curDate]); // every time the header button updates curDate, this runs
 
   return (
     <>

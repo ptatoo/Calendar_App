@@ -11,6 +11,10 @@ export default function CalendarHeader(props: any) {
   const navigation = useNavigation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const { curDate, setCurDate } = useContext(DateContext);
+    const handleSnapToToday = () => {
+        const today = new Date();
+        setCurDate(today); // update global context
+      };
 
   return (
     <View style={styles.headerContainer}>
@@ -28,7 +32,7 @@ export default function CalendarHeader(props: any) {
 
       {/* --- Extra Buttons on the Right --- */}
       <View style={styles.headerButtonContainer}>
-        <Pressable style={styles.headerButton}>
+          <Pressable style={styles.headerButton} onPress={handleSnapToToday}>
           <Text style={{ fontWeight: 500, fontSize: 16 }}>{currentDate.toLocaleString('default', { day: 'numeric' })}</Text>
         </Pressable>
       </View>
