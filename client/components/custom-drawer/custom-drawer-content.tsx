@@ -13,6 +13,18 @@ import { UIContext } from '../contexts/ui-context';
 
 import CalendarDrawerList from './calendar-drawer-list';
 
+function toTitleCase(str: string): string {
+  // Convert the whole string to lowercase first for consistent results
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map((word) => {
+      // Capitalize the first letter of each word and concatenate with the rest of the word
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}
+
 export default function CustomDrawerContent(props: any) {
   const { jwtToken } = useAuth();
   const { familyProfiles } = useProfiles(jwtToken?.sessionToken ?? null);
@@ -45,15 +57,21 @@ export default function CustomDrawerContent(props: any) {
   return (
     <SafeAreaView style={styles.headerContainer}>
       <ScrollView style={{ flex: 1 }}>
-        <View>
-          {/* --- USER INFO --- */}
-          <Pressable onPress={handleSettingspress}>
-            <Text style={styles.username}>{familyProfiles && familyProfiles.parent ? familyProfiles.parent.name : 'Username'}</Text>
-            <Text style={styles.email}>{familyProfiles && familyProfiles.parent ? familyProfiles.parent.email : 'Email'}</Text>
+        {/* --- USER INFO --- */}
+        <View style={styles.profile}>
+          <Pressable onPress={handleSettingspress} style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ width: 42, height: 42, backgroundColor: '#4986e7', borderRadius: 8 }}></View>
+            <View>
+              <Text style={styles.username}>
+                {familyProfiles && familyProfiles.parent ? toTitleCase(familyProfiles.parent.name) : 'Username'}
+              </Text>
+              <Text style={styles.email}>{familyProfiles && familyProfiles.parent ? familyProfiles.parent.email : 'Email'}</Text>
+            </View>
           </Pressable>
         </View>
         {/* --- CALENDAR TYPE TOGGLE --- */}
         <View style={styles.viewToggleContainer}>
+          <Text style={styles.headerText}>View Mode</Text>
           {['1', '2', '3', 'W', 'M'].map((option) => (
             <Pressable
               key={option}
@@ -71,6 +89,7 @@ export default function CustomDrawerContent(props: any) {
         </View>
         {/* --- CALENDAR VISIBILITY TOGGLE --- */}
         <View style={{ flex: 1 }}>
+          <Text style={styles.headerText}>Calendars</Text>
           {calendarObjs?.map((calendarObj) => (
             <CalendarDrawerList calendarObj={calendarObj} onToggle={toggleCalendar} />
           ))}
@@ -84,32 +103,36 @@ const styles = StyleSheet.create({
   headerContainer: {
     flex: 1,
     backgroundColor: 'transparent',
-    padding: 5,
+    padding: 20,
+  },
+  headerText: {
+    fontSize: 14,
+    color: 'Gray',
+    fontWeight: '700',
+  },
+  profile: {
+    height: 42,
+    marginBottom: 20,
   },
   username: {
-    paddingLeft: 20,
-    paddingTop: 20,
     fontSize: 16,
     marginBottom: 4,
+    fontWeight: '600',
   },
   email: {
-    paddingLeft: 20,
-    fontSize: 14,
+    fontSize: 12,
     color: 'gray',
-    marginBottom: 10,
   },
   viewToggleContainer: {
     justifyContent: 'space-between',
-    marginVertical: 15,
-    paddingHorizontal: 10,
+    marginBottom: 10,
   },
 
   viewButton: {
-    paddingVertical: 10,
+    padding: 6,
     marginVertical: 2,
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
-    alignItems: 'center',
   },
 
   activeButton: {
@@ -117,7 +140,7 @@ const styles = StyleSheet.create({
   },
 
   viewButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#333',
     fontWeight: '500',
   },

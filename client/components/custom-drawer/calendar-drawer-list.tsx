@@ -26,7 +26,7 @@ export default function CalendarDrawerList({
         }}
         style={({ pressed }) => [styles.iconButton, pressed && styles.pressedButton]}
       >
-        <Ionicons name={calendarObj.shown ? 'eye-outline' : 'eye-off-outline'} size={20} color={calendarObj.shown ? '#333' : '#ccc'} />
+        <Ionicons name={calendarObj.shown ? 'eye-outline' : 'eye-off-outline'} size={14} color={calendarObj.shown ? '#333' : '#ccc'} />
       </Pressable>
     </View>
   );
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 12,
+    padding: 6,
   },
   calendarInfo: {
     flexDirection: 'row',
@@ -56,13 +56,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   colorSquare: {
-    width: 18,
-    height: 18,
+    width: 16,
+    height: 16,
     borderRadius: 4,
     marginRight: 12,
   },
   calendarName: {
-    fontSize: 15,
+    fontSize: 12,
     color: '#333',
     fontWeight: '500',
   },
