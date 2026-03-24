@@ -5,6 +5,8 @@ import { useContext, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { DateContext } from './contexts/calendar-context';
 
+import { HEADER_BACKGROUND_COLOR } from '@/utility/constants';
+
 export default function CalendarHeader(props: any) {
   const navigation = useNavigation();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -36,10 +38,12 @@ export default function CalendarHeader(props: any) {
 
 const styles = StyleSheet.create({
   headerContainer: {
+    height: 66,
     flexDirection: 'row',
-    backgroundColor: 'transparent',
-    padding: 10,
-    paddingTop: 10,
+    backgroundColor: HEADER_BACKGROUND_COLOR,
+    padding: 16,
+    paddingLeft: 24,
+    paddingRight: 24,
     gap: 10,
     alignItems: 'stretch',
   },
@@ -59,8 +63,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 40,
-    height: 40,
     aspectRatio: 1,
     fontWeight: '700',
 

@@ -1,6 +1,7 @@
 import { EVENT_GAP, EVENT_OFFSET } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
 
+import { getEventTimeDisplay } from '@/utility/eventUtils';
 import { differenceInMinutes, getHours, getMinutes } from 'date-fns';
 import { StyleSheet, Text, View } from 'react-native';
 import { Pressable } from 'react-native-gesture-handler';
@@ -68,6 +69,7 @@ export default function EventContainer({
   const colors = [3, 5, 7, 9, 14, 21];
   const rawColor = event.displayColor;
   const color = lightenColor(rawColor, 50);
+  const { primary, secondary } = getEventTimeDisplay(event);
 
   return (
     <>
@@ -108,16 +110,21 @@ const styles = StyleSheet.create({
     borderColor: 'white',
     overflow: 'hidden',
     position: 'absolute', // Allows use of 'top'
-    borderRadius: 8,
+    borderRadius: 4,
   },
   event: {
     flex: 1,
-    borderLeftWidth: 8,
-    borderRadius: 8,
+    borderLeftWidth: 6,
+    borderRadius: 4,
     padding: 4,
   },
   eventText: {
-    fontSize: 15,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  eventTime: {
+    fontSize: 8,
     fontWeight: '600',
     color: '#000000',
   },

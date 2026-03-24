@@ -52,7 +52,7 @@ export default function LoginModal({ isVisible, onClose }: Props) {
 
 const styles = StyleSheet.create({
   handleContainer: {
-    backgroundColor: 'white', // Matches your sheet color
+    backgroundColor: 'white',
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
     // Shadow logic

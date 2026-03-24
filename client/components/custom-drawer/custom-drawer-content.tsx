@@ -1,11 +1,10 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useProfiles } from '@/hooks/useProfile';
+
 import { useContext } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { useNavigation } from 'expo-router';
 
 //Global Contexts
 import { AuthContext } from '../../app/context';
@@ -20,7 +19,6 @@ export default function CustomDrawerContent(props: any) {
   const { calendarType, setCalendarType } = useContext(AuthContext);
   const { calendarObjs, setCalendarObj } = useContext(EventsContext);
   const { setLoginVisible } = useContext(UIContext);
-  const navigation = useNavigation();
 
   const getButtonStyle = (option: '1' | '2' | '3' | 'W' | 'M', pressed: boolean) => [
     styles.viewButton,

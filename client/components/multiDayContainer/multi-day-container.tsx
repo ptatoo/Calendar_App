@@ -38,6 +38,25 @@ const DateHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
   );
 };
 
+const AllDayContainer = ({ event, handlePress }: { event: EventObj; handlePress: (event: EventObj) => void }) => {
+  return (
+    <Pressable
+      key={event.id}
+      onPress={() => handlePress(event)}
+      style={[
+        styles.allDayChip,
+        {
+          backgroundColor: event.displayColor || '#3B82F6',
+        },
+      ]}
+    >
+      <Text style={styles.allDayText} numberOfLines={1}>
+        {event.title}
+      </Text>
+    </Pressable>
+  );
+};
+
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
   //set witdh of each day column (accounting for the hour guide)
   const dividers = parseInt(calendarType) || 3;
@@ -80,8 +99,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     setSelectedEvent(event);
     setEventDetailsVisible(true);
   };
-
-  // const dayEvents = allDayMap[item.date.toDateString()] || [];
 
   //temporary: forces calendar to initialIndex on rerender
   const isFocused = useIsFocused();
@@ -145,20 +162,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
                 return (
                   <View style={[styles.allDayColumn, { width: dayWidth }]}>
                     {dayEvents.map((event) => (
-                      <Pressable
-                        key={event.id}
-                        onPress={() => handlePress(event)}
-                        style={[
-                          styles.allDayChip,
-                          {
-                            backgroundColor: event.displayColor || '#3B82F6',
-                          },
-                        ]}
-                      >
-                        <Text style={styles.allDayText} numberOfLines={1}>
-                          {event.title}
-                        </Text>
-                      </Pressable>
+                      <AllDayContainer event={event} handlePress={handlePress} />
                     ))}
                   </View>
                 );
@@ -222,7 +226,7 @@ const styles = StyleSheet.create({
   },
 
   dateInner: {
-    alignItems: 'flex-end',
+    alignItems: 'center',
     width: '100%',
     paddingRight: 8,
   },
@@ -263,19 +267,20 @@ const styles = StyleSheet.create({
     borderColor: GRID_COLOR,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: HEADER_BACKGROUND_COLOR,
+    backgroundColor: 'white',
   },
 
   debugLabel: {
     fontSize: 8,
     color: '#9CA3AF',
-    fontWeight: '800',
+    fontWeight: '400',
   },
 
   allDayColumn: {
     paddingVertical: 4,
     borderRightWidth: 1,
     borderColor: GRID_COLOR,
+    backgroundColor: 'white',
   },
 
   allDayChip: {
