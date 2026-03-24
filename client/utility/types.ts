@@ -46,7 +46,11 @@ export interface DateContextType {
 export interface EventsContextType {
   calendarObjs: calendarObj[] | null;
   allEvents: EventObj[];
-  isLoading: boolean;
+  isLoading: boolean; 
+  groupedData: {
+    profile: ProfileObj;
+    calendars: calendarObj[];
+  }[];
   setCalendarObj: Dispatch<SetStateAction<calendarObj[] | null>>;
 }
 

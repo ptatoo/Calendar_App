@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 6,
+    paddingVertical: 6,
   },
   calendarInfo: {
     flexDirection: 'row',

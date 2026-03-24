@@ -1,5 +1,8 @@
+//custom hooks
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendar } from '@/hooks/useCalendar';
+import { useProfiles } from '@/hooks/useProfile';
+
 import { calendarObj, EventsContextType } from '@/utility/types';
 import { createContext, ReactNode, useEffect, useMemo, useState } from 'react';
 
@@ -8,13 +11,15 @@ export const EventsContext = createContext<EventsContextType>({
   allEvents: [],
   isLoading: false,
   setCalendarObj: () => {},
+  groupedData: [],
 });
 
 export const EventsProvider = ({ children }: { children: ReactNode }) => {
-  const { jwtToken } = useAuth(); // Access auth here
   const [calendarObjs, setCalendarObj] = useState<calendarObj[] | null>(null);
 
-  // fetch all calendar data from google api
+  //fetch a crazy amount of data from everywhere
+  const { jwtToken } = useAuth();
+  const { familyProfiles } = useProfiles(jwtToken?.sessionToken ?? null);
   const { calendars, newCalendarIds, isLoading } = useCalendar(jwtToken?.sessionToken ?? null);
 
   //update calendarObjs (list of calendars)
@@ -24,7 +29,7 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [newCalendarIds]);
 
-  // process calendar data (only keeping visible calendars)
+  // process and store calendar events (only keeping visible calendars)
   const allEvents = useMemo(() => {
     if (!calendars || !calendarObjs) return [];
 
@@ -34,5 +39,25 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     return combined.filter((cal) => visibleIds.includes(cal.id)).flatMap((cal) => cal.events);
   }, [calendars, calendarObjs]);
 
-  return <EventsContext.Provider value={{ calendarObjs, setCalendarObj, allEvents, isLoading }}>{children}</EventsContext.Provider>;
+  const groupedData = useMemo(() => {
+    if (!familyProfiles || !calendarObjs) return [];
+
+    // Map parent calendars with parent profile
+    const parentGroup = {
+      profile: familyProfiles.parent,
+      calendars: calendarObjs.filter((cal) => cal.ownerId === familyProfiles.parent.id),
+    };
+
+    // Map children calendars with children profile
+    const childrenGroups = familyProfiles.children.map((child) => ({
+      profile: child,
+      calendars: calendarObjs.filter((cal) => cal.ownerId === child.id),
+    }));
+
+    return [parentGroup, ...childrenGroups];
+  }, [familyProfiles, calendarObjs]);
+
+  return (
+    <EventsContext.Provider value={{ calendarObjs, setCalendarObj, allEvents, isLoading, groupedData }}>{children}</EventsContext.Provider>
+  );
 };

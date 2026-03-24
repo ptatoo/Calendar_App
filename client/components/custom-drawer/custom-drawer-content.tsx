@@ -29,7 +29,7 @@ export default function CustomDrawerContent(props: any) {
   const { jwtToken } = useAuth();
   const { familyProfiles } = useProfiles(jwtToken?.sessionToken ?? null);
   const { calendarType, setCalendarType } = useContext(AuthContext);
-  const { calendarObjs, setCalendarObj } = useContext(EventsContext);
+  const { calendarObjs, setCalendarObj, groupedData } = useContext(EventsContext);
   const { setLoginVisible } = useContext(UIContext);
 
   const getButtonStyle = (option: '1' | '2' | '3' | 'W' | 'M', pressed: boolean) => [
@@ -37,6 +37,8 @@ export default function CustomDrawerContent(props: any) {
     calendarType === option && styles.activeButton,
     pressed && styles.pressedButton,
   ];
+
+  console.log(groupedData);
 
   //toggle visibility of specific calendar
   const toggleCalendar = (id: string) => {
@@ -90,8 +92,20 @@ export default function CustomDrawerContent(props: any) {
         {/* --- CALENDAR VISIBILITY TOGGLE --- */}
         <View style={{ flex: 1 }}>
           <Text style={styles.headerText}>Calendars</Text>
-          {calendarObjs?.map((calendarObj) => (
-            <CalendarDrawerList calendarObj={calendarObj} onToggle={toggleCalendar} />
+          {groupedData.map((group) => (
+            <View key={group.profile.id} style={styles.sectionContainer}>
+              {/* Section Header */}
+              <Text style={styles.sectionHeader} numberOfLines={1}>
+                {group.profile.email}
+              </Text>
+
+              {/* List of Calendars for this person */}
+              {group.calendars.length > 0 ? (
+                group.calendars.map((cal) => <CalendarDrawerList key={cal.calendarId} calendarObj={cal} onToggle={toggleCalendar} />)
+              ) : (
+                <Text style={styles.emptyText}>No Calendars Found</Text>
+              )}
+            </View>
           ))}
         </View>
       </ScrollView>
@@ -151,5 +165,28 @@ const styles = StyleSheet.create({
   },
   pressedButton: {
     transform: [{ scale: 0.96 }],
+  },
+  sectionContainer: {
+    marginBottom: 10,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    marginTop: 10,
+  },
+  sectionHeader: {
+    paddingVertical: 6,
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#6B7280',
+    letterSpacing: 1,
+  },
+  emptyText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+    marginLeft: 10,
+    marginVertical: 4,
   },
 });
