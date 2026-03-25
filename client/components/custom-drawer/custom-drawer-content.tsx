@@ -29,7 +29,7 @@ export default function CustomDrawerContent(props: any) {
   const { jwtToken } = useAuth();
   const { familyProfiles } = useProfiles(jwtToken?.sessionToken ?? null);
   const { calendarType, setCalendarType } = useContext(AuthContext);
-  const { calendarObjs, setCalendarObj, groupedData } = useContext(EventsContext);
+  const { setCalendarObj, groupedData } = useContext(EventsContext);
   const { setLoginVisible } = useContext(UIContext);
 
   const getButtonStyle = (option: '1' | '2' | '3' | 'W' | 'M', pressed: boolean) => [
@@ -139,24 +139,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 10,
   },
-
   viewButton: {
     padding: 6,
     marginVertical: 2,
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
   },
-
   activeButton: {
     backgroundColor: '#f0f0f0',
   },
-
   viewButtonText: {
     fontSize: 12,
     color: '#333',
     fontWeight: '500',
   },
-
   activeButtonText: {
     color: '#333',
     fontWeight: '600',
@@ -166,12 +162,6 @@ const styles = StyleSheet.create({
   },
   sectionContainer: {
     marginBottom: 10,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    marginTop: 10,
   },
   sectionHeader: {
     paddingVertical: 6,

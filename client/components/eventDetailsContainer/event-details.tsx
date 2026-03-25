@@ -16,8 +16,8 @@ interface Props {
 
 export default function EventDetails({ isVisible, event, onClose }: Props) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const snapPoints = useMemo(() => ['20%', '92%'], []);
-  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const snapPoints = useMemo(() => ['20%', '98%'], []); // Memoize for stability
+  const [currentIndex, setCurrentIndex] = React.useState(-1);
 
   // Use a ref to track if the sheet is actually "presented" to avoid double-calls
   useEffect(() => {
@@ -34,9 +34,9 @@ export default function EventDetails({ isVisible, event, onClose }: Props) {
   return (
     <BottomSheetModal
       ref={bottomSheetModalRef}
-      index={0}
       snapPoints={snapPoints}
       enablePanDownToClose={true}
+      enableDynamicSizing={false}
       // This allows touches to pass through the container to the buttons behind it
       containerStyle={{ pointerEvents: 'box-none' }}
       animationConfigs={{
@@ -45,7 +45,6 @@ export default function EventDetails({ isVisible, event, onClose }: Props) {
       handleStyle={styles.handleContainer}
       onChange={(index) => {
         setCurrentIndex(index);
-        console.log('Current Sheet Index:', index); // This should be 0 or 1
         if (index === -1) {
           onClose();
         }
