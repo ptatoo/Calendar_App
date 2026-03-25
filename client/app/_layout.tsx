@@ -16,7 +16,6 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
-        {' '}
         <BottomSheetModalProvider>
           <DateProvider>
             <EventsProvider>

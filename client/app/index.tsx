@@ -1,5 +1,5 @@
 //Components
-import LoginModal from '@/components/loginContainer/loginModal';
+import SettingsModal from '@/components/loginContainer/settings-modal';
 import MonthContainer from '@/components/monthContainer/month-container';
 import MultiDayContainer from '@/components/multiDayContainer/multi-day-container';
 
@@ -27,7 +27,7 @@ export default function Index() {
 
       {calendarType === 'M' && <MonthContainer numWeeks={6} />}
 
-      <LoginModal isVisible={isLoginVisible} onClose={() => setLoginVisible(false)} />
+      <SettingsModal isVisible={isLoginVisible} onClose={() => setLoginVisible(false)} />
     </View>
   );
 }

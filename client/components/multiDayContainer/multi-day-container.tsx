@@ -168,6 +168,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
               scrollEnabled={false}
               getItemLayout={getItemLayout}
               style={{ width: GRID_WIDTH }}
+              scrollEventThrottle={15}
               renderItem={({ item }) => {
                 const dayEvents = allDayEvents.filter((e) => isSameDay(item.date, new Date(e.startDate)));
 
