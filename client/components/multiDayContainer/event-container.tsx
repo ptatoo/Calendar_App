@@ -1,7 +1,6 @@
 import { EVENT_GAP, EVENT_OFFSET } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
 
-import { getEventTimeDisplay } from '@/utility/eventUtils';
 import { differenceInMinutes, getHours, getMinutes } from 'date-fns';
 import { StyleSheet, Text, View } from 'react-native';
 import { Pressable } from 'react-native-gesture-handler';
@@ -66,10 +65,8 @@ export default function EventContainer({
     EVENT_OFFSET, //horizontal offset step
   );
 
-  const colors = [3, 5, 7, 9, 14, 21];
-  const rawColor = event.displayColor;
+  const rawColor = event.calendar.calendarCustomColor;
   const color = lightenColor(rawColor, 50);
-  const { primary, secondary } = getEventTimeDisplay(event);
 
   return (
     <>

@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
 
+import AppearanceContainer from './appearance-container';
 import LoginButton from './login';
 
 const ProfileSettings = () => (
@@ -12,7 +13,7 @@ const ProfileSettings = () => (
 );
 const AppearanceSettings = () => (
   <BottomSheetScrollView key={1}>
-    <Text>Appearance</Text>
+    <AppearanceContainer />
   </BottomSheetScrollView>
 );
 const CalendarSettings = () => (

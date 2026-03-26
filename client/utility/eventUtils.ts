@@ -1,7 +1,7 @@
 import { format, isSameDay, parseISO } from 'date-fns';
-import { EventObj } from './types';
+import { EventObj, calendarObj } from './types';
 
-export const processEvent = ( item : any, calendarId: string, calendarColor: string, owner: string ) : EventObj | null => {
+export const processEvent = ( item : any, owner: string, calendarObj: calendarObj ) : EventObj | null => {
     try {
     // check event is valid
     if (!item || !item.organizer?.email || !item.summary) {
@@ -44,8 +44,7 @@ export const processEvent = ( item : any, calendarId: string, calendarColor: str
       },
 
       //calendar data
-      calendarId: calendarId,
-      displayColor: calendarColor,
+      calendar: calendarObj,
     };
     } catch (error) {
         console.warn("Failed to process event: ", item?.id, error);
@@ -53,7 +52,7 @@ export const processEvent = ( item : any, calendarId: string, calendarColor: str
     }
 };
 
-export const processCalendar = ( calendar : any, calendarId: string, calendarColor: string, owner: string ) : EventObj[] => {
+export const processCalendar = ( calendar : any, calendarId: string, calendarColor: string, owner: string, calendarObj: calendarObj ) : EventObj[] => {
     if (!calendar || !Array.isArray(calendar.items)) {
         return [];
     }
@@ -63,7 +62,7 @@ export const processCalendar = ( calendar : any, calendarId: string, calendarCol
             const status = item.status?.toLowerCase().trim();
             return status !== 'cancelled';
         })
-        .map((item: any) => processEvent(item, calendarId, calendarColor, owner)).filter((event: any): event is EventObj => event !== null)
+        .map((item: any) => processEvent(item, owner, calendarObj)).filter((event: any): event is EventObj => event !== null)
         .sort(compareEvents);
 };
 

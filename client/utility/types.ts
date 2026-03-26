@@ -86,8 +86,7 @@ export interface EventObj {
   recurringEventId?: string;
 
   //calendar data
-  calendarId: string;
-  displayColor: string;
+  calendar: calendarObj;
 }
 
 export interface CalendarData {

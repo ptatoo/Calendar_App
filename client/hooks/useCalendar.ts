@@ -39,7 +39,12 @@ export function useCalendar(jwtToken: string | null) {
       const calendarListRes = await fetchCalendarList(tokens.parent.accessToken);
       const parentCalendarsMetadata = calendarListRes.items || [];
       
-      const parentCalendarObjs: calendarObj[] = parentCalendarsMetadata.map((cal: any) => (
+      const parentCalendarObjs: calendarObj[] = [];
+
+      // 2.3 Fetch Parent Calendar Events
+      const parentCalendarPromises = parentCalendarsMetadata.map(async (cal: any) => {
+        // Create a CalendarObj and add it to List
+        const newCalendarObj : calendarObj = 
         {
           calendarName: cal.summary,
           calendarId: cal.id,
@@ -47,18 +52,17 @@ export function useCalendar(jwtToken: string | null) {
           calendarCustomColor: cal.backgroundColor || "#4285F4",
           shown: true,
           ownerId: familyProfiles.parent.id
-        }));
-
-      // 2.3 Fetch Parent Calendar Events
-      const parentCalendarPromises = parentCalendarsMetadata.map(async (cal: any) => {
+        };
+        parentCalendarObjs.push(newCalendarObj);
+        // Fetch event and add it to list (referencing the previous calendar Obj)
         const rawEvents = await fetchGivenCalendar(tokens.parent.accessToken, cal.id, cal.primary );
 
         return {
           id: cal.id,
           owner: cal.dataOwner,
           name: cal.summary,
-          color: cal.backgroundColor || "#4285F4", // Use Google's color or fallback blue
-          events: processCalendar(rawEvents, cal.id, cal.backgroundColor || "#4285F4", tokens.parent.email)
+          color: cal.backgroundColor || "#4285F4",
+          events: processCalendar(rawEvents, cal.id, cal.backgroundColor || "#4285F4", tokens.parent.email, newCalendarObj)
         } as CalendarData;
       });
 
@@ -79,11 +83,25 @@ export function useCalendar(jwtToken: string | null) {
       });
 
       const childrenMetadataResults = await Promise.all(childrenMetadataPromises);
+      const childrenCalendarObjs: calendarObj[] = [];
 
-      // 2.5 Fetch every single calendar found across all children
+      // 2.5 Fetch every single calendar and event found across all children
+      // 2.5.1 Flatmap all children
       const allChildEventPromises = childrenMetadataResults.flatMap(({ token, items }) => {
+        // 2.5.2 Map through all children calendars
         return items.map(async (cal: any) => {
-          // This mirrors the parent fetch structure exactly
+          // Add calendar to list of calendars
+          const newCalendarObj: calendarObj = {
+            calendarName: cal.summary,
+            calendarId: cal.id,
+            calendarDefaultColor: cal.backgroundColor || "#4285F4",
+            calendarCustomColor: cal.backgroundColor || "#4285F4",
+            shown: true,
+            ownerId: token.id
+          }
+          childrenCalendarObjs.push(newCalendarObj);
+
+          // Add event to list of Events
           const rawEvents = await fetchGivenCalendar(token.accessToken, cal.id, cal.primary);
 
           return {
@@ -91,24 +109,12 @@ export function useCalendar(jwtToken: string | null) {
             owner: token.id, 
             name: cal.summary,
             color: cal.backgroundColor || "#34A853",
-            events: processCalendar(rawEvents, cal.id, cal.backgroundColor || "#34A853", token.email)
+            events: processCalendar(rawEvents, cal.id, cal.backgroundColor || "#34A853", token.email, newCalendarObj)
           } as CalendarData;
-        });
+        })
       });
 
       const allChildCalendars = await Promise.all(allChildEventPromises);
-
-      // 2.6 Map and Create all Child CalendarObjs
-      const childrenCalendarMetadata: calendarObj[] = childrenMetadataResults.flatMap(({ token, items }) => {
-        return items.map((cal: any) => ({
-          calendarName: cal.summary,
-          calendarId: cal.id,
-          calendarDefaultColor: cal.backgroundColor || "#4285F4",
-          calendarCustomColor: cal.backgroundColor || "#4285F4",
-          shown: true,
-          ownerId: token.id
-        }));
-      });
 
       // 2.7 Combine for final state
       const formattedFamilyCalendars: FamilyCalendarState = {
@@ -116,7 +122,7 @@ export function useCalendar(jwtToken: string | null) {
         children: allChildCalendars,
       };
      
-      const allCalendars = [...parentCalendarObjs, ...childrenCalendarMetadata];
+      const allCalendars = [...parentCalendarObjs, ...childrenCalendarObjs];
 
       // 2.8 Update State & Local Storage
       setCalendars(formattedFamilyCalendars);

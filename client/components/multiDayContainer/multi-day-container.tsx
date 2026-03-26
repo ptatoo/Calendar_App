@@ -46,7 +46,7 @@ const AllDayContainer = ({ event, handlePress }: { event: EventObj; handlePress:
       style={[
         styles.allDayChip,
         {
-          backgroundColor: event.displayColor || '#3B82F6',
+          backgroundColor: event.calendar.calendarCustomColor || '#3B82F6',
         },
       ]}
     >
