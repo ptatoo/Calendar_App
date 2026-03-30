@@ -52,12 +52,12 @@ export const processEvent = ( item : any, owner: string, calendarObj: calendarOb
     }
 };
 
-export const processCalendar = ( calendar : any, calendarId: string, calendarColor: string, owner: string, calendarObj: calendarObj ) : EventObj[] => {
-    if (!calendar || !Array.isArray(calendar.items)) {
+export const processCalendar = ( calendar : any[], calendarId: string, calendarColor: string, owner: string, calendarObj: calendarObj ) : EventObj[] => {
+    if (!calendar || !Array.isArray(calendar)) {
         return [];
     }
 
-    return calendar.items
+    return calendar
     .filter((item: any) => {
             const status = item.status?.toLowerCase().trim();
             return status !== 'cancelled';

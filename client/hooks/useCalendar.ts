@@ -56,6 +56,7 @@ export function useCalendar(jwtToken: string | null) {
         parentCalendarObjs.push(newCalendarObj);
         // Fetch event and add it to list (referencing the previous calendar Obj)
         const rawEvents = await fetchGivenCalendar(tokens.parent.accessToken, cal.id, cal.primary );
+        console.log(processCalendar(rawEvents, cal.id, cal.backgroundColor || "#4285F4", tokens.parent.email, newCalendarObj));
 
         return {
           id: cal.id,

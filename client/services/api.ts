@@ -54,22 +54,37 @@ export const fetchCalendar = async (accessToken: string) => {
 // Google Api: Fetch Calendar Events
 export const fetchGivenCalendar = async (accessToken: string, calendarId: string = "primary", isPrimary: boolean = false) => {
     const encodedId = (!isPrimary) ? encodeURIComponent(calendarId) : encodeURIComponent("primary");
-    const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events`);
-    url.searchParams.append("showDeleted", "false");
-    url.searchParams.append("singleEvents", "true");
-    url.searchParams.append("orderBy", "startTime");
+    let allEvents: any[] = [];
+    let pageToken: string | undefined = undefined;
 
-    const res = await fetch(
-      url.toString(),
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+    do {
+      const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events`);
+      url.searchParams.append("showDeleted", "false");
+      url.searchParams.append("singleEvents", "true");
+      url.searchParams.append("orderBy", "startTime");
+      if (pageToken) {
+            url.searchParams.append("pageToken", pageToken);
+        }
+
+      const res = await fetch(
+        url.toString(),
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
         },
-      },
-    );
-    return await res.json();
+      );
+      const data = await res.json();
+
+      if (data.items) {
+        allEvents = [...allEvents, ...data.items];
+      }
+      pageToken = data.nextPageToken;
+    } while (pageToken);
+
+    return allEvents;
 }
 
 // Google Api: Fetch Calendar List
