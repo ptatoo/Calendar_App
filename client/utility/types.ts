@@ -1,5 +1,4 @@
 import { Dispatch, SetStateAction } from "react";
-
 export interface JwtTokenObj {
   sessionToken: string;
   expiryDate: string;

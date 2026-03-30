@@ -1,5 +1,5 @@
 // hooks/calendarHooks/useCalendarScroll.ts
-import { DateContext } from '@/components/contexts/calendar-context';
+import { DateContext } from '@/components/contexts/calendar-index-context';
 import { PAST_BUFFER } from '@/utility/constants';
 import { useContext, useRef } from 'react';
 import { FlatList, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';

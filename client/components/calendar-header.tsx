@@ -3,7 +3,7 @@ import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useContext, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { DateContext } from './contexts/calendar-context';
+import { DateContext } from './contexts/calendar-index-context';
 
 import { HEADER_BACKGROUND_COLOR } from '@/utility/constants';
 

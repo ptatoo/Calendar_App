@@ -15,7 +15,7 @@ import { isSameDay } from 'date-fns';
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { DateContext } from '../contexts/calendar-context';
+import { DateContext } from '../contexts/calendar-index-context';
 
 import EventDetails from '../eventDetailsContainer/event-details';
 import DayContainer from './day-container';

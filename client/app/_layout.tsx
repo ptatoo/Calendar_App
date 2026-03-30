@@ -5,8 +5,8 @@ import CalendarHeader from '../components/calendar-header';
 import CustomDrawerContent from '../components/custom-drawer/custom-drawer-content';
 
 //Proivders
-import { DateProvider } from '@/components/contexts/calendar-context';
 import { EventsProvider } from '@/components/contexts/calendar-events-context';
+import { DateProvider } from '@/components/contexts/calendar-index-context';
 import { UIProvider } from '@/components/contexts/ui-context';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
