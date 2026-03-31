@@ -52,6 +52,26 @@ export const processEvent = ( item : any, owner: string, calendarObj: calendarOb
     }
 };
 
+export const convertToGoogleEvent = (eventObj: EventObj) => {
+  const formatAllDay = (date: Date) => date.toISOString().split("T")[0];
+
+  return {
+    summary: eventObj.title,
+    description: eventObj.description,
+    location: eventObj.location,
+    eventType: eventObj.eventType !== "default" ? eventObj.eventType : undefined, 
+    start: eventObj.allDay
+      ? { date: formatAllDay(eventObj.startDate) }
+      : { dateTime: eventObj.startDate.toISOString() },
+    end: eventObj.allDay
+      ? { date: formatAllDay(eventObj.endDate) }
+      : { dateTime: eventObj.endDate.toISOString() },
+    ...(eventObj.recurrence && { recurrence: eventObj.recurrence }),
+    sequence: eventObj.sequence,
+    reminders: eventObj.reminders,
+  };
+};
+
 export const processCalendar = ( calendar : any[], calendarId: string, calendarColor: string, owner: string, calendarObj: calendarObj ) : EventObj[] => {
     if (!calendar || !Array.isArray(calendar)) {
         return [];

@@ -1,4 +1,7 @@
 //Backend Fetching
+import { convertToGoogleEvent } from "@/utility/eventUtils";
+import { EventObj, ProfileObj } from "@/utility/types";
+
 export const fetchJwtToken = async (authCode : string, codeVerifier : string, redirectUri : string) => {
     const res = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_LINK!}/api/google-exchange`, {
         method : 'POST',
@@ -34,7 +37,11 @@ export const fetchFamilyAccessTokens = async (jwtToken : string) => {
     return await res.json();
 }
 
-// Google Api Fetching
+
+// ===========================================================
+// GOOGLE API FUNCTIONS
+// ===========================================================
+
 export const fetchCalendar = async (accessToken: string) => {
     const url = new URL("https://www.googleapis.com/calendar/v3/calendars/primary/events");
     url.searchParams.append("showDeleted", "false");
@@ -99,6 +106,36 @@ export const fetchCalendarList = async (accessToken: string) => {
   return await res.json();
 };
 
+
+//calendar writing
+export const addEventToGoogleCalendar = async (accessToken: string, eventObj : EventObj) => {
+  const googleEvent = convertToGoogleEvent(eventObj);
+
+  try {
+    const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(googleEvent),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log('Event created successfully:', data.htmlLink);
+      return data;
+    } else {
+      console.error('Error creating event:', data);
+      throw new Error(data.error.message);
+    }
+  } catch (error) {
+    console.error('Network or API Error:', error);
+    throw error;
+  }
+};
+
 // ===========================================================
 // INVITATION FUNCTIONS 
 // ===========================================================
@@ -139,8 +176,6 @@ export const postInviteAccept = async(jwtToken: string, email: string) => {
   }
 }
 
-import { ProfileObj } from "@/utility/types";
-
 export const getInviteMyInvites = async(jwtToken: string) => {
   try {
   const res = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_LINK!}/api/invite/my-invites`, {
@@ -172,3 +207,4 @@ export const getInviteSentInvites = async(jwtToken: string) => {
     console.error(error);
   }
 }
+
