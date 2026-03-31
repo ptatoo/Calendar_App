@@ -1,4 +1,3 @@
-import { Dispatch, SetStateAction } from "react";
 export interface JwtTokenObj {
   sessionToken: string;
   expiryDate: string;
@@ -39,18 +38,6 @@ export interface AuthContextType {
 export interface DateContextType {
   curDate: Date,
   setCurDate: (curDate: Date) => void;
-}
-
-// Personal Data Created in this app
-export interface EventsContextType {
-  calendarObjs: calendarObj[] | null;
-  allEvents: EventObj[];
-  isLoading: boolean; 
-  groupedData: {
-    profile: ProfileObj;
-    calendars: calendarObj[];
-  }[];
-  setCalendarObj: Dispatch<SetStateAction<calendarObj[] | null>>;
 }
 
 export interface calendarObj {

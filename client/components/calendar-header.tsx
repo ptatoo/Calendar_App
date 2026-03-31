@@ -1,11 +1,11 @@
+import TestWriteButton from '@/components/test-write-button/test-write-button';
+import { HEADER_BACKGROUND_COLOR } from '@/utility/constants';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useContext, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { DateContext } from './contexts/calendar-index-context';
-
-import { HEADER_BACKGROUND_COLOR } from '@/utility/constants';
 
 export default function CalendarHeader(props: any) {
   const navigation = useNavigation();
@@ -18,6 +18,7 @@ export default function CalendarHeader(props: any) {
 
   return (
     <View style={styles.headerContainer}>
+      <TestWriteButton/>
       {/* --- Waffle --- */}
       <View style={{ justifyContent: 'center' }}>
         <Pressable onPress={() => navigation.dispatch(DrawerActions.openDrawer())} style={styles.waffle}>

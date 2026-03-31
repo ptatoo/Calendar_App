@@ -1,17 +1,38 @@
 //custom hooks
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendar } from '@/hooks/useCalendar';
+import { useCalendarWrite } from '@/hooks/useCalendarWrite';
 import { useProfiles } from '@/hooks/useProfile';
+import { calendarObj, EventObj, ProfileObj } from '@/utility/types'; // Adjust path as needed
+import { createContext, Dispatch, ReactNode, SetStateAction, useEffect, useMemo, useState } from 'react';
 
-import { calendarObj, EventsContextType } from '@/utility/types';
-import { createContext, ReactNode, useEffect, useMemo, useState } from 'react';
+export interface EventsContextType {
+  // Read state
+  calendarObjs: calendarObj[] | null;
+  allEvents: EventObj[];
+  isLoading: boolean; 
+  groupedData: {
+    profile: ProfileObj;
+    calendars: calendarObj[];
+  }[];
+  setCalendarObj: Dispatch<SetStateAction<calendarObj[] | null>>;
+  
+  // Write state
+  createEvent: (eventDetails: any) => Promise<any>; 
+  isWriting: boolean; 
+  writeError: string | null; 
+}
 
+// 2. Add defaults to createContext
 export const EventsContext = createContext<EventsContextType>({
   calendarObjs: null,
   allEvents: [],
   isLoading: false,
   setCalendarObj: () => {},
   groupedData: [],
+  createEvent: async () => {}, // Added
+  isWriting: false, // Added
+  writeError: null, // Added
 });
 
 export const EventsProvider = ({ children }: { children: ReactNode }) => {
@@ -19,8 +40,13 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
 
   //fetch a crazy amount of data from everywhere
   const { jwtToken } = useAuth();
-  const { familyProfiles } = useProfiles(jwtToken?.sessionToken ?? null);
-  const { calendars, newCalendarIds, isLoading } = useCalendar(jwtToken?.sessionToken ?? null);
+  const sessionTokenString = jwtToken?.sessionToken ?? null;
+
+  const { familyProfiles } = useProfiles(sessionTokenString);
+  const { calendars, newCalendarIds, isLoading } = useCalendar(sessionTokenString);
+
+  //write functionality
+  const { createEvent, loading: isWriting, error: writeError } = useCalendarWrite(sessionTokenString);
 
   //update calendarObjs (list of calendars)
   useEffect(() => {
@@ -58,6 +84,12 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
   }, [familyProfiles, calendarObjs]);
 
   return (
-    <EventsContext.Provider value={{ calendarObjs, setCalendarObj, allEvents, isLoading, groupedData }}>{children}</EventsContext.Provider>
+    <EventsContext.Provider 
+      value={{ 
+        calendarObjs, setCalendarObj, allEvents, isLoading, groupedData, createEvent, isWriting, writeError
+      }}
+    >
+      {children}
+    </EventsContext.Provider>
   );
 };

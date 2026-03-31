@@ -60,7 +60,8 @@ const getAccessToken = async (userId, refreshToken) => {
 
     //if exists AND still valid 1 min into the future
     if(cachedToken && cachedToken.expiryDate  > (Date.now() + 60000)){
-      console.log("Using RAM cache for:", userId);
+      console.log("Using RAM cache for (UserId):", userId);
+      console.log("Access Token:", cachedToken);
       return cachedToken;
     }
 
