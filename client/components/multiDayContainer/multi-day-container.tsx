@@ -108,12 +108,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     }
   }, [isFocused, initialIndex]);
 
-  const getItemLayout = useCallback((_: any, index: number) => ({
-    length: dayWidth,
-    offset: dayWidth * index,
-    index,
-  }), [dayWidth]);
-
   return (
     <>
       <GestureDetector
