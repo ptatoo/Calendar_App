@@ -79,12 +79,23 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     return { groupedTimedEvents: timed, groupedAllDayEvents: allDay };
   }, [events]);
   
+  const updateContextOnScroll = (offsetX: number) => {
+    const itemsScrolled = Math.floor(offsetX / dayWidth + 0.5);
+    setCurDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - PAST_BUFFER + itemsScrolled));
+  };
+
   const onMainScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollX.value = event.contentOffset.x;
     },
+    onMomentumEnd: (event) => {
+      updateContextOnScroll(event.contentOffset.x);
+    },
+    onEndDrag: (event) => {
+      updateContextOnScroll(event.contentOffset.x);
+    }
   });
-
+  
   //animated style for all headers
   const headerAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -92,13 +103,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
       flexDirection: 'row',
     };
   });
-
-  // Update context when scrolling stops (prevents bridge spam)
-  const handleScrollEnd = (e: any) => {
-    const x = e.nativeEvent.contentOffset.x;
-    const itemsScrolled = Math.floor(x / dayWidth + 0.5);
-    setCurDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - PAST_BUFFER + itemsScrolled));
-  };
 
   //temporary: forces calendar to initialIndex on rerender
   const isFocused = useIsFocused();
@@ -207,7 +211,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
               }}
               horizontal
               onScroll={onMainScroll} // Native UI Thread scroll
-              onMomentumScrollEnd={handleScrollEnd} // Update JS state when swiping finishes
               scrollEventThrottle={16}
               keyExtractor={(item: any) => item.date.toISOString()}
               style={{ width: GRID_WIDTH }}
@@ -231,6 +234,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: SCREEN_WIDTH,
   },
+
 
   date: {
     justifyContent: 'center',
