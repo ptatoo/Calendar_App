@@ -38,6 +38,7 @@ export function useCalendar(jwtToken: string | null) {
       // 2.2 Fetch Parent Calendar List
       const calendarListRes = await fetchCalendarList(tokens.parent.accessToken);
       const parentCalendarsMetadata = calendarListRes.items || [];
+      console.log(parentCalendarsMetadata);
       
       const parentCalendarObjs: calendarObj[] = [];
 
@@ -51,12 +52,11 @@ export function useCalendar(jwtToken: string | null) {
           calendarDefaultColor: cal.backgroundColor || "#4285F4",
           calendarCustomColor: cal.backgroundColor || "#4285F4",
           shown: true,
-          ownerId: familyProfiles.parent.id
+          owner: cal.accessRole === 'owner',
         };
         parentCalendarObjs.push(newCalendarObj);
         // Fetch event and add it to list (referencing the previous calendar Obj)
         const rawEvents = await fetchGivenCalendar(tokens.parent.accessToken, cal.id, cal.primary );
-        console.log(processCalendar(rawEvents, cal.id, cal.backgroundColor || "#4285F4", tokens.parent.email, newCalendarObj));
 
         return {
           id: cal.id,
@@ -98,7 +98,7 @@ export function useCalendar(jwtToken: string | null) {
             calendarDefaultColor: cal.backgroundColor || "#4285F4",
             calendarCustomColor: cal.backgroundColor || "#4285F4",
             shown: true,
-            ownerId: token.id
+            owner: false,
           }
           childrenCalendarObjs.push(newCalendarObj);
 

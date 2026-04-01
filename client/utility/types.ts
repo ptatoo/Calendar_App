@@ -43,7 +43,7 @@ export interface DateContextType {
 export interface calendarObj {
   calendarName: string;
   calendarId: string;
-  ownerId: string,
+  owner: boolean,
   calendarDefaultColor: string;
   calendarCustomColor: string;
   shown: boolean,
