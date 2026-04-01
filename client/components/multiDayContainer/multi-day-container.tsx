@@ -11,7 +11,6 @@ import {
 import { CalendarView, EventObj } from '@/utility/types';
 import { useIsFocused } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
-import { isSameDay } from 'date-fns';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -87,13 +86,8 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const onMainScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollX.value = event.contentOffset.x;
-    },
-    onMomentumEnd: (event) => {
       updateContextOnScroll(event.contentOffset.x);
     },
-    onEndDrag: (event) => {
-      updateContextOnScroll(event.contentOffset.x);
-    }
   });
   
   //animated style for all headers
@@ -113,18 +107,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
       }, 50);
     }
   }, [isFocused, initialIndex]);
-
-  // snap to today
-  useEffect(() => {
-    // check if the date in context is "Today"
-    const isToday = isSameDay(curDate, new Date());
-    if (isToday && listRef.current) {
-      listRef.current.scrollToIndex({
-        index: PAST_BUFFER,
-        animated: true,
-      });
-    }
-  }, [curDate]); // every time the header button updates curDate, this runs
 
   const getItemLayout = useCallback((_: any, index: number) => ({
     length: dayWidth,
