@@ -1,7 +1,7 @@
 import { format, isSameDay, parseISO } from 'date-fns';
 import { EventObj, calendarObj } from './types';
 
-export const processEvent = ( item : any, owner: string, calendarObj: calendarObj ) : EventObj | null => {
+export const processEvent = ( item : any, owner: string, calendarObj: calendarObj, calendarId: string ) : EventObj | null => {
     try {
     // check event is valid
     if (!item || !item.organizer?.email || !item.summary) {
@@ -45,6 +45,7 @@ export const processEvent = ( item : any, owner: string, calendarObj: calendarOb
 
       //calendar data
       calendar: calendarObj,
+      calendarId: calendarId,
     };
     } catch (error) {
         console.warn("Failed to process event: ", item?.id, error);
@@ -82,7 +83,7 @@ export const processCalendar = ( calendar : any[], calendarId: string, calendarC
             const status = item.status?.toLowerCase().trim();
             return status !== 'cancelled';
         })
-        .map((item: any) => processEvent(item, owner, calendarObj)).filter((event: any): event is EventObj => event !== null)
+        .map((item: any) => processEvent(item, owner, calendarObj, calendarId)).filter((event: any): event is EventObj => event !== null)
         .sort(compareEvents);
 };
 
