@@ -96,7 +96,7 @@ const EventContainer = ({
         hitSlop={5}
       >
         {/* --- EVENT LEFT BAR --- */}
-        <View key={event.id} style={[styles.event, { backgroundColor: color, borderLeftColor: rawColor }]}>
+        <View style={[styles.event, { backgroundColor: color, borderLeftColor: rawColor }]}>
           {/* --- EVENT TITLE --- */}
           <Text style={styles.eventText} numberOfLines={1}>
             {event.title}

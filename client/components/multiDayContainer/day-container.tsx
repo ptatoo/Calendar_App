@@ -70,9 +70,7 @@ export default function DayContainer({
     //Sort by start time ascending order
     const sortedEvents = [...events].sort((a, b) => {
       // Ensure we are working with Date objects
-      const startA = new Date(a.startDate).getTime();
-      const startB = new Date(b.startDate).getTime();
-      return startA - startB;
+      return Number(a.startDate) - Number(b.startDate);
     });
 
     const results: EventWithOffset[] = [];
