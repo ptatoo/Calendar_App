@@ -1,8 +1,9 @@
 import { GRID_COLOR } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
 import { isSameDay } from 'date-fns';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+
 import Svg, { Line } from 'react-native-svg';
 import EventContainer from './event-container';
 
@@ -44,6 +45,8 @@ const HourTicks = ({ hourHeight }: { hourHeight: number }) => (
   </Svg>
 );
 
+
+
 //TODO: MOVE EVENTS_WITH_OFFSETS USEMEMO SOMEWHERE ELSE (AKA A HOOK)
 export default function DayContainer({
   day,
@@ -62,10 +65,7 @@ export default function DayContainer({
   showEventDetails: (visibility: boolean) => void;
   handlePress: (event: EventObj | null) => void;
 }) {
-    
-    const isToday = isSameDay(day, new Date());
-    
-    
+  const isToday = isSameDay(day, new Date());
   const eventsWithOffsets = useMemo(() => {
     //Sort by start time ascending order
     const sortedEvents = [...events].sort((a, b) => {
@@ -99,6 +99,11 @@ export default function DayContainer({
 
     return results;
   }, [events]);
+  
+  //create a stable ref for selection handling
+  const handleEventSelect = useCallback((event: EventObj) => {
+    handlePress(event);
+  }, [handlePress]);
 
   //console.log(day, events);
   return (
@@ -114,9 +119,7 @@ export default function DayContainer({
             dayWidth={dayWidth}
             hourHeight={hourHeight}
             // Pass the setter down
-            onSelect={() => {
-              handlePress(item.event);
-            }}
+            onSelect={handleEventSelect}
           />
         ))}
         {/* --- CLOSE EVENT DETAILS BUTTON --- */}
