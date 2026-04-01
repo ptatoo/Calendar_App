@@ -1,7 +1,8 @@
 import { EVENT_GAP, EVENT_OFFSET } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
 import { differenceInMinutes, getHours, getMinutes } from 'date-fns';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
+
 import { StyleSheet, Text, View } from 'react-native';
 import { Pressable } from 'react-native-gesture-handler';
 
@@ -45,7 +46,7 @@ const lightenColor = (hex: string, percent: number): string => {
 };
 
 //TODO: MAKE THIS LOOK PRETTY
-export default function EventContainer({
+const EventContainer = ({
   eventWithOffset,
   dayWidth,
   hourHeight,
@@ -54,8 +55,8 @@ export default function EventContainer({
   eventWithOffset: EventWithOffset;
   dayWidth: number;
   hourHeight: number;
-  onSelect: () => void;
-}) {
+  onSelect: ( event : EventObj) => void;
+}) => {
   const { event, offset } = eventWithOffset;
   const { top, height, left, width } = getEventLayout(
     event,
@@ -72,9 +73,9 @@ export default function EventContainer({
     <>
       {/* --- EVENT CONTAINER --- */}
       <Pressable
-        onPress={() => {
-          onSelect();
-        }}
+        onPress={() => onSelect(event)
+
+        }
         delayLongPress={0}
         style={[
           styles.eventContainer,
@@ -100,6 +101,8 @@ export default function EventContainer({
     </>
   );
 }
+
+export default React.memo(EventContainer);
 
 const styles = StyleSheet.create({
   eventContainer: {
