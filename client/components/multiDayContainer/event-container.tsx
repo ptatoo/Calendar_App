@@ -1,7 +1,9 @@
 import { EVENT_GAP, EVENT_OFFSET } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
+import { EventsContext } from '../contexts/calendar-events-context';
+
 import { differenceInMinutes, getHours, getMinutes } from 'date-fns';
-import React, { useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 
 import { StyleSheet, Text, View } from 'react-native';
 import { Pressable } from 'react-native-gesture-handler';
@@ -34,7 +36,6 @@ const lightenColor = (hex: string, percent: number): string => {
   let b = parseInt(color.substring(4, 6), 16);
 
   // Lighten each channel
-  // Formula: current + (255 - current) * percent
   r = Math.floor(r + (255 - r) * (percent / 100));
   g = Math.floor(g + (255 - g) * (percent / 100));
   b = Math.floor(b + (255 - b) * (percent / 100));
@@ -55,9 +56,10 @@ const EventContainer = ({
   eventWithOffset: EventWithOffset;
   dayWidth: number;
   hourHeight: number;
-  onSelect: ( event : EventObj) => void;
+  onSelect: (event: EventObj) => void;
 }) => {
   const { event, offset } = eventWithOffset;
+  const { calendarObjs } = useContext(EventsContext);
   const { top, height, left, width } = getEventLayout(
     event,
     offset,
@@ -66,16 +68,19 @@ const EventContainer = ({
     EVENT_OFFSET, //horizontal offset step
   );
 
-  const rawColor = event.calendar.calendarCustomColor;
-  const color = useMemo(() => lightenColor(rawColor, 50), [rawColor]);
+  const rawColor = useMemo(() => {
+    const curCal = calendarObjs?.find((c) => c.calendarId === event.calendarId);
+    return curCal?.calendarCustomColor || '#4285F4';
+  }, [calendarObjs, event.calendarId]);
+  const color = useMemo(() => {
+    return lightenColor(rawColor, 50);
+  }, [rawColor]);
 
   return (
     <>
       {/* --- EVENT CONTAINER --- */}
       <Pressable
-        onPress={() => onSelect(event)
-
-        }
+        onPress={() => onSelect(event)}
         delayLongPress={0}
         style={[
           styles.eventContainer,
@@ -100,7 +105,7 @@ const EventContainer = ({
       </Pressable>
     </>
   );
-}
+};
 
 export default React.memo(EventContainer);
 

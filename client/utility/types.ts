@@ -72,6 +72,7 @@ export interface EventObj {
   recurringEventId?: string;
 
   //calendar data
+  calendarId: string;
   calendar: calendarObj;
 }
 
