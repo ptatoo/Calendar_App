@@ -10,17 +10,17 @@ export interface EventsContextType {
   // Read state
   calendarObjs: calendarObj[] | null;
   allEvents: EventObj[];
-  isLoading: boolean; 
+  isLoading: boolean;
   groupedData: {
     profile: ProfileObj;
     calendars: calendarObj[];
   }[];
   setCalendarObj: Dispatch<SetStateAction<calendarObj[] | null>>;
-  
+
   // Write state
-  createEvent: (eventDetails: any) => Promise<any>; 
-  isWriting: boolean; 
-  writeError: string | null; 
+  createEvent: (eventDetails: any) => Promise<any>;
+  isWriting: boolean;
+  writeError: string | null;
 }
 
 // 2. Add defaults to createContext
@@ -69,24 +69,29 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     if (!familyProfiles || !calendarObjs) return [];
 
     // Map parent calendars with parent profile
-    const parentGroup = {
+    const ownerGroup = {
       profile: familyProfiles.parent,
-      calendars: calendarObjs.filter((cal) => cal.ownerId === familyProfiles.parent.id),
+      calendars: calendarObjs.filter((cal) => cal.owner === true),
+    };
+    const readGroup = {
+      profile: familyProfiles.parent,
+      calendars: calendarObjs.filter((cal) => cal.owner === false),
     };
 
-    // Map children calendars with children profile
-    const childrenGroups = familyProfiles.children.map((child) => ({
-      profile: child,
-      calendars: calendarObjs.filter((cal) => cal.ownerId === child.id),
-    }));
-
-    return [parentGroup, ...childrenGroups];
+    return [ownerGroup, readGroup];
   }, [familyProfiles, calendarObjs]);
 
   return (
-    <EventsContext.Provider 
-      value={{ 
-        calendarObjs, setCalendarObj, allEvents, isLoading, groupedData, createEvent, isWriting, writeError
+    <EventsContext.Provider
+      value={{
+        calendarObjs,
+        setCalendarObj,
+        allEvents,
+        isLoading,
+        groupedData,
+        createEvent,
+        isWriting,
+        writeError,
       }}
     >
       {children}
