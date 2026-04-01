@@ -1,9 +1,10 @@
 import { GRID_COLOR } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
+import { isSameDay } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import Svg, { Line } from 'react-native-svg';
 import EventContainer from './event-container';
-import { isSameDay } from 'date-fns';
 
 // time indicator component
 const TimeIndicator = ({ hourHeight }: { hourHeight: number }) => {
@@ -27,15 +28,21 @@ const TimeIndicator = ({ hourHeight }: { hourHeight: number }) => {
   );
 };
 
-const HourTicks = ({ hourHeight }: { hourHeight: number }) => {
-  return (
-    <View style={{}}>
-      {Array.from({ length: 24 }).map((_, i) => (
-        <View key={i} style={[styles.hourRow, { height: hourHeight }]}></View>
-      ))}
-    </View>
-  );
-};
+const HourTicks = ({ hourHeight }: { hourHeight: number }) => (
+  <Svg height={hourHeight * 24} width="100%" style={StyleSheet.absoluteFill}>
+    {Array.from({ length: 24 }).map((_, i) => (
+      <Line
+        key={i}
+        x1="0"
+        y1={(i + 1) * hourHeight} 
+        x2="100%"
+        y2={(i + 1) * hourHeight}
+        stroke={GRID_COLOR}
+        strokeWidth="1"
+      />
+    ))}
+  </Svg>
+);
 
 //TODO: MOVE EVENTS_WITH_OFFSETS USEMEMO SOMEWHERE ELSE (AKA A HOOK)
 export default function DayContainer({

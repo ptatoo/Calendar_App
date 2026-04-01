@@ -1,7 +1,7 @@
 import { EVENT_GAP, EVENT_OFFSET } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
-
 import { differenceInMinutes, getHours, getMinutes } from 'date-fns';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Pressable } from 'react-native-gesture-handler';
 
@@ -66,7 +66,7 @@ export default function EventContainer({
   );
 
   const rawColor = event.calendar.calendarCustomColor;
-  const color = lightenColor(rawColor, 50);
+  const color = useMemo(() => lightenColor(rawColor, 50), [rawColor]);
 
   return (
     <>
