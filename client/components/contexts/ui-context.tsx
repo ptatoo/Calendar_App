@@ -1,4 +1,5 @@
 import { PASTEL_COLORS } from '@/utility/constants';
+import { colorCache } from '@/utility/types';
 import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useEffect, useState } from 'react';
 import { EventsContext } from './calendar-events-context';
 
@@ -7,13 +8,27 @@ interface UIContextType {
   setLoginVisible: (visible: boolean) => void;
   colors: string[];
   updateColors: Dispatch<SetStateAction<string[]>>;
+  allCaches: colorCache[];
+  activeCacheId: number;
+  changePalette: (newPaletteId: number, newPaletteName: string, newColors: string[]) => void;
+  syncCacheToPalette: (updatedPalette: string[]) => void;
+  setManualCalendarColor: (calendarId: string, hexColor: string) => void;
+  getCalendarColor: (calendarId: string) => string;
 }
 
 export const UIContext = createContext<UIContextType>({
   isLoginVisible: false,
   setLoginVisible: () => {},
   colors: [],
+  allCaches: [],
+  activeCacheId: 0,
   updateColors: () => {},
+  changePalette: () => {},
+  syncCacheToPalette: () => {},
+  setManualCalendarColor: () => {},
+  getCalendarColor: () => {
+    return '';
+  },
 });
 
 //convert Hex to RGB
@@ -24,6 +39,7 @@ const hexToRgb = (hex: string) => {
   return { r, g, b };
 };
 
+//map default colors to custom colors
 const findClosestColor = (targetHex: string, palette: string[]) => {
   const target = hexToRgb(targetHex);
   let closest = palette[0];
@@ -47,6 +63,18 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   const [isLoginVisible, setLoginVisible] = useState(false);
   const { calendarObjs, setCalendarObj } = useContext(EventsContext);
   const [colors, updateColors] = useState<string[]>(PASTEL_COLORS);
+  const [colorId, updateColorId] = useState<number>(0);
+  const [colorsCache, setColorsCache] = useState<colorCache>();
+
+  const [allCaches, setAllCaches] = useState<colorCache[]>([
+    {
+      paletteId: 0,
+      name: 'Pastel Colors',
+      palette: PASTEL_COLORS,
+      colorMap: {},
+    },
+  ]);
+  const [activeCacheId, setActiveCacheId] = useState<number>(0);
 
   useEffect(() => {
     if (!calendarObjs) return;
@@ -64,7 +92,131 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
     if (isDifferent) {
       setCalendarObj(updated);
     }
-  }, [colors, calendarObjs]);
+  }, [colors, calendarObjs, colorId]);
 
-  return <UIContext.Provider value={{ isLoginVisible, setLoginVisible, colors, updateColors }}>{children}</UIContext.Provider>;
+  //totally change color palette
+  const changePalette = (newPaletteId: number, newPaletteName: string, newColors: string[]) => {
+    const newColorMap: Record<string, string> = {};
+
+    calendarObjs?.forEach((cal) => {
+      newColorMap[cal.calendarId] = findClosestColor(cal.calendarDefaultColor, newColors);
+    });
+    setAllCaches((prev) => {
+      // Check if this palette ID already exists in our storage
+      const exists = prev.find((c) => c.paletteId === newPaletteId);
+
+      if (exists) {
+        // Update existing palette with new colors and a fresh map
+        return prev.map((c) => (c.paletteId === newPaletteId ? { ...c, palette: newColors, colorMap: newColorMap } : c));
+      }
+
+      // Otherwise, add a brand new Cache object to the array
+      return [
+        ...prev,
+        {
+          paletteId: newPaletteId,
+          name: newPaletteName,
+          palette: newColors,
+          colorMap: newColorMap,
+        } as colorCache,
+      ];
+    });
+
+    setActiveCacheId(newPaletteId);
+  };
+
+  //update a color palette
+  const syncCacheToPalette = (updatedPalette: string[]) => {
+    setAllCaches((prev) =>
+      prev.map((cache) => {
+        if (cache.paletteId !== activeCacheId) return cache;
+
+        const nextMap = { ...cache.colorMap };
+
+        Object.keys(nextMap).forEach((calId) => {
+          const currentColor = nextMap[calId];
+
+          // If the color assigned to this calendar isn't in the new palette anymore...
+          if (!updatedPalette.includes(currentColor)) {
+            const cal = calendarObjs?.find((c) => c.calendarId === calId);
+            // ...recalculate the closest match from the updated palette
+            nextMap[calId] = findClosestColor(cal?.calendarDefaultColor || '#000000', updatedPalette);
+          }
+        });
+
+        return { ...cache, palette: updatedPalette, customMap: nextMap };
+      }),
+    );
+  };
+
+  //update color of specific calendar
+  const setManualCalendarColor = (calendarId: string, hexColor: string) => {
+    setAllCaches((prev) =>
+      prev.map((cache) => {
+        // Manual override theme the user is currently updating
+        if (cache.paletteId === activeCacheId) {
+          return {
+            ...cache,
+            colorMap: {
+              ...cache.colorMap,
+              [calendarId]: hexColor, //update key, value pair
+            },
+          };
+        }
+        return cache;
+      }),
+    );
+  };
+
+  //get the color of a calendar
+  const getCalendarColor = (calendarId: string): string => {
+    const activeCache = allCaches.find((c) => c.paletteId === activeCacheId);
+    const customColor = activeCache?.colorMap[calendarId];
+    return customColor || '#00ffff';
+  };
+
+  useEffect(() => {
+    if (!calendarObjs?.length) return;
+
+    setAllCaches((prevCaches) => {
+      return prevCaches.map((cache) => {
+        // Only active color palette is synced
+        if (cache.paletteId !== activeCacheId) return cache;
+
+        const existingIds = Object.keys(cache.colorMap);
+        const missingCalendars = calendarObjs.filter((cal) => !existingIds.includes(cal.calendarId));
+
+        // If no new calendars are found, return the cache as-is (prevents re-renders)
+        if (missingCalendars.length === 0) return cache;
+
+        // Create a copy of the map and add the missing ones
+        const nextMap = { ...cache.colorMap };
+
+        missingCalendars.forEach((newCal) => {
+          nextMap[newCal.calendarId] = findClosestColor(newCal.calendarDefaultColor, cache.palette);
+        });
+
+        return { ...cache, colorMap: nextMap };
+      });
+    });
+  }, [calendarObjs, activeCacheId]);
+
+  return (
+    <UIContext.Provider
+      value={{
+        allCaches,
+        activeCacheId,
+        isLoginVisible,
+        setLoginVisible,
+        colors,
+        updateColors,
+        changePalette,
+        syncCacheToPalette,
+        setManualCalendarColor,
+        getCalendarColor,
+      }}
+    >
+      {children}
+    </UIContext.Provider>
+  );
 };

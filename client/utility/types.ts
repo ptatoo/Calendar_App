@@ -93,3 +93,10 @@ export interface EventWithOffset {
   event: EventObj;
   offset: number;
 }
+
+export interface colorCache {
+  paletteId: number;
+  name: string;
+  palette: string[];
+  colorMap: Record<string, string>;
+}

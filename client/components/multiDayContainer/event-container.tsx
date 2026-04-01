@@ -1,6 +1,7 @@
 import { EVENT_GAP, EVENT_OFFSET } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
 import { EventsContext } from '../contexts/calendar-events-context';
+import { UIContext } from '../contexts/ui-context';
 
 import { differenceInMinutes, getHours, getMinutes } from 'date-fns';
 import React, { useContext, useMemo } from 'react';
@@ -60,6 +61,8 @@ const EventContainer = ({
 }) => {
   const { event, offset } = eventWithOffset;
   const { calendarObjs } = useContext(EventsContext);
+
+  const { allCaches, activeCacheId, getCalendarColor } = useContext(UIContext);
   const { top, height, left, width } = getEventLayout(
     event,
     offset,
@@ -69,9 +72,8 @@ const EventContainer = ({
   );
 
   const rawColor = useMemo(() => {
-    const curCal = calendarObjs?.find((c) => c.calendarId === event.calendarId);
-    return curCal?.calendarCustomColor || '#4285F4';
-  }, [calendarObjs, event.calendarId]);
+    return getCalendarColor(event.calendarId);
+  }, [allCaches, activeCacheId, event.calendarId]);
   const color = useMemo(() => {
     return lightenColor(rawColor, 50);
   }, [rawColor]);

@@ -11,7 +11,7 @@ import { AuthContext } from '../contexts/auth-context';
 import { EventsContext } from '../contexts/calendar-events-context';
 import { UIContext } from '../contexts/ui-context';
 
-import CalendarDrawerList from './calendar-drawer-list';
+import CalendarDrawerList from './calendar-individual';
 
 function toTitleCase(str: string): string {
   // Convert the whole string to lowercase first for consistent results

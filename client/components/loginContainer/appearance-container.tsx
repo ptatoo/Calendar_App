@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { PASTEL_COLORS } from '@/utility/constants';
+import { useContext, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { UIContext } from '../contexts/ui-context';
 
 const ThemeButton = ({
   option,
@@ -13,6 +15,18 @@ const ThemeButton = ({
   setActiveTheme: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   const isActive = activeTheme === index;
+  const {
+    isLoginVisible,
+    setLoginVisible,
+    colors,
+    updateColors,
+    changePalette,
+    syncCacheToPalette,
+    setManualCalendarColor,
+    getCalendarColor,
+  } = useContext(UIContext);
+
+  changePalette(0, 'pastel colors', PASTEL_COLORS);
 
   return (
     <Pressable
