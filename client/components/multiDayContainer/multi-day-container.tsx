@@ -12,59 +12,33 @@ import { CalendarView, EventObj } from '@/utility/types';
 import { useIsFocused } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { isSameDay } from 'date-fns';
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { DateContext } from '../contexts/calendar-index-context';
 
+import Animated, {
+  useAnimatedRef, useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue
+} from 'react-native-reanimated';
 import EventDetails from '../eventDetailsContainer/event-details';
+import AllDayChip from './allday-chip';
+import DateHeader from './date-header';
 import DayContainer from './day-container';
 import HourGuide from './hour-guide';
 
 const GRID_WIDTH = SCREEN_WIDTH - HOUR_LABEL_WIDTH;
-
-const DateHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
-  const isToday = new Date().toDateString() === day.toDateString();
-
-  return (
-    <View style={[styles.date, { width: dayWidth }]}>
-      <View style={styles.dateInner}>
-        <Text style={[styles.dateText, isToday && styles.todayText]}>
-          {day.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
-        </Text>
-        <Text style={[styles.dateNumber, isToday && styles.todayNumber]}>{day.toLocaleDateString('en-US', { day: 'numeric' })}</Text>
-      </View>
-    </View>
-  );
-};
-
-const AllDayContainer = ({ event, handlePress }: { event: EventObj; handlePress: (event: EventObj) => void }) => {
-  return (
-    <Pressable
-      key={event.id}
-      onPress={() => handlePress(event)}
-      style={[
-        styles.allDayChip,
-        {
-          backgroundColor: event.calendar.calendarCustomColor || '#3B82F6',
-        },
-      ]}
-    >
-      <Text style={styles.allDayText} numberOfLines={1}>
-        {event.title}
-      </Text>
-    </Pressable>
-  );
-};
+const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
   //set witdh of each day column (accounting for the hour guide)
   const dividers = parseInt(calendarType) || 3;
-  const dayWidth = Math.floor((SCREEN_WIDTH - HOUR_LABEL_WIDTH) / dividers);
+  const dayWidth = Math.floor((GRID_WIDTH) / dividers);
 
-  const listRef = useRef<FlashListRef<any>>(null);
-  const headerRef = useRef<FlatList>(null);
-  const allDayRef = useRef<FlatList>(null);
+  const listRef = useAnimatedRef<FlashListRef<any>>();
+  //replace other two refs with scrollX
+  const scrollX = useSharedValue(PAST_BUFFER * dayWidth);
 
   const [hourHeight, setHourHeight] = useState(HOUR_HEIGHT);
   const [baseHeight, setBaseHeight] = useState(HOUR_HEIGHT);
@@ -76,28 +50,54 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const { curDate, setCurDate } = useContext(DateContext);
   const today = new Date();
 
-  const timedEvents = useMemo(() => events.filter((e) => !e.allDay || String(e.allDay) === 'false'), [events]);
 
-  const allDayEvents = useMemo(() => events.filter((e) => e.allDay === true || String(e.allDay) === 'true'), [events]);
+  //stabilizes callback
+  const handlePress = useCallback((event: EventObj | null) => {
+    if (!event) setEventDetailsVisible(false);
+    setSelectedEvent(event);
+    setEventDetailsVisible(!!event);
+  }, []);
 
-  // 🔥 SINGLE SOURCE OF TRUTH SCROLL
-  const onMainScroll = (event: any) => {
-    const x = event.nativeEvent.contentOffset.x;
+  //pregroups events instead of on render
+  const { groupedTimedEvents, groupedAllDayEvents } = useMemo(() => {
+    const timed: Record<string, EventObj[]> = {};
+    const allDay: Record<string, EventObj[]> = {};
+
+    events.forEach(e => {
+      const dateKey = new Date(e.startDate).toDateString();
+      const isAllDay = e.allDay === true || String(e.allDay) === 'true';
+      
+      if (isAllDay) {
+        if (!allDay[dateKey]) allDay[dateKey] = [];
+        allDay[dateKey].push(e);
+      } else {
+        if (!timed[dateKey]) timed[dateKey] = [];
+        timed[dateKey].push(e);
+      }
+    });
+
+    return { groupedTimedEvents: timed, groupedAllDayEvents: allDay };
+  }, [events]);
+  
+  const onMainScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x;
+    },
+  });
+
+  //animated style for all headers
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: -scrollX.value }],
+      flexDirection: 'row',
+    };
+  });
+
+  // Update context when scrolling stops (prevents bridge spam)
+  const handleScrollEnd = (e: any) => {
+    const x = e.nativeEvent.contentOffset.x;
     const itemsScrolled = Math.floor(x / dayWidth + 0.5);
     setCurDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - PAST_BUFFER + itemsScrolled));
-
-    headerRef.current?.scrollToOffset({ offset: x, animated: false });
-    allDayRef.current?.scrollToOffset({ offset: x, animated: false });
-  };
-
-  //update the event and visibilty of event details
-  const handlePress = (event: EventObj | null) => {
-    if (!event) {
-      //a null event means hide the event details
-      setEventDetailsVisible(false);
-    }
-    setSelectedEvent(event);
-    setEventDetailsVisible(true);
   };
 
   //temporary: forces calendar to initialIndex on rerender
@@ -110,12 +110,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     }
   }, [isFocused, initialIndex]);
 
-  const getItemLayout = (_: any, index: number) => ({
-    length: dayWidth,
-    offset: dayWidth * index,
-    index,
-  });
-
   // snap to today
   useEffect(() => {
     // check if the date in context is "Today"
@@ -127,6 +121,12 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
       });
     }
   }, [curDate]); // every time the header button updates curDate, this runs
+
+  const getItemLayout = useCallback((_: any, index: number) => ({
+    length: dayWidth,
+    offset: dayWidth * index,
+    index,
+  }), [dayWidth]);
 
   return (
     <>
@@ -142,17 +142,19 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
           {/* --- DATE HEADER --- */}
           <View style={styles.headerWrapper}>
             <View style={styles.dateHourGuide} />
-
-            <FlatList
-              ref={headerRef}
-              data={days}
-              renderItem={({ item }) => <DateHeader day={item.date} dayWidth={dayWidth} />}
-              horizontal
-              scrollEnabled={false}
-              getItemLayout={getItemLayout}
-              style={{ width: GRID_WIDTH }}
-              scrollEventThrottle={15}
-            />
+            {/* The clipping window */}
+            <View style={{ width: GRID_WIDTH, overflow: 'hidden' }}>
+              {/* The sliding track */}
+              <Animated.View style={headerAnimatedStyle}>
+                {days.map((item) => (
+                  <DateHeader 
+                    key={item.date.toISOString()} 
+                    day={item.date} 
+                    dayWidth={dayWidth} 
+                  />
+                ))}
+              </Animated.View>
+            </View>
           </View>
 
           {/* --- ALL DAY HEADER --- */}
@@ -160,66 +162,63 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
             <View style={styles.allDaySpacer}>
               <Text style={styles.debugLabel}>ALL-DAY</Text>
             </View>
-
-            <FlatList
-              ref={allDayRef}
-              data={days}
-              horizontal
-              scrollEnabled={false}
-              getItemLayout={getItemLayout}
-              style={{ width: GRID_WIDTH }}
-              scrollEventThrottle={15}
-              renderItem={({ item }) => {
-                const dayEvents = allDayEvents.filter((e) => isSameDay(item.date, new Date(e.startDate)));
-
-                return (
-                  <View style={[styles.allDayColumn, { width: dayWidth }]}>
-                    {dayEvents.map((event) => (
-                      <AllDayContainer event={event} handlePress={handlePress} />
-                    ))}
-                  </View>
-                );
-              }}
-            />
+            {/* The clipping window */}
+            <View style={{ width: GRID_WIDTH, overflow: 'hidden' }}>
+              {/* The sliding track */}
+              <Animated.View style={headerAnimatedStyle}>
+                {days.map((item) => {
+                  const dayEvents = groupedAllDayEvents[item.date.toDateString()] || [];
+                  return (
+                    <View key={item.date.toISOString()} style={[styles.allDayColumn, { width: dayWidth }]}>
+                      {dayEvents.map((event) => (
+                        <AllDayChip key={event.id} event={event} handlePress={handlePress} />
+                      ))}
+                    </View>
+                  );
+                })}
+              </Animated.View>
+            </View>
           </View>
 
           {/* --- MAIN GRID --- */}
           <ScrollView
             nestedScrollEnabled
             style={{ flex: 1 }}
-            contentContainerStyle={{
-              height: hourHeight * 24,
-              flexDirection: 'row',
-            }}
+            contentContainerStyle={{ height: hourHeight * 24, flexDirection: 'row' }}
           >
             <HourGuide hourHeight={hourHeight} labelWidth={HOUR_LABEL_WIDTH} />
-
-            <FlashList<any>
+            
+            <AnimatedFlashList
               ref={listRef}
               data={days}
-              renderItem={({ item }) => (
-                <DayContainer
-                  day={item.date}
-                  dayWidth={dayWidth}
-                  events={timedEvents.filter((e) => isSameDay(item.date, new Date(e.startDate)))}
-                  hourHeight={hourHeight}
-                  handlePress={handlePress}
-                  showEventDetails={setEventDetailsVisible}
-                  setSelectedEvent={setSelectedEvent}
-                />
-              )}
+              renderItem={( props ) => {
+                const item = props.item as { date: Date };
+                return (
+                  <DayContainer
+                    day={item.date}
+                    dayWidth={dayWidth}
+                    events={groupedTimedEvents[item.date.toDateString()] || []}
+                    hourHeight={hourHeight}
+                    handlePress={handlePress}
+                    showEventDetails={setEventDetailsVisible}
+                    setSelectedEvent={setSelectedEvent}
+                  />
+                );
+              }}
               horizontal
-              onScroll={onMainScroll}
+              onScroll={onMainScroll} // Native UI Thread scroll
+              onMomentumScrollEnd={handleScrollEnd} // Update JS state when swiping finishes
               scrollEventThrottle={16}
-              keyExtractor={(item) => item.date.toISOString()}
+              keyExtractor={(item: any) => item.date.toISOString()}
               style={{ width: GRID_WIDTH }}
               initialScrollIndex={PAST_BUFFER}
+              
             />
           </ScrollView>
         </View>
       </GestureDetector>
 
-      <EventDetails event={selectedEvent} isVisible={eventDetailsVisible} onClose={() => setEventDetailsVisible(false)} />
+      <EventDetails event={selectedEvent} isVisible={eventDetailsVisible} onClose={() => handlePress(null)} />
     </>
   );
 }
