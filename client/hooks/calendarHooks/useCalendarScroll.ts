@@ -4,6 +4,7 @@ import { PAST_BUFFER } from '@/utility/constants';
 import { useContext, useRef } from 'react';
 import { FlatList, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 
+//NOT BEING USED: DEPRECIATED
 export const useCalendarScroll = (dayWidth: number) => {
   const headerRef = useRef<FlatList>(null);
   const { curDate, setCurDate } = useContext(DateContext);

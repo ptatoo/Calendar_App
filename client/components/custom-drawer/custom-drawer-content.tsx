@@ -58,13 +58,15 @@ export default function CustomDrawerContent(props: any) {
     <SafeAreaView style={styles.headerContainer}>
       {/* --- USER INFO --- */}
       <View style={styles.profile}>
-        <Pressable onPress={handleSettingspress} style={{ flexDirection: 'row', gap: 10 }}>
+        <Pressable onPress={handleSettingspress} style={{ flexDirection: 'row', gap: 10, flex: 1, overflow: 'hidden' }}>
           <View style={{ width: 42, height: 42, backgroundColor: '#4986e7', borderRadius: 8 }}></View>
-          <View>
-            <Text style={styles.username}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.username} numberOfLines={1}>
               {familyProfiles && familyProfiles.parent ? toTitleCase(familyProfiles.parent.name) : 'Username'}
             </Text>
-            <Text style={styles.email}>{familyProfiles && familyProfiles.parent ? familyProfiles.parent.email : 'Email'}</Text>
+            <Text style={styles.email} numberOfLines={1}>
+              {familyProfiles && familyProfiles.parent ? familyProfiles.parent.email : 'Email'}
+            </Text>
           </View>
         </Pressable>
       </View>

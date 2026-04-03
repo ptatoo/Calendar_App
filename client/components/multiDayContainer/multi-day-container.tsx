@@ -17,11 +17,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { DateContext } from '../contexts/calendar-index-context';
 import DropdownMenu from './dropdown-menu';
 
-import Animated, {
-  useAnimatedRef, useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue
-} from 'react-native-reanimated';
+import Animated, { useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import EventDetails from '../eventDetailsContainer/event-details';
 import AllDayChip from './allday-chip';
 import DateHeader from './date-header';
@@ -32,9 +28,10 @@ const GRID_WIDTH = SCREEN_WIDTH - HOUR_LABEL_WIDTH;
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
-  //set witdh of each day column (accounting for the hour guide)
+  //set width of each day column (accounting for the hour guide)
   const dividers = parseInt(calendarType) || 3;
-  const dayWidth = Math.floor((GRID_WIDTH) / dividers);
+  const dayWidth = Math.floor(GRID_WIDTH / dividers);
+  const [viewType, setViewType] = useState('3-Day');
 
   const listRef = useAnimatedRef<FlashListRef<any>>();
   //replace other two refs with scrollX
@@ -47,11 +44,10 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const [eventDetailsVisible, setEventDetailsVisible] = useState(false);
 
   const { days, initialIndex } = useCalendarRange();
-  const { curDate, setCurDate } = useContext(DateContext);
+  const { setCurDate } = useContext(DateContext);
   const today = new Date();
 
-
-  //stabilizes callback
+  //stabilizes callback for eventDetails
   const handlePress = useCallback((event: EventObj | null) => {
     if (!event) setEventDetailsVisible(false);
     setSelectedEvent(event);
@@ -63,10 +59,10 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     const timed: Record<string, EventObj[]> = {};
     const allDay: Record<string, EventObj[]> = {};
 
-    events.forEach(e => {
+    events.forEach((e) => {
       const dateKey = new Date(e.startDate).toDateString();
       const isAllDay = e.allDay === true || String(e.allDay) === 'true';
-      
+
       if (isAllDay) {
         if (!allDay[dateKey]) allDay[dateKey] = [];
         allDay[dateKey].push(e);
@@ -78,7 +74,8 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
 
     return { groupedTimedEvents: timed, groupedAllDayEvents: allDay };
   }, [events]);
-  
+
+  //update curDate (the date currently shown on sreen) on scroll
   const updateContextOnScroll = (offsetX: number) => {
     const itemsScrolled = Math.floor(offsetX / dayWidth + 0.5);
     setCurDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - PAST_BUFFER + itemsScrolled));
@@ -90,7 +87,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
       updateContextOnScroll(event.contentOffset.x);
     },
   });
-  
+
   //animated style for all headers
   const headerAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -109,8 +106,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     }
   }, [isFocused, initialIndex]);
 
-const [viewType, setViewType] = useState('3-Day');
-
   return (
     <View style={styles.container}>
       {/* Mount outside scrollable/animated views */}
@@ -119,13 +114,13 @@ const [viewType, setViewType] = useState('3-Day');
           options={[
             { label: '1 Day', value: '1' },
             { label: '3 Day', value: '3' },
-            { label: 'Week', value: '7' }
+            { label: 'Week', value: '7' },
           ]}
           selected={viewType}
           onSelect={setViewType}
         />
       </View>
-    
+
       <GestureDetector
         gesture={Gesture.Pinch()
           .onUpdate((e) => {
@@ -143,11 +138,7 @@ const [viewType, setViewType] = useState('3-Day');
               {/* The sliding track */}
               <Animated.View style={headerAnimatedStyle}>
                 {days.map((item) => (
-                  <DateHeader 
-                    key={item.date.toISOString()} 
-                    day={item.date} 
-                    dayWidth={dayWidth} 
-                  />
+                  <DateHeader key={item.date.toISOString()} day={item.date} dayWidth={dayWidth} />
                 ))}
               </Animated.View>
             </View>
@@ -177,17 +168,13 @@ const [viewType, setViewType] = useState('3-Day');
           </View>
 
           {/* --- MAIN GRID --- */}
-          <ScrollView
-            nestedScrollEnabled
-            style={{ flex: 1 }}
-            contentContainerStyle={{ height: hourHeight * 24, flexDirection: 'row' }}
-          >
+          <ScrollView nestedScrollEnabled style={{ flex: 1 }} contentContainerStyle={{ height: hourHeight * 24, flexDirection: 'row' }}>
             <HourGuide hourHeight={hourHeight} labelWidth={HOUR_LABEL_WIDTH} />
-            
+
             <AnimatedFlashList
               ref={listRef}
               data={days}
-              renderItem={( props ) => {
+              renderItem={(props) => {
                 const item = props.item as { date: Date };
                 return (
                   <DayContainer
@@ -196,8 +183,6 @@ const [viewType, setViewType] = useState('3-Day');
                     events={groupedTimedEvents[item.date.toDateString()] || []}
                     hourHeight={hourHeight}
                     handlePress={handlePress}
-                    showEventDetails={setEventDetailsVisible}
-                    setSelectedEvent={setSelectedEvent}
                   />
                 );
               }}
@@ -207,7 +192,6 @@ const [viewType, setViewType] = useState('3-Day');
               keyExtractor={(item: any) => item.date.toISOString()}
               style={{ width: GRID_WIDTH }}
               initialScrollIndex={PAST_BUFFER}
-              
             />
           </ScrollView>
         </View>
@@ -226,7 +210,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: SCREEN_WIDTH,
   },
-
 
   date: {
     justifyContent: 'center',
