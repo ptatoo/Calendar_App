@@ -64,7 +64,6 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   const { calendarObjs, setCalendarObj } = useContext(EventsContext);
   const [colors, updateColors] = useState<string[]>(PASTEL_COLORS);
   const [colorId, updateColorId] = useState<number>(0);
-  const [colorsCache, setColorsCache] = useState<colorCache>();
 
   const [allCaches, setAllCaches] = useState<colorCache[]>([
     {
@@ -105,12 +104,12 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
       // Check if this palette ID already exists in our storage
       const exists = prev.find((c) => c.paletteId === newPaletteId);
 
+      // If in storage, update existing colorMap
       if (exists) {
-        // Update existing palette with new colors and a fresh map
         return prev.map((c) => (c.paletteId === newPaletteId ? { ...c, palette: newColors, colorMap: newColorMap } : c));
       }
 
-      // Otherwise, add a brand new Cache object to the array
+      // Otherwise, add a brand new colorCache object to the array
       return [
         ...prev,
         {
@@ -122,6 +121,7 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
       ];
     });
 
+    //Update active cache ID
     setActiveCacheId(newPaletteId);
   };
 
@@ -175,12 +175,13 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
     return customColor || '#00ffff';
   };
 
+  //update only current colorCache with calendarObjs
   useEffect(() => {
     if (!calendarObjs?.length) return;
 
     setAllCaches((prevCaches) => {
       return prevCaches.map((cache) => {
-        // Only active color palette is synced
+        //ignore other caches
         if (cache.paletteId !== activeCacheId) return cache;
 
         const existingIds = Object.keys(cache.colorMap);
