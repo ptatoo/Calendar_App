@@ -1,49 +1,63 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 export const storage = {
-  saveSecure: (key: string, value: string) => {
+  saveSecure: async (key: string, value: any) => {
     try {
-        const jsonValue = JSON.stringify(value);
-        localStorage.setItem(key, jsonValue);
+      await AsyncStorage.setItem(key, JSON.stringify(value));
     } catch (e) {
-        console.log("Failed storage.web.ts:saveSecure\n", e);
+      console.error("Failed storage.NATIVE.ts:saveSecure", e);
     }
   },
 
-  getSecure: (key: string) => {
+  getSecure: async (key: string) => {
     try {
-      const val = localStorage.getItem(key);
+      const val = await AsyncStorage.getItem(key);
       return val ? JSON.parse(val) : null;
     } catch (error) {
-      console.error(`Failed storage.web.ts:get [Storage] Load failed for "${key}":`, error);
-      return null; // Return null so the app treats it as "empty" rather than crashing
+      console.error(`Failed storage.NATIVE.ts:getSecure for "${key}":`, error);
+      return null;
     }
   },
 
-  removeSecure: (key: string) => {
-    localStorage.removeItem(key);
-  },
-
-  // Standard Async Storage (Works on Web too)
-  save: (key: string, value: any) => {
+  removeSecure: async (key: string) => {
     try {
-        const jsonValue = JSON.stringify(value);
-        localStorage.setItem(key, jsonValue);
+      await AsyncStorage.removeItem(key);
     } catch (e) {
-        console.log("Failed storage.web.ts:save\n", e);
+      console.error("Failed storage.NATIVE.ts:removeSecure", e);
     }
   },
 
-  get: (key: string) => {
+  save: async (key: string, value: any) => {
     try {
-      const val = localStorage.getItem(key);
-      if ((val ? JSON.parse(val) : null).error) throw console.error();
+      await AsyncStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.error("Failed storage.NATIVE.ts:save", e);
+    }
+  },
+
+  get: async (key: string) => {
+    try {
+      const val = await AsyncStorage.getItem(key);
       return val ? JSON.parse(val) : null;
     } catch (error) {
-      console.error(`Failed storage.web.ts:get [Storage] Load failed for "${key}":`, error);
-      return null; // Return null so the app treats it as "empty" rather than crashing
+      console.error(`Failed storage.NATIVE.ts:get for "${key}":`, error);
+      return null;
     }
   },
   
-  remove: (key: string) => {
-    localStorage.removeItem(key);
+  remove: async (key: string) => {
+    try {
+      await AsyncStorage.removeItem(key);
+    } catch (e) {
+      console.error("Failed storage.NATIVE.ts:remove", e);
+    }
   },
+
+  clearAll: async () => {
+    try {
+      await AsyncStorage.clear();
+    } catch (e) {
+      console.error("Failed storage.NATIVE.ts:clearAll", e);
+    }
+  }
 };

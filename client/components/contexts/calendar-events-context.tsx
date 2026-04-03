@@ -37,7 +37,6 @@ export const EventsContext = createContext<EventsContextType>({
 
 export const EventsProvider = ({ children }: { children: ReactNode }) => {
   const [calendarObjs, setCalendarObj] = useState<calendarObj[] | null>(null);
-
   //fetch a crazy amount of data from everywhere
   const { jwtToken } = useAuth();
   const sessionTokenString = jwtToken?.sessionToken ?? null;
@@ -57,7 +56,7 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
 
   // process and store calendar events (only keeping visible calendars)
   const allEvents = useMemo(() => {
-    if (!calendars || !calendarObjs) return [];
+    if (!sessionTokenString || !calendars || !calendarObjs) return [];
 
     const combined = [...(calendars.parent || []), ...(calendars.children || [])];
     const visibleIds = calendarObjs.filter((c) => c.shown).map((c) => c.calendarId);

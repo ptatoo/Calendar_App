@@ -1,5 +1,5 @@
 import { AuthContext } from "@/components/contexts/auth-context";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { fetchFamilyProfiles } from "../services/api";
 import { storage } from "../services/storage";
 
@@ -27,7 +27,7 @@ export function useProfiles(JWTToken: string | null) {
 
       //Update State & Local Storage
       setFamilyProfiles(data);
-      storage.save("profiles", data);
+      await storage.save("profiles", data);
       
     } catch (err: any) {
       console.error("Backend Profile Fetch Error:", err);
@@ -42,5 +42,9 @@ export function useProfiles(JWTToken: string | null) {
     fetchProfiles();
   }, [fetchProfiles]);
 
-  return { familyProfiles, isLoading, error, refetch : fetchProfiles };
+  const value = useMemo(() => ({ 
+    familyProfiles, isLoading, error, refetch: fetchProfiles 
+  }), [familyProfiles, isLoading, error, fetchProfiles]);
+
+  return value;
 }

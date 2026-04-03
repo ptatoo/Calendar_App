@@ -17,17 +17,23 @@ export function useCalendar(jwtToken: string | null) {
   const { getValidAccessToken } = useAccessToken(jwtToken);
   const { familyProfiles } = useProfiles(jwtToken);
   const [calendarIds, setNewCalendarIds] = useState<calendarObj[]>([]);
-
-  const [calendars, setCalendars] = useState<FamilyCalendarState | null>(() => {
-    return storage.get("calendar") || null;
-  });
+  const [calendars, setCalendars] = useState<FamilyCalendarState | null>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const hydrate = async () => {
+      const stored = await storage.get("calendar");
+      if (stored) setCalendars(stored);
+    };
+    hydrate();
+  }, []); // Empty = Mount only
 
   // 2. Fetch Events
   const fetchUserEvents = useCallback(async () => {
     if (!jwtToken) return;
     if (!familyProfiles) return;
+    
     setIsLoading(true);
     setError(null);
 

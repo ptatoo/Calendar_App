@@ -1,49 +1,63 @@
-// import { createMMKV, MMKV } from 'react-native-mmkv';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// export const storageDevice: MMKV = createMMKV();
+export const storage = {
+  saveSecure: async (key: string, value: any) => {
+    try {
+      await AsyncStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.error("Failed storage.NATIVE.ts:saveSecure", e);
+    }
+  },
 
-// export const storage = {
-//   saveSecure: (key: string, value: string) => {
-//     try {
-//         const jsonValue = JSON.stringify(value);
-//         storageDevice.set(key, jsonValue);
-//     } catch (e) {
-//         console.log("Failed storage.NATIVE.ts:saveSecure\n", e);
-//     }
-//   },
+  getSecure: async (key: string) => {
+    try {
+      const val = await AsyncStorage.getItem(key);
+      return val ? JSON.parse(val) : null;
+    } catch (error) {
+      console.error(`Failed storage.NATIVE.ts:getSecure for "${key}":`, error);
+      return null;
+    }
+  },
 
-//   getSecure: (key: string) => {
-//     try {
-//       const val = storageDevice.getString(key);
-//       return val ? JSON.parse(val) : null;
-//     } catch (error) {
-//       console.error(`Failed storage.NATIVE.ts:get [Storage] Load failed for "${key}":`, error);
-//       return null; // Return null so the app treats it as "empty" rather than crashing
-//     }
-//   },
+  removeSecure: async (key: string) => {
+    try {
+      await AsyncStorage.removeItem(key);
+    } catch (e) {
+      console.error("Failed storage.NATIVE.ts:removeSecure", e);
+    }
+  },
 
-//   removeSecure: (key: string) => {
-//     storageDevice.remove(key);
-//   },
+  save: async (key: string, value: any) => {
+    try {
+      await AsyncStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.error("Failed storage.NATIVE.ts:save", e);
+    }
+  },
 
-//   // Standard Async Storage (Works on Web too)
-//   save: (key: string, value: any) => {
-//     try {
-//         const jsonValue = JSON.stringify(value);
-//         storageDevice.set(key, jsonValue);
-//     } catch (e) {
-//         console.log("Failed storage.NATIVE.ts:save\n", e);
-//     }
-//   },
+  get: async (key: string) => {
+    try {
+      const val = await AsyncStorage.getItem(key);
+      return val ? JSON.parse(val) : null;
+    } catch (error) {
+      console.error(`Failed storage.NATIVE.ts:get for "${key}":`, error);
+      return null;
+    }
+  },
+  
+  remove: async (key: string) => {
+    try {
+      await AsyncStorage.removeItem(key);
+    } catch (e) {
+      console.error("Failed storage.NATIVE.ts:remove", e);
+    }
+  },
 
-//   get: (key: string) => {
-//     try {
-//       const val = storageDevice.getString(key);
-//       if ((val ? JSON.parse(val) : null).error) throw console.error();
-//       return val ? JSON.parse(val) : null;
-//     } catch (error) {
-//       console.error(`Failed storage.NATIVE.ts:get [Storage] Load failed for "${key}":`, error);
-//       return null; // Return null so the app treats it as "empty" rather than crashing
-//     }
-//   }
-// };
+  clearAll: async () => {
+    try {
+      await AsyncStorage.clear();
+    } catch (e) {
+      console.error("Failed storage.NATIVE.ts:clearAll", e);
+    }
+  }
+};

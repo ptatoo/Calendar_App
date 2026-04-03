@@ -15,6 +15,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { DateContext } from '../contexts/calendar-index-context';
+import DropdownMenu from './dropdown-menu';
 
 import Animated, {
   useAnimatedRef, useAnimatedScrollHandler,
@@ -108,8 +109,23 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     }
   }, [isFocused, initialIndex]);
 
+const [viewType, setViewType] = useState('3-Day');
+
   return (
-    <>
+    <View style={styles.container}>
+      {/* Mount outside scrollable/animated views */}
+      <View style={{ padding: 10, zIndex: 999 }}>
+        <DropdownMenu
+          options={[
+            { label: '1 Day', value: '1' },
+            { label: '3 Day', value: '3' },
+            { label: 'Week', value: '7' }
+          ]}
+          selected={viewType}
+          onSelect={setViewType}
+        />
+      </View>
+    
       <GestureDetector
         gesture={Gesture.Pinch()
           .onUpdate((e) => {
@@ -198,7 +214,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
       </GestureDetector>
 
       <EventDetails event={selectedEvent} isVisible={eventDetailsVisible} onClose={() => handlePress(null)} />
-    </>
+    </View>
   );
 }
 

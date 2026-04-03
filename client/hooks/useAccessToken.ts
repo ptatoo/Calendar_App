@@ -18,7 +18,7 @@ export function useAccessToken(jwtToken: string | null) {
       const data = await fetchFamilyAccessTokens(jwtToken)
       
       //Update Local Storage
-      storage.save("access_tokens", data);
+      await storage.save("access_tokens", data);
       return data;
     } catch (err: any) {
       console.error("Backend Profile Fetch Error:", err);
@@ -33,7 +33,7 @@ export function useAccessToken(jwtToken: string | null) {
   const getValidAccessToken = useCallback(async () => {
     if (!jwtToken) return;
 
-    const storedData = storage.get("access_tokens") as FamilyAccessTokenObjs | null;
+    const storedData = ( await storage.get("access_tokens") ) as FamilyAccessTokenObjs | null;
 
     if(!storedData) {
       return await fetchBackendAccessTokens();

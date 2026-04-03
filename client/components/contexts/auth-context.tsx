@@ -48,9 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const newJwtToken = await fetchJwtToken(code, codeVerifier, redirectUri);
 
       // Clear old data
-      storage.remove('access_tokens');
-      storage.remove('profiles');
-      storage.remove('calendars');
+      await storage.clearAll();
 
       // Save and Update State
       await storage.saveSecure('jwt_token', newJwtToken);
