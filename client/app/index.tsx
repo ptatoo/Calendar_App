@@ -1,5 +1,5 @@
 //Components
-import SettingsModal from '@/components/loginContainer/settings-modal';
+import SettingsModal from '@/components/settingsContainer/settings-modal';
 import MonthContainer from '@/components/monthContainer/month-container';
 import MultiDayContainer from '@/components/multiDayContainer/multi-day-container';
 
