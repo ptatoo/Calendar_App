@@ -62,7 +62,7 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     const visibleIds = calendarObjs.filter((c) => c.shown).map((c) => c.calendarId);
 
     return combined.filter((cal) => visibleIds.includes(cal.id)).flatMap((cal) => cal.events);
-  }, [calendars, calendarObjs]);
+  }, [sessionTokenString, calendars, calendarObjs]);
 
   const groupedData = useMemo(() => {
     if (!familyProfiles || !calendarObjs) return [];
@@ -76,8 +76,18 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
       profile: familyProfiles.parent,
       calendars: calendarObjs.filter((cal) => cal.owner === false),
     };
-
-    return [ownerGroup, readGroup];
+    return [
+      { 
+        id: `owner-${familyProfiles.parent.id}`, // Unique Key 1
+        profile: familyProfiles.parent, 
+        calendars: ownerGroup.calendars 
+      },
+      { 
+        id: `read-${familyProfiles.parent.id}`,  // Unique Key 2
+        profile: familyProfiles.parent, 
+        calendars: readGroup.calendars 
+      },
+    ];
   }, [familyProfiles, calendarObjs]);
 
   return (

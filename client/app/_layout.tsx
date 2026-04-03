@@ -31,14 +31,6 @@ export default function RootLayout() {
                       drawerIcon: ({ size, color }) => <Ionicons name="home-outline" size={size} color={color} />,
                     }}
                   />
-                  <Drawer.Screen
-                    name="backend_console"
-                    options={{
-                      headerTitle: 'Backend Console',
-                      drawerLabel: 'Backend Console',
-                      drawerIcon: ({ size, color }) => <Ionicons size={size} color={color} />,
-                    }}
-                  />
                 </Drawer>
               </UIProvider>
             </EventsProvider>
