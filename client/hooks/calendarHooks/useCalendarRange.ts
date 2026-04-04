@@ -14,7 +14,7 @@ export const useCalendarRange = () => {
     console.log(end)
     const range = [];
     let current = start;
-    while (current <= end) {
+    while (current.getTime() <= end.getTime()) {
       range.push({ date: current });
       current = addDays(current, 1);
     }

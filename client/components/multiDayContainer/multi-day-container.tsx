@@ -76,20 +76,22 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   }, [events]);
 
   //update curDate (the date currently shown on sreen) on scroll
-  const updateContextOnScroll = (offsetX: number) => {
-    const itemsScrolled = Math.floor(offsetX / dayWidth + 0.5);
-    setCurDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - PAST_BUFFER + itemsScrolled));
+  const updateContextOnScroll = () => {
   };
 
   const onMainScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
+      console.log('mainscrolling');
       scrollX.value = event.contentOffset.x;
-      updateContextOnScroll(event.contentOffset.x);
+      console.log('precontext');
+      updateContextOnScroll();
+      console.log('mainscrollingdone');
     },
   });
 
   //animated style for all headers
   const headerAnimatedStyle = useAnimatedStyle(() => {
+    console.log('gay header');
     return {
       transform: [{ translateX: -scrollX.value }],
       flexDirection: 'row',
