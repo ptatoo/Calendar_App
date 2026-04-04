@@ -1,7 +1,7 @@
 //Components
-import SettingsModal from '@/components/settingsContainer/settings-modal';
 import MonthContainer from '@/components/monthContainer/month-container';
 import MultiDayContainer from '@/components/multiDayContainer/multi-day-container';
+import SettingsModal from '@/components/settingsContainer/settings-modal';
 
 import { useContext } from 'react';
 import { View } from 'react-native';
