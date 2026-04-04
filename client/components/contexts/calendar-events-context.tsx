@@ -12,6 +12,7 @@ export interface EventsContextType {
   allEvents: EventObj[];
   isLoading: boolean;
   groupedData: {
+    id: string;
     profile: ProfileObj;
     calendars: calendarObj[];
   }[];
@@ -69,23 +70,23 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
 
     // Map parent calendars with parent profile
     const ownerGroup = {
-      profile: familyProfiles.parent,
+      profile: 'owner',
       calendars: calendarObjs.filter((cal) => cal.owner === true),
     };
     const readGroup = {
-      profile: familyProfiles.parent,
+      profile: 'other',
       calendars: calendarObjs.filter((cal) => cal.owner === false),
     };
     return [
-      { 
+      {
         id: `owner-${familyProfiles.parent.id}`, // Unique Key 1
-        profile: familyProfiles.parent, 
-        calendars: ownerGroup.calendars 
+        profile: familyProfiles.parent,
+        calendars: ownerGroup.calendars,
       },
-      { 
-        id: `read-${familyProfiles.parent.id}`,  // Unique Key 2
-        profile: familyProfiles.parent, 
-        calendars: readGroup.calendars 
+      {
+        id: `read-${familyProfiles.parent.id}`, // Unique Key 2
+        profile: familyProfiles.parent,
+        calendars: readGroup.calendars,
       },
     ];
   }, [familyProfiles, calendarObjs]);
