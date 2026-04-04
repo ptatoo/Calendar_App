@@ -22,7 +22,7 @@ export default function LoginButton() {
         </Animated.View>
       </View>
 
-      {/* login button */}
+      {/* --- login button --- */}
       <Animated.View entering={FadeInDown.duration(600).delay(400)} style={styles.buttonContainer}>
         <Pressable
           style={({ pressed }) => [styles.button, pressed && styles.buttonPressed, !authProps.request && styles.buttonDisabled]}

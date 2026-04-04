@@ -76,8 +76,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   }, [events]);
 
   //update curDate (the date currently shown on sreen) on scroll
-  const updateContextOnScroll = () => {
-  };
+  const updateContextOnScroll = () => {};
 
   const onMainScroll = useAnimatedScrollHandler({
     onScroll: (event) => {

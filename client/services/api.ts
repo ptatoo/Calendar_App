@@ -136,6 +136,28 @@ export const addEventToGoogleCalendar = async (accessToken: string, eventObj : E
   }
 };
 
+// const shareCalendar = async (calendarId: string, shareWithEmail: string) => {
+//   const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/acl`;
+  
+//   const response = await fetch(url, {
+//     method: 'POST',
+//     headers: {
+//       'Authorization': `Bearer ${userAccessToken}`,
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify({
+//       role: 'reader', // or 'writer'
+//       scope: {
+//         type: 'user',
+//         value: shareWithEmail
+//       }
+//     }),
+//   });
+
+//   const data = await response.json();
+//   return data;
+// };
+
 // ===========================================================
 // INVITATION FUNCTIONS 
 // ===========================================================
