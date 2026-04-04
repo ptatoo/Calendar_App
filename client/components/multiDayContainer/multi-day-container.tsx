@@ -17,7 +17,12 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { DateContext } from '../contexts/calendar-index-context';
 import DropdownMenu from './dropdown-menu';
 
-import Animated, { useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedRef, useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue
+} from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import EventDetails from '../eventDetailsContainer/event-details';
 import AllDayChip from './allday-chip';
 import DateHeader from './date-header';
@@ -28,10 +33,9 @@ const GRID_WIDTH = SCREEN_WIDTH - HOUR_LABEL_WIDTH;
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
-  //set width of each day column (accounting for the hour guide)
+  //set witdh of each day column (accounting for the hour guide)
   const dividers = parseInt(calendarType) || 3;
-  const dayWidth = Math.floor(GRID_WIDTH / dividers);
-  const [viewType, setViewType] = useState('3-Day');
+  const dayWidth = Math.floor((GRID_WIDTH) / dividers);
 
   const listRef = useAnimatedRef<FlashListRef<any>>();
   //replace other two refs with scrollX
@@ -44,10 +48,11 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const [eventDetailsVisible, setEventDetailsVisible] = useState(false);
 
   const { days, initialIndex } = useCalendarRange();
-  const { setCurDate } = useContext(DateContext);
+  const { curDate, setCurDate } = useContext(DateContext);
   const today = new Date();
 
-  //stabilizes callback for eventDetails
+
+  //stabilizes callback
   const handlePress = useCallback((event: EventObj | null) => {
     if (!event) setEventDetailsVisible(false);
     setSelectedEvent(event);
@@ -59,10 +64,10 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     const timed: Record<string, EventObj[]> = {};
     const allDay: Record<string, EventObj[]> = {};
 
-    events.forEach((e) => {
+    events.forEach(e => {
       const dateKey = new Date(e.startDate).toDateString();
       const isAllDay = e.allDay === true || String(e.allDay) === 'true';
-
+      
       if (isAllDay) {
         if (!allDay[dateKey]) allDay[dateKey] = [];
         allDay[dateKey].push(e);
@@ -74,24 +79,21 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
 
     return { groupedTimedEvents: timed, groupedAllDayEvents: allDay };
   }, [events]);
-
-  //update curDate (the date currently shown on sreen) on scroll
-  const updateContextOnScroll = () => {
+  
+  const updateContextOnScroll = (offsetX: number) => {
+    const itemsScrolled = Math.floor(offsetX / dayWidth + 0.5);
+    setCurDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - PAST_BUFFER + itemsScrolled));
   };
 
   const onMainScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
-      console.log('mainscrolling');
       scrollX.value = event.contentOffset.x;
-      console.log('precontext');
-      updateContextOnScroll();
-      console.log('mainscrollingdone');
+      scheduleOnRN(updateContextOnScroll, event.contentOffset.x);
     },
   });
-
+  
   //animated style for all headers
   const headerAnimatedStyle = useAnimatedStyle(() => {
-    console.log('gay header');
     return {
       transform: [{ translateX: -scrollX.value }],
       flexDirection: 'row',
@@ -108,6 +110,8 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     }
   }, [isFocused, initialIndex]);
 
+const [viewType, setViewType] = useState('3-Day');
+
   return (
     <View style={styles.container}>
       {/* Mount outside scrollable/animated views */}
@@ -116,13 +120,13 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
           options={[
             { label: '1 Day', value: '1' },
             { label: '3 Day', value: '3' },
-            { label: 'Week', value: '7' },
+            { label: 'Week', value: '7' }
           ]}
           selected={viewType}
           onSelect={setViewType}
         />
       </View>
-
+    
       <GestureDetector
         gesture={Gesture.Pinch()
           .onUpdate((e) => {
@@ -140,7 +144,11 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
               {/* The sliding track */}
               <Animated.View style={headerAnimatedStyle}>
                 {days.map((item) => (
-                  <DateHeader key={item.date.toISOString()} day={item.date} dayWidth={dayWidth} />
+                  <DateHeader 
+                    key={item.date.toISOString()} 
+                    day={item.date} 
+                    dayWidth={dayWidth} 
+                  />
                 ))}
               </Animated.View>
             </View>
@@ -170,13 +178,17 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
           </View>
 
           {/* --- MAIN GRID --- */}
-          <ScrollView nestedScrollEnabled style={{ flex: 1 }} contentContainerStyle={{ height: hourHeight * 24, flexDirection: 'row' }}>
+          <ScrollView
+            nestedScrollEnabled
+            style={{ flex: 1 }}
+            contentContainerStyle={{ height: hourHeight * 24, flexDirection: 'row' }}
+          >
             <HourGuide hourHeight={hourHeight} labelWidth={HOUR_LABEL_WIDTH} />
-
+            
             <AnimatedFlashList
               ref={listRef}
               data={days}
-              renderItem={(props) => {
+              renderItem={( props ) => {
                 const item = props.item as { date: Date };
                 return (
                   <DayContainer
@@ -185,6 +197,8 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
                     events={groupedTimedEvents[item.date.toDateString()] || []}
                     hourHeight={hourHeight}
                     handlePress={handlePress}
+                    showEventDetails={setEventDetailsVisible}
+                    setSelectedEvent={setSelectedEvent}
                   />
                 );
               }}
@@ -194,6 +208,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
               keyExtractor={(item: any) => item.date.toISOString()}
               style={{ width: GRID_WIDTH }}
               initialScrollIndex={PAST_BUFFER}
+              
             />
           </ScrollView>
         </View>
@@ -212,6 +227,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: SCREEN_WIDTH,
   },
+
 
   date: {
     justifyContent: 'center',
