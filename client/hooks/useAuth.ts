@@ -16,6 +16,8 @@ export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const {jwtToken, loginWithCode} = useContext(AuthContext);
+  const redirectUri = AuthSession.makeRedirectUri();
+  console.log(redirectUri); // Check this matches Google Console exactly
 
   //recieve code from google oauth
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
@@ -39,11 +41,12 @@ export const useAuth = () => {
       },
       redirectUri: AuthSession.makeRedirectUri(),
     },
+    
     discovery,
   );
 
   //send that code to backend for JWTToken
-  useEffect(() => {
+  useEffect(() => {    
     const processLogin = async () => {
       if (response?.type === "success" && request?.codeVerifier) {
         setIsLoading(true);
