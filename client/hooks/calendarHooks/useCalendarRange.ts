@@ -10,14 +10,13 @@ export const useCalendarRange = () => {
     const today = startOfDay(new Date());
     const start = subDays(today, PAST_BUFFER);
     const end = addDays(today, FUTURE_BUFFER);
-    console.log(start)
-    console.log(end)
     const range = [];
     let current = start;
     while (current.getTime() <= end.getTime()) {
       range.push({ date: current });
       current = addDays(current, 1);
     }
+    console.log("useCalendarRange Complete");
     return range;
   }, []);
 
