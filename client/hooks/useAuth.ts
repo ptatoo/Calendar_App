@@ -24,7 +24,6 @@ export const useAuth = () => {
     {
       clientId: Platform.select({
         ios: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
-        android: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
         default: process.env.EXPO_PUBLIC_WEB_CLIENT_ID, 
       })!,
       scopes: [

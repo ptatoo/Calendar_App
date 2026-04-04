@@ -102,13 +102,27 @@ app.post('/api/google-exchange', async (req, res) => {
 
   //1. get code
   const { code, codeVerifier, redirectUri } = req.body; //has: code, scope, authuser, prompt
-  
+  if(!code) return res.status(400).json({ error: 'No code provided' });
+
+
+
   try {
-    const { tokens } = await oAuth2Client.getToken({
-      code: code,
-      codeVerifier : codeVerifier,
-      redirect_uri: redirectUri
-  });
+    // 1. Build the payload dynamically based on what the client sent
+    const tokenRequest = { code: code };
+    
+    if (codeVerifier) {
+       tokenRequest.codeVerifier = codeVerifier;
+    }
+    
+    if (redirectUri) {
+       tokenRequest.redirect_uri = redirectUri;
+    } else {
+       // CRITICAL FOR NATIVE ANDROID: If no redirect URI is provided, 
+       // explicitly set it to an empty string to bypass Google's web check.
+       tokenRequest.redirect_uri = ""; 
+    }
+    
+    const { tokens } = await oAuth2Client.getToken(tokenRequest);
     
     
     const ticket = await oAuth2Client.verifyIdToken({

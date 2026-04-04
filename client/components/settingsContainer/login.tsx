@@ -25,9 +25,12 @@ export default function LoginButton() {
       {/* --- login button --- */}
       <Animated.View entering={FadeInDown.duration(600).delay(400)} style={styles.buttonContainer}>
         <Pressable
-          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed, !authProps.request && styles.buttonDisabled]}
+          style={({ pressed }) => [
+            styles.button, 
+            pressed && styles.buttonPressed
+          ]}
           onPress={() => authProps.promptAsync()}
-          disabled={!authProps.request}
+          disabled={false}
         >
           {authProps.isLoading ? (
             <Text style={styles.buttonText}>Loading...</Text>
