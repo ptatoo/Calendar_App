@@ -2,6 +2,7 @@ import { Dimensions } from 'react-native';
 
 // --- CONSTANTS ---
 export const SCREEN_WIDTH = Dimensions.get('window').width;
+export const SCREEN_HEIGHT = Dimensions.get('window').height;
 export const HOUR_HEIGHT = 40;
 export const HOUR_LABEL_WIDTH = 40;
 export const DATE_HEADER_HEIGHT = 40;

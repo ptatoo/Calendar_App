@@ -1,7 +1,6 @@
 import { DateContextType } from '@/utility/types';
 import React, { createContext, ReactNode, useState } from 'react';
 
-// 2. Initialize the context
 export const DateContext = createContext<DateContextType>({
   curDate: new Date(),
   setCurDate: () => {},

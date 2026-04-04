@@ -1,11 +1,11 @@
+import { getPositions } from '@/utility/drawerUtil';
 import { calendarObj } from '@/utility/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Dimensions, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { UIContext } from '../contexts/ui-context';
+import CalendarSettingsModal from './drawer-calendar-settings-modal';
 
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
 const menuHeight = 100;
 const menuWidth = 150;
 
@@ -20,52 +20,10 @@ export default function CalendarDrawerList({
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const buttonRef = useRef<View>(null);
 
-  const openMenu = () => {
-    buttonRef.current?.measureInWindow((x, y, width, height) => {
-      const padding = 10;
-
-      // --- VERTICAL LOGIC (Y) ---
-      const showAbove = y + height + menuHeight > screenHeight - padding;
-      let top = showAbove ? y - menuHeight : y + height;
-
-      // SAFETY: Don't let it go above the top of the screen (Status Bar)
-      // or below the bottom of the screen
-      top = Math.max(padding + 40, top); // 40px extra for the notch/status bar
-      top = Math.min(top, screenHeight - menuHeight - padding);
-
-      // --- HORIZONTAL LOGIC (X) ---
-      // If the button's pageX is negative (drawer issue), we treat it as 0
-      const safeX = Math.max(0, x);
-
-      let left = safeX + width - menuWidth;
-
-      // SAFETY: Don't let it go off the left or right edges
-      left = Math.max(padding, left);
-      left = Math.min(left, screenWidth - menuWidth - padding);
-
-      setMenuPos({
-        top: top,
-        left: Math.max(10, left), // Ensure it doesn't go off-screen left
-      });
-      setVisible(true);
-    });
-  };
-
-  const {
-    isLoginVisible,
-    setLoginVisible,
-    colors,
-    allCaches,
-    activeCacheId,
-    updateColors,
-    changePalette,
-    syncCacheToPalette,
-    setManualCalendarColor,
-    getCalendarColor,
-  } = useContext(UIContext);
-
+  const { allCaches, activeCacheId, setManualCalendarColor, getCalendarColor } = useContext(UIContext);
   const [color, setColor] = useState<string>();
 
+  //Sync color with colorCache
   useEffect(() => {
     setColor(getCalendarColor(calendarObj.calendarId));
   }, [allCaches, activeCacheId]);
@@ -92,50 +50,18 @@ export default function CalendarDrawerList({
       <View style={{ flexDirection: 'row' }}>
         {/* --- SETTINGS BUTTON --- */}
         <View ref={buttonRef} collapsable={false}>
-          <Pressable onPress={openMenu} style={({ pressed }) => [styles.iconButton, pressed && styles.pressedButton]}>
+          <Pressable
+            onPress={() => {
+              getPositions(buttonRef, setMenuPos, menuHeight, menuWidth);
+              setVisible(true);
+            }}
+            style={({ pressed }) => [styles.iconButton, pressed && styles.pressedButton]}
+          >
             <Ionicons name={'ellipsis-horizontal-outline'} size={14} color={calendarObj.shown ? '#333' : '#ccc'} />
           </Pressable>
         </View>
         {/* --- SETTINGS MODAL --- */}
-        <Modal
-          visible={isVisible}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => {
-            setVisible(false);
-          }} // Handles Android hardware back button
-        >
-          {/* --- BACKDROP BUTTON --- */}
-          <Pressable style={styles.backdrop} onPress={() => setVisible(false)} />
-
-          {/* --- SETTINGS MENU BOX --- */}
-          <View
-            style={[
-              styles.menuBox,
-              {
-                top: menuPos.top,
-                left: menuPos.left,
-              },
-            ]}
-          >
-            <Pressable
-              style={styles.menuItem}
-              onPress={() => {
-                setManualCalendarColor(calendarObj.calendarId, '#a0c4ff');
-              }}
-            >
-              <Text>Set color BLUE</Text>
-            </Pressable>
-            <Pressable
-              style={styles.menuItem}
-              onPress={() => {
-                /* logic */
-              }}
-            >
-              <Text>Sync Now</Text>
-            </Pressable>
-          </View>
-        </Modal>
+        <CalendarSettingsModal isVisible={isVisible} setVisible={setVisible} calendar={calendarObj} top={menuPos.top} left={menuPos.left} />
 
         {/* --- VISIBILITY TOGGLE --- */}
         <Pressable

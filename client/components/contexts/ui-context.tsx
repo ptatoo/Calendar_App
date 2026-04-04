@@ -4,6 +4,7 @@ import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useEffe
 import { EventsContext } from './calendar-events-context';
 
 interface UIContextType {
+  now: Date;
   isLoginVisible: boolean;
   setLoginVisible: (visible: boolean) => void;
   colors: string[];
@@ -17,6 +18,7 @@ interface UIContextType {
 }
 
 export const UIContext = createContext<UIContextType>({
+  now: new Date(),
   isLoginVisible: false,
   setLoginVisible: () => {},
   colors: [],
@@ -64,7 +66,7 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   const { calendarObjs, setCalendarObj } = useContext(EventsContext);
   const [colors, updateColors] = useState<string[]>(PASTEL_COLORS);
   const [colorId, updateColorId] = useState<number>(0);
-  const [colorsCache, setColorsCache] = useState<colorCache>();
+  const [now, setNow] = useState(new Date());
 
   const [allCaches, setAllCaches] = useState<colorCache[]>([
     {
@@ -76,6 +78,7 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   ]);
   const [activeCacheId, setActiveCacheId] = useState<number>(0);
 
+  //DEPRECIATED
   useEffect(() => {
     if (!calendarObjs) return;
 
@@ -105,12 +108,12 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
       // Check if this palette ID already exists in our storage
       const exists = prev.find((c) => c.paletteId === newPaletteId);
 
+      // If in storage, update existing colorMap
       if (exists) {
-        // Update existing palette with new colors and a fresh map
         return prev.map((c) => (c.paletteId === newPaletteId ? { ...c, palette: newColors, colorMap: newColorMap } : c));
       }
 
-      // Otherwise, add a brand new Cache object to the array
+      // Otherwise, add a brand new colorCache object to the array
       return [
         ...prev,
         {
@@ -122,6 +125,7 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
       ];
     });
 
+    //Update active cache ID
     setActiveCacheId(newPaletteId);
   };
 
@@ -175,12 +179,13 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
     return customColor || '#00ffff';
   };
 
+  //update only current colorCache with calendarObjs
   useEffect(() => {
     if (!calendarObjs?.length) return;
 
     setAllCaches((prevCaches) => {
       return prevCaches.map((cache) => {
-        // Only active color palette is synced
+        //ignore other caches
         if (cache.paletteId !== activeCacheId) return cache;
 
         const existingIds = Object.keys(cache.colorMap);
@@ -201,9 +206,16 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [calendarObjs, activeCacheId]);
 
+  //update "now"
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <UIContext.Provider
       value={{
+        now,
         allCaches,
         activeCacheId,
         isLoginVisible,

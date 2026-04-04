@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Drawer } from 'expo-router/drawer';
 
 import CalendarHeader from '../components/calendar-header';
-import CustomDrawerContent from '../components/custom-drawer/custom-drawer-content';
+import CustomDrawerContent from '../components/custom-drawer/drawer-container';
 
 //Proivders
 import { EventsProvider } from '@/components/contexts/calendar-events-context';
@@ -20,7 +20,12 @@ export default function RootLayout() {
           <DateProvider>
             <EventsProvider>
               <UIProvider>
-                <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
+                <Drawer
+                  drawerContent={(props) => <CustomDrawerContent {...props} />}
+                  screenOptions={{
+                    drawerStyle: {},
+                  }}
+                >
                   <Drawer.Screen
                     name="index"
                     options={{
