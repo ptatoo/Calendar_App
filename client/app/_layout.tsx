@@ -30,7 +30,7 @@ export default function RootLayout() {
                     name="index"
                     options={{
                       header: ({ options }) => <CalendarHeader />,
-
+                      headerTransparent: false,
                       headerTitle: 'Calender',
                       drawerLabel: 'Calendar',
                       drawerIcon: ({ size, color }) => <Ionicons name="home-outline" size={size} color={color} />,
