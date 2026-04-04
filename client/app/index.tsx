@@ -15,7 +15,7 @@ import { AuthContext } from '../components/contexts/auth-context';
 export default function Index() {
   // --- STATE ---
   const { calendarType } = useContext(AuthContext);
-  const { allEvents, isLoading } = useContext(EventsContext);
+  const { allEvents } = useContext(EventsContext);
   const { isLoginVisible, setLoginVisible } = useContext(UIContext);
 
   // --- DISPLAY ---

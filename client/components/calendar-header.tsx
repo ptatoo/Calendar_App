@@ -1,10 +1,9 @@
-import TestWriteButton from '@/components/test-write-button/test-write-button';
-import { HEADER_BACKGROUND_COLOR } from '@/utility/constants';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useContext, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { DateContext } from './contexts/calendar-index-context';
 
 export default function CalendarHeader(props: any) {
@@ -17,27 +16,28 @@ export default function CalendarHeader(props: any) {
   };
 
   return (
-    <View style={styles.headerContainer}>
-      <TestWriteButton/>
-      {/* --- Waffle --- */}
-      <View style={{ justifyContent: 'center' }}>
-        <Pressable onPress={() => navigation.dispatch(DrawerActions.openDrawer())} style={styles.waffle}>
-          <Ionicons name="menu" size={28} color="black" />
-        </Pressable>
-      </View>
+    <SafeAreaView edges={['top']}>
+      <View style={styles.headerContainer}>
+        {/* --- Waffle --- */}
+        <View style={{ justifyContent: 'center' }}>
+          <Pressable onPress={() => navigation.dispatch(DrawerActions.openDrawer())} style={styles.waffle}>
+            <Ionicons name="menu" size={28} color="black" />
+          </Pressable>
+        </View>
 
-      {/* --- Date --- */}
-      <View style={{ justifyContent: 'center' }}>
-        <Text style={{ fontWeight: 500, fontSize: 22 }}>{curDate.toLocaleString('default', { month: 'long' })}</Text>
-      </View>
+        {/* --- Date --- */}
+        <View style={{ justifyContent: 'center' }}>
+          <Text style={{ fontWeight: 500, fontSize: 22 }}>{curDate.toLocaleString('default', { month: 'long' })}</Text>
+        </View>
 
-      {/* --- Extra Buttons on the Right --- */}
-      <View style={styles.headerButtonContainer}>
-        <Pressable style={styles.headerButton} onPress={handleSnapToToday}>
-          <Text style={{ fontWeight: 500, fontSize: 16 }}>{currentDate.toLocaleString('default', { day: 'numeric' })}</Text>
-        </Pressable>
+        {/* --- Extra Buttons on the Right --- */}
+        <View style={styles.headerButtonContainer}>
+          <Pressable style={styles.headerButton} onPress={handleSnapToToday}>
+            <Text style={{ fontWeight: 500, fontSize: 16 }}>{currentDate.toLocaleString('default', { day: 'numeric' })}</Text>
+          </Pressable>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   headerContainer: {
     height: 66,
     flexDirection: 'row',
-    backgroundColor: HEADER_BACKGROUND_COLOR,
+    backgroundColor: 'HEADER_BACKGROUND_COLOR',
     padding: 16,
     paddingRight: 24,
     gap: 10,
