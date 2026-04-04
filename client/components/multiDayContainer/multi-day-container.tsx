@@ -83,7 +83,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
       console.log('mainscrolling');
       scrollX.value = event.contentOffset.x;
       console.log('precontext');
-      updateContextOnScroll();
       console.log('mainscrollingdone');
     },
   });
