@@ -82,6 +82,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 6,
+    backgroundColor: 'white',
   },
   calendarInfo: {
     flexDirection: 'row',

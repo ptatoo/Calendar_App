@@ -1,9 +1,11 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useProfiles } from '@/hooks/useProfile';
 
-import { useContext } from 'react';
+import { calendarObj } from '@/utility/types';
+import { useContext, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, ScrollView } from 'react-native-gesture-handler';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 //Global Contexts
@@ -25,11 +27,57 @@ function toTitleCase(str: string): string {
     .join(' ');
 }
 
+//Each Individual Calendar
+function DraggableCalendar({
+  cal,
+  onDrop,
+  toggleCalendar,
+}: {
+  cal: calendarObj;
+  onDrop: (calendarId: string, absoluteY: number) => void;
+  toggleCalendar: (id: string) => void;
+}) {
+  const isDragging = useSharedValue(false);
+  const offset = useSharedValue({ x: 0, y: 0 });
+
+  const gesture = Gesture.Pan()
+    .activateAfterLongPress(300)
+    .shouldCancelWhenOutside(false)
+    .onStart(() => {
+      isDragging.value = true;
+    })
+    .onUpdate((e) => {
+      offset.value = { x: e.translationX, y: e.translationY };
+    })
+    .onEnd((e) => {
+      isDragging.value = false;
+      // Tell the main thread to move the data
+      runOnJS(onDrop)(cal.calendarId, e.absoluteY);
+      offset.value = withSpring({ x: 0, y: 0 });
+    });
+
+  //for animated view
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: offset.value.x }, { translateY: offset.value.y }, { scale: withSpring(isDragging.value ? 1.05 : 1) }],
+    zIndex: isDragging.value ? 1000 : 1,
+    opacity: isDragging.value ? 0.8 : 1,
+  }));
+
+  return (
+    <GestureDetector gesture={gesture}>
+      <Animated.View style={[animatedStyle, { backgroundColor: 'white' }]}>
+        <CalendarDrawerList calendarObj={cal} onToggle={toggleCalendar} />
+      </Animated.View>
+    </GestureDetector>
+  );
+  //return <CalendarDrawerList calendarObj={cal} onToggle={toggleCalendar} />;
+}
+
 export default function CustomDrawerContent(props: any) {
   const { jwtToken } = useAuth();
   const { familyProfiles } = useProfiles(jwtToken?.sessionToken ?? null);
   const { calendarType, setCalendarType } = useContext(AuthContext);
-  const { setCalendarObj, groupedData } = useContext(EventsContext);
+  const { setCalendarObj, groupedCalendars, moveCalendar } = useContext(EventsContext);
   const { setLoginVisible } = useContext(UIContext);
 
   const getButtonStyle = (option: '1' | '2' | '3' | 'W' | 'M', pressed: boolean) => [
@@ -54,6 +102,22 @@ export default function CustomDrawerContent(props: any) {
     setLoginVisible(true);
   };
 
+  const [draggingCalendar, setDraggingCalendar] = useState<calendarObj | null>(null);
+  const [folderLayouts, setFolderLayouts] = useState<Record<string, { y: number; height: number }>>({});
+  const [hoverInfo, setHoverInfo] = useState<{ groupID: String; index: number } | null>(null);
+
+  // 2. The drop function we pass to DraggableCalendar
+  const handleDrop = (calendarId: string, absoluteY: number) => {
+    // Check which folder the absoluteY (where your finger let go) is inside
+    for (const [groupId, layout] of Object.entries(folderLayouts)) {
+      // Basic hit-detection math
+      if (absoluteY >= layout.y && absoluteY <= layout.y + layout.height) {
+        moveCalendar(calendarId, groupId);
+        return;
+      }
+    }
+  };
+
   return (
     <SafeAreaView style={styles.headerContainer}>
       {/* --- USER INFO --- */}
@@ -68,7 +132,7 @@ export default function CustomDrawerContent(props: any) {
           </View>
         </Pressable>
       </View>
-      <ScrollView style={{ flex: 1 }}>
+      <ScrollView>
         {/* --- CALENDAR TYPE TOGGLE --- */}
         <View style={styles.viewToggleContainer}>
           <Text style={styles.headerText}>View Mode</Text>
@@ -90,19 +154,33 @@ export default function CustomDrawerContent(props: any) {
         {/* --- CALENDAR VISIBILITY TOGGLE --- */}
         <View style={{ flex: 1 }}>
           <Text style={styles.headerText}>Calendars</Text>
-          {groupedData.map((group) => (
+          {groupedCalendars.map((group) => (
             <View key={group.id} style={styles.sectionContainer}>
-              {/* Section Header */}
-              <Text style={styles.sectionHeader} numberOfLines={1}>
-                {group.profile.email}
-              </Text>
+              {/* --- FOLDER HEADER --- */}
+              <View
+                onLayout={(event) => {
+                  const { target } = event;
+                  const { height } = event.nativeEvent.layout;
+                  // Use a ref and measure to get the true Screen Y position
+                }}
+                style={[
+                  styles.sectionHeader,
+                  // Optional: Highlight if we were able to detect a hover (requires more logic)
+                ]}
+              >
+                <Text style={styles.sectionHeaderText}>{group.id}</Text>
 
-              {/* List of Calendars for this person */}
-              {group.calendars.length > 0 ? (
-                group.calendars.map((cal) => <CalendarDrawerList key={cal.calendarId} calendarObj={cal} onToggle={toggleCalendar} />)
-              ) : (
-                <Text style={styles.emptyText}>No Calendars Found</Text>
-              )}
+                {/* List of Calendars */}
+                <View style={{ flex: 1 }}>
+                  {group.calendars.length > 0 ? (
+                    group.calendars.map((cal) => (
+                      <DraggableCalendar key={cal.calendarId} cal={cal} onDrop={handleDrop} toggleCalendar={toggleCalendar} />
+                    ))
+                  ) : (
+                    <Text style={styles.emptyText}>No Calendars Found</Text>
+                  )}
+                </View>
+              </View>
             </View>
           ))}
         </View>
@@ -177,4 +255,5 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginVertical: 4,
   },
+  sectionHeaderText: {},
 });

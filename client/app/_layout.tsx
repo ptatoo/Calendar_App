@@ -11,6 +11,7 @@ import { UIProvider } from '@/components/contexts/ui-context';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider } from '../components/contexts/auth-context';
+import { DraxProvider } from 'react-native-drax';
 
 export default function RootLayout() {
   return (

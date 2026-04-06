@@ -1,6 +1,4 @@
-import {
-    HEADER_BACKGROUND_COLOR
-} from '@/utility/constants';
+import { DATE_HEADER_HEIGHT, HEADER_BACKGROUND_COLOR } from '@/utility/constants';
 import React, { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -24,6 +22,7 @@ const styles = StyleSheet.create({
   date: {
     justifyContent: 'center',
     backgroundColor: HEADER_BACKGROUND_COLOR,
+    height: DATE_HEADER_HEIGHT,
   },
   dateInner: {
     alignItems: 'center',
