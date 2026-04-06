@@ -1,6 +1,6 @@
 import { PASTEL_COLORS } from '@/utility/constants';
 import { useContext, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { UIContext } from '../contexts/ui-context';
 
 const ThemeButton = ({
@@ -48,7 +48,7 @@ export default function AppearanceContainer() {
     { id: 2, name: 'Sunset', colors: ['#F59E0B', '#EF4444', '#FEE2E2'] },
   ]);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  
+
   // UI States
   const [isModalVisible, setModalVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -92,7 +92,7 @@ export default function AppearanceContainer() {
     setPalettes(newList);
     setSelectedIndex(newList.length - 1);
     setModalVisible(false);
-    
+
     // Automatically open edit mode for the new palette
     setTempColors([...newColors]);
     setIsEditing(true);
@@ -135,11 +135,7 @@ export default function AppearanceContainer() {
               <TouchableOpacity
                 key={i}
                 onPress={() => isEditing && setPickingColorIndex(i)}
-                style={[
-                  styles.colorCircle,
-                  { backgroundColor: color },
-                  isEditing && pickingColorIndex === i && styles.activeColorCircle
-                ]}
+                style={[styles.colorCircle, { backgroundColor: color }, isEditing && pickingColorIndex === i && styles.activeColorCircle]}
               >
                 {isEditing && <View style={styles.editIconDot} />}
               </TouchableOpacity>
@@ -149,17 +145,12 @@ export default function AppearanceContainer() {
 
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {isEditing && (
-             <TouchableOpacity style={styles.cancelButton} onPress={handleCancelEdit}>
-                <Text style={styles.modifyButtonText}>Cancel</Text>
-             </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={handleCancelEdit}>
+              <Text style={styles.modifyButtonText}>Cancel</Text>
+            </TouchableOpacity>
           )}
-          <TouchableOpacity
-            style={[styles.modifyButton, isEditing && styles.saveButton]}
-            onPress={isEditing ? handleSave : handleModify}
-          >
-            <Text style={[styles.modifyButtonText, isEditing && styles.saveButtonText]}>
-              {isEditing ? 'Save' : 'Modify'}
-            </Text>
+          <TouchableOpacity style={[styles.modifyButton, isEditing && styles.saveButton]} onPress={isEditing ? handleSave : handleModify}>
+            <Text style={[styles.modifyButtonText, isEditing && styles.saveButtonText]}>{isEditing ? 'Save' : 'Modify'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -169,11 +160,7 @@ export default function AppearanceContainer() {
           <Text style={styles.pickerLabel}>Live Preview Picker:</Text>
           <View style={styles.presetGrid}>
             {presetColors.map((c) => (
-              <TouchableOpacity
-                key={c}
-                style={[styles.presetCircle, { backgroundColor: c }]}
-                onPress={() => updateTempColor(c)}
-              />
+              <TouchableOpacity key={c} style={[styles.presetCircle, { backgroundColor: c }]} onPress={() => updateTempColor(c)} />
             ))}
           </View>
           <TextInput
@@ -222,15 +209,41 @@ const styles = StyleSheet.create({
   rowHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   addButton: { backgroundColor: '#EEF2FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   addButtonText: { fontSize: 12, fontWeight: '600', color: '#4F46E5' },
-  paletteDisplayCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9FAFB', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', marginBottom: 12 },
+  paletteDisplayCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginBottom: 12,
+  },
   editingCard: { borderColor: '#4F46E5', backgroundColor: '#F5F7FF' },
   paletteInfo: { flex: 1 },
   paletteNameText: { fontSize: 13, fontWeight: '500', color: '#374151', marginBottom: 10 },
   colorPreviewRow: { flexDirection: 'row' },
-  colorCircle: { width: 32, height: 32, borderRadius: 16, marginRight: 12, borderWidth: 2, borderColor: 'white', elevation: 2, justifyContent: 'center', alignItems: 'center' },
+  colorCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 12,
+    borderWidth: 2,
+    borderColor: 'white',
+    elevation: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   activeColorCircle: { borderColor: '#4F46E5', transform: [{ scale: 1.1 }] },
   editIconDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.8)' },
-  modifyButton: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#FFF', borderRadius: 8, borderWidth: 1, borderColor: '#D1D5DB' },
+  modifyButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#FFF',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
   cancelButton: { paddingHorizontal: 12, paddingVertical: 8, backgroundColor: 'transparent' },
   saveButton: { backgroundColor: '#4F46E5', borderColor: '#4F46E5' },
   modifyButtonText: { fontSize: 12, fontWeight: '600', color: '#374151' },
@@ -239,11 +252,19 @@ const styles = StyleSheet.create({
   pickerLabel: { fontSize: 11, fontWeight: '600', color: '#6B7280', marginBottom: 10, textTransform: 'uppercase' },
   presetGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 15 },
   presetCircle: { width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: 'rgba(0,0,0,0.1)' },
-  hexInput: { backgroundColor: 'white', borderRadius: 8, padding: 8, fontSize: 14, borderWidth: 1, borderColor: '#D1D5DB', textAlign: 'center' },
+  hexInput: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 8,
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    textAlign: 'center',
+  },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: 'white', padding: 25, borderTopLeftRadius: 20, borderTopRightRadius: 20 },
   modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: 15 },
   modalOption: { paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   modalOptionText: { fontSize: 16, color: '#1F2937' },
-  modalCancel: { marginTop: 15, alignItems: 'center' }
+  modalCancel: { marginTop: 15, alignItems: 'center' },
 });
