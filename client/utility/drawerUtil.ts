@@ -14,7 +14,6 @@ export const getPositions = (
   menuWidth: number,
 ) => {
   buttonRef.current?.measureInWindow((x, y, width, height) => {
-    console.log(x, y);
     const padding = 10;
 
     //Vertical Position

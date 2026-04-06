@@ -1,8 +1,13 @@
+import { getPositions } from '@/utility/drawerUtil';
 import { calendarObj } from '@/utility/types';
 import { Ionicons } from '@expo/vector-icons';
-import { useContext } from 'react';
+import { useContext, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { UIContext } from '../contexts/ui-context';
+import CalendarSettingsColorModal from './drawer-calendar-settings-color-modal';
+
+const menuHeight = 100;
+const menuWidth = 150;
 
 export default function CalendarSettingsModal({
   isVisible,
@@ -17,7 +22,10 @@ export default function CalendarSettingsModal({
   top: number;
   left: number;
 }) {
-  const { setManualCalendarColor } = useContext(UIContext);
+  const buttonRef = useRef<View>(null);
+  const [isColorsVisible, setColorsVisible] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const { allCaches, activeCacheId } = useContext(UIContext);
 
   return (
     <>
@@ -44,20 +52,31 @@ export default function CalendarSettingsModal({
           ]}
         >
           {/* --- COLORS BUTTON --- */}
-          <Pressable
-            style={({ pressed }) => [styles.menuItem, pressed && styles.pressedButton]}
-            onPress={() => {
-              setManualCalendarColor(calendar.calendarId, '#a0c4ff');
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Ionicons name={'color-palette-outline'} size={13} />
-              <Text>Color</Text>
-            </View>
-            <View>
-              <Ionicons name={'chevron-forward-outline'} size={13} />
-            </View>
-          </Pressable>
+          <View ref={buttonRef} collapsable={false}>
+            <Pressable
+              style={({ pressed }) => [styles.menuItem, pressed && styles.pressedButton]}
+              onPress={() => {
+                getPositions(buttonRef, setMenuPos, menuHeight, menuWidth);
+                setColorsVisible(true);
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Ionicons name={'color-palette-outline'} size={13} />
+                <Text>Color</Text>
+              </View>
+              <View>
+                <Ionicons name={'chevron-forward-outline'} size={13} />
+              </View>
+            </Pressable>
+          </View>
+          <CalendarSettingsColorModal
+            isVisible={isColorsVisible}
+            setVisible={setColorsVisible}
+            setParentVisible={setVisible}
+            calendar={calendar}
+            top={menuPos.top}
+            left={menuPos.left}
+          />
 
           <Pressable
             style={styles.menuItem}

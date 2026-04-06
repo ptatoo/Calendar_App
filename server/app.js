@@ -13,10 +13,16 @@ app.use(cors());
 app.use(express.json());
 
 //setting up oAuth content
-const oAuth2Client = new OAuth2Client(
+const oAuth2ClientWeb = new OAuth2Client(
   process.env.CLIENT_ID, 
   process.env.CLIENT_SECRET, 
   process.env.REDIRECT_URI
+);
+
+const oAuth2ClientMobile = new OAuth2Client(
+  process.env.CLIENT_ID, 
+  process.env.CLIENT_SECRET, 
+  ""
 );
 
 //should store [userId : string , {accessToken : string, expiryDate : integer}]
@@ -40,11 +46,11 @@ const authenticate = async (req, res, next) => {
 //params: refreshToken
 //respos: complete token respo from google
 const generateAccessToken = async (refreshToken) => {
-  oAuth2Client.setCredentials({
+  oAuth2ClientWeb.setCredentials({
     refresh_token: refreshToken,
   });
   try {
-    const tokenInfo = await oAuth2Client.getAccessToken();
+    const tokenInfo = await oAuth2ClientWeb.getAccessToken();
     return {accessToken: tokenInfo.token, expiryDate: tokenInfo.res.data.expiry_date};
   } catch (error) {
     console.error("some error: ", error.message);
@@ -102,16 +108,26 @@ app.post('/api/google-exchange', async (req, res) => {
 
   //1. get code
   const { code, codeVerifier, redirectUri } = req.body; //has: code, scope, authuser, prompt
-  
-  try {
-    const { tokens } = await oAuth2Client.getToken({
-      code: code,
-      codeVerifier : codeVerifier,
-      redirect_uri: redirectUri
-  });
+  if(!code) return res.status(400).json({ error: 'No code provided' });
+
+    try {
+      // 1. Build the payload dynamically based on what the client sent
+      let tokens;
+
+    if (redirectUri) { // for web logins
+      const response = await oAuth2ClientWeb.getToken({
+        code: code,
+        codeVerifier: codeVerifier,
+        redirect_uri: redirectUri 
+      });
+      tokens = response.tokens;
+    } else { // for mobile
+      const response = await oAuth2ClientMobile.getToken({ code: code });
+      tokens = response.tokens;
+    }
+      
     
-    
-    const ticket = await oAuth2Client.verifyIdToken({
+    const ticket = await oAuth2ClientWeb.verifyIdToken({
       idToken: tokens.id_token,
       audience: process.env.CLIENT_ID,
     });

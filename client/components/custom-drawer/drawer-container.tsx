@@ -91,7 +91,7 @@ export default function CustomDrawerContent(props: any) {
         <View style={{ flex: 1 }}>
           <Text style={styles.headerText}>Calendars</Text>
           {groupedData.map((group) => (
-            <View key={group.profile.id} style={styles.sectionContainer}>
+            <View key={group.id} style={styles.sectionContainer}>
               {/* Section Header */}
               <Text style={styles.sectionHeader} numberOfLines={1}>
                 {group.profile.email}

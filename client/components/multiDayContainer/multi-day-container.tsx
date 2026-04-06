@@ -22,6 +22,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import EventDetails from '../eventDetailsContainer/event-details';
 import AllDayChip from './allday-chip';
 import DateHeader from './date-header';
@@ -87,7 +88,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const onMainScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollX.value = event.contentOffset.x;
-      updateContextOnScroll(event.contentOffset.x);
+      scheduleOnRN(updateContextOnScroll, event.contentOffset.x);
     },
   });
   

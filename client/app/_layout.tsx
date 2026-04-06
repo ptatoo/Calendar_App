@@ -20,12 +20,17 @@ export default function RootLayout() {
           <DateProvider>
             <EventsProvider>
               <UIProvider>
-                <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
+                <Drawer
+                  drawerContent={(props) => <CustomDrawerContent {...props} />}
+                  screenOptions={{
+                    drawerStyle: {},
+                  }}
+                >
                   <Drawer.Screen
                     name="index"
                     options={{
                       header: ({ options }) => <CalendarHeader />,
-
+                      headerTransparent: false,
                       headerTitle: 'Calender',
                       drawerLabel: 'Calendar',
                       drawerIcon: ({ size, color }) => <Ionicons name="home-outline" size={size} color={color} />,

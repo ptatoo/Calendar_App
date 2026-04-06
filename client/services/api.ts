@@ -2,17 +2,18 @@
 import { convertToGoogleEvent } from "@/utility/eventUtils";
 import { EventObj, ProfileObj } from "@/utility/types";
 
-export const fetchJwtToken = async (authCode : string, codeVerifier : string, redirectUri : string) => {
-    const res = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_LINK!}/api/google-exchange`, {
-        method : 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            code: authCode,
-            codeVerifier: codeVerifier,
-            redirectUri: redirectUri,
-        }),
-    });
-    return await res.json();
+export const fetchJwtToken = async (authCode: string, codeVerifier?: string, redirectUri?: string) => {
+  const res = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_LINK!}/api/google-exchange`, {
+    method: 'POST',
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      code: authCode,
+      // Only attach these if they exist (for web), otherwise omit them (for mobile)
+      ...(codeVerifier && { codeVerifier }),
+      ...(redirectUri && { redirectUri }),
+    }),
+  });
+  return await res.json();
 }
 
 export const fetchFamilyProfiles = async (jwtToken : string) => {
@@ -135,6 +136,28 @@ export const addEventToGoogleCalendar = async (accessToken: string, eventObj : E
     throw error;
   }
 };
+
+// const shareCalendar = async (calendarId: string, shareWithEmail: string) => {
+//   const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/acl`;
+  
+//   const response = await fetch(url, {
+//     method: 'POST',
+//     headers: {
+//       'Authorization': `Bearer ${userAccessToken}`,
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify({
+//       role: 'reader', // or 'writer'
+//       scope: {
+//         type: 'user',
+//         value: shareWithEmail
+//       }
+//     }),
+//   });
+
+//   const data = await response.json();
+//   return data;
+// };
 
 // ===========================================================
 // INVITATION FUNCTIONS 

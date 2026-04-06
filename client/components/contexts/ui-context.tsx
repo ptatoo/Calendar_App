@@ -4,6 +4,7 @@ import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useEffe
 import { EventsContext } from './calendar-events-context';
 
 interface UIContextType {
+  now: Date;
   isLoginVisible: boolean;
   setLoginVisible: (visible: boolean) => void;
   colors: string[];
@@ -17,6 +18,7 @@ interface UIContextType {
 }
 
 export const UIContext = createContext<UIContextType>({
+  now: new Date(),
   isLoginVisible: false,
   setLoginVisible: () => {},
   colors: [],
@@ -64,6 +66,7 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   const { calendarObjs, setCalendarObj } = useContext(EventsContext);
   const [colors, updateColors] = useState<string[]>(PASTEL_COLORS);
   const [colorId, updateColorId] = useState<number>(0);
+  const [now, setNow] = useState(new Date());
 
   const [allCaches, setAllCaches] = useState<colorCache[]>([
     {
@@ -75,6 +78,7 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   ]);
   const [activeCacheId, setActiveCacheId] = useState<number>(0);
 
+  //DEPRECIATED
   useEffect(() => {
     if (!calendarObjs) return;
 
@@ -202,9 +206,16 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [calendarObjs, activeCacheId]);
 
+  //update "now"
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <UIContext.Provider
       value={{
+        now,
         allCaches,
         activeCacheId,
         isLoginVisible,

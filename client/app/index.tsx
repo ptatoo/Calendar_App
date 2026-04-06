@@ -1,7 +1,7 @@
 //Components
-import SettingsModal from '@/components/settingsContainer/settings-modal';
 import MonthContainer from '@/components/monthContainer/month-container';
 import MultiDayContainer from '@/components/multiDayContainer/multi-day-container';
+import SettingsModal from '@/components/settingsContainer/settings-modal';
 
 import { useContext } from 'react';
 import { View } from 'react-native';
@@ -15,7 +15,7 @@ import { AuthContext } from '../components/contexts/auth-context';
 export default function Index() {
   // --- STATE ---
   const { calendarType } = useContext(AuthContext);
-  const { allEvents, isLoading } = useContext(EventsContext);
+  const { allEvents } = useContext(EventsContext);
   const { isLoginVisible, setLoginVisible } = useContext(UIContext);
 
   // --- DISPLAY ---

@@ -48,7 +48,7 @@ export default function InviteManager() {
   return (
     <View style={styles.container}>
       {/* 1. SEND INVITE SECTION */}
-      <Text style={styles.sectionTitle}>Invite a Family Member</Text>
+      <Text style={styles.sectionTitle}>Invite Someone:</Text>
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
