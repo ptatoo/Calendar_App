@@ -14,6 +14,7 @@ GoogleSignin.configure({
     "https://www.googleapis.com/auth/userinfo.profile",
   ],
   offlineAccess: true, // This tells Google to return a "serverAuthCode"
+  forceCodeForRefreshToken: true, // BRO PLEASE RETURN THE REFRESH TOKEN
 });
 
 export const useAuth = () => {
