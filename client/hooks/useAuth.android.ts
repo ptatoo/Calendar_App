@@ -7,7 +7,12 @@ import { useContext, useState } from "react";
 GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID, // MUST be the Web Client IDwebClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID, 
   iosClientId: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
-  scopes: ["https://www.googleapis.com/auth/calendar"],
+  scopes: [
+    "openid",
+    "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile",
+  ],
   offlineAccess: true, // This tells Google to return a "serverAuthCode"
 });
 

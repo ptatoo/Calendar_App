@@ -110,9 +110,9 @@ app.post('/api/google-exchange', async (req, res) => {
   const { code, codeVerifier, redirectUri } = req.body; //has: code, scope, authuser, prompt
   if(!code) return res.status(400).json({ error: 'No code provided' });
 
-    try {
-      // 1. Build the payload dynamically based on what the client sent
-      let tokens;
+  try {
+    // 1. Build the payload dynamically based on what the client sent
+    let tokens;
 
     if (redirectUri) { // for web logins
       const response = await oAuth2ClientWeb.getToken({
