@@ -16,7 +16,6 @@ export const useCalendarRange = () => {
       range.push({ date: current });
       current = addDays(current, 1);
     }
-    console.log("useCalendarRange Complete");
     return range;
   }, []);
 

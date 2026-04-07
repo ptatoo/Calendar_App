@@ -1,4 +1,4 @@
-import { PASTEL_COLORS } from '@/utility/constants';
+import { DEAFULT_COLORS_2, DEFAULT_COLORS } from '@/utility/constants';
 import { colorCache } from '@/utility/types';
 import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useEffect, useState } from 'react';
 import { EventsContext } from './calendar-events-context';
@@ -64,15 +64,15 @@ const findClosestColor = (targetHex: string, palette: string[]) => {
 export const UIProvider = ({ children }: { children: ReactNode }) => {
   const [isLoginVisible, setLoginVisible] = useState(false);
   const { calendarObjs, setCalendarObj } = useContext(EventsContext);
-  const [colors, updateColors] = useState<string[]>(PASTEL_COLORS);
+  const [colors, updateColors] = useState<string[]>(DEFAULT_COLORS);
   const [colorId, updateColorId] = useState<number>(0);
   const [now, setNow] = useState(new Date());
 
   const [allCaches, setAllCaches] = useState<colorCache[]>([
     {
       paletteId: 0,
-      name: 'Pastel Colors',
-      palette: PASTEL_COLORS,
+      name: 'Default Palette',
+      palette: DEAFULT_COLORS_2,
       colorMap: {},
     },
   ]);
@@ -142,13 +142,13 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
 
           // If the color assigned to this calendar isn't in the new palette anymore...
           if (!updatedPalette.includes(currentColor)) {
+            console.log(calId);
             const cal = calendarObjs?.find((c) => c.calendarId === calId);
             // ...recalculate the closest match from the updated palette
             nextMap[calId] = findClosestColor(cal?.calendarDefaultColor || '#000000', updatedPalette);
           }
         });
-
-        return { ...cache, palette: updatedPalette, customMap: nextMap };
+        return { ...cache, palette: updatedPalette, colorMap: nextMap };
       }),
     );
   };

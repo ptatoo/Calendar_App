@@ -16,10 +16,10 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
-        <BottomSheetModalProvider>
-          <DateProvider>
-            <EventsProvider>
-              <UIProvider>
+        <DateProvider>
+          <EventsProvider>
+            <UIProvider>
+              <BottomSheetModalProvider>
                 <Drawer
                   drawerContent={(props) => <CustomDrawerContent {...props} />}
                   screenOptions={{
@@ -37,10 +37,10 @@ export default function RootLayout() {
                     }}
                   />
                 </Drawer>
-              </UIProvider>
-            </EventsProvider>
-          </DateProvider>
-        </BottomSheetModalProvider>
+              </BottomSheetModalProvider>
+            </UIProvider>
+          </EventsProvider>
+        </DateProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );
