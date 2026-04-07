@@ -1,3 +1,9 @@
+//TODO:
+// 1. potentailly display multiple colorCaches and be able to select one to display
+// 2. maybe when the user saves their modifications the app automatically removes any repeats and orders them (somehow)
+// 3. when adding a new color palette, have some preset options shown
+// 4. when modifying a pallete, a user can remove and add colors
+
 import { colorCache } from '@/utility/types';
 import { useContext, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';

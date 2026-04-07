@@ -2,10 +2,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfiles } from '@/hooks/useProfile';
 
 import { calendarObj } from '@/utility/types';
-import { useContext, useState } from 'react';
+import { useContext, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector, ScrollView } from 'react-native-gesture-handler';
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { SharedValue, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 //Global Contexts
@@ -14,6 +14,9 @@ import { EventsContext } from '../contexts/calendar-events-context';
 import { UIContext } from '../contexts/ui-context';
 
 import CalendarDrawerList from './drawer-calendar-individual';
+
+const calendarIndividualHeight = 36;
+const calendarHeaderHeight = 18;
 
 function toTitleCase(str: string): string {
   // Convert the whole string to lowercase first for consistent results
@@ -32,10 +35,22 @@ function DraggableCalendar({
   cal,
   onDrop,
   toggleCalendar,
+  activeGroupIndex,
+  homeGroupId,
+  homeGroupIndex,
+  hoverIndex,
+  thisIndex,
+  movingIndex,
 }: {
   cal: calendarObj;
   onDrop: (calendarId: string, absoluteY: number) => void;
   toggleCalendar: (id: string) => void;
+  homeGroupId: string;
+  homeGroupIndex: number;
+  activeGroupIndex: SharedValue<number | null>;
+  hoverIndex: SharedValue<number | null>;
+  movingIndex: SharedValue<number | null>;
+  thisIndex: number;
 }) {
   const isDragging = useSharedValue(false);
   const offset = useSharedValue({ x: 0, y: 0 });
@@ -45,23 +60,58 @@ function DraggableCalendar({
     .shouldCancelWhenOutside(false)
     .onStart(() => {
       isDragging.value = true;
+      movingIndex.value = thisIndex;
+      activeGroupIndex.value = homeGroupIndex;
     })
     .onUpdate((e) => {
       offset.value = { x: e.translationX, y: e.translationY };
+      hoverIndex.value = thisIndex + e.translationY / calendarIndividualHeight;
     })
     .onEnd((e) => {
       isDragging.value = false;
+      hoverIndex.value = null;
+      movingIndex.value = null;
+      activeGroupIndex.value = null;
       // Tell the main thread to move the data
-      runOnJS(onDrop)(cal.calendarId, e.absoluteY);
+      // onDrop(cal.calendarId, e.absoluteY);
       offset.value = withSpring({ x: 0, y: 0 });
     });
 
   //for animated view
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: offset.value.x }, { translateY: offset.value.y }, { scale: withSpring(isDragging.value ? 1.05 : 1) }],
-    zIndex: isDragging.value ? 1000 : 1,
-    opacity: isDragging.value ? 0.8 : 1,
-  }));
+  const animatedStyle = useAnimatedStyle(() => {
+    // If this item is the one being dragged:
+    if (isDragging.value) {
+      return {
+        transform: [{ translateX: offset.value.x }, { translateY: offset.value.y }, { scale: 1.05 }],
+        zIndex: 1000,
+        opacity: 0.8,
+      };
+    }
+
+    // Move Calendars around the dynamic calendar
+    let translateY1 = 0;
+    let translateY2 = 0;
+
+    if (hoverIndex.value !== null) {
+      const isAfterHover = thisIndex >= hoverIndex.value + homeGroupIndex * 2;
+
+      if (isAfterHover) {
+        translateY1 = calendarIndividualHeight;
+      }
+    }
+    if (movingIndex.value !== null && activeGroupIndex.value !== null && homeGroupIndex === activeGroupIndex.value) {
+      const isBeforeOriginal = thisIndex >= movingIndex.value;
+      if (isBeforeOriginal) {
+        translateY2 = -calendarIndividualHeight;
+      }
+    }
+
+    return {
+      transform: [{ translateY: withSpring(translateY1 + translateY2) }],
+      zIndex: 1,
+      opacity: 1,
+    };
+  });
 
   return (
     <GestureDetector gesture={gesture}>
@@ -70,7 +120,6 @@ function DraggableCalendar({
       </Animated.View>
     </GestureDetector>
   );
-  //return <CalendarDrawerList calendarObj={cal} onToggle={toggleCalendar} />;
 }
 
 export default function CustomDrawerContent(props: any) {
@@ -103,19 +152,31 @@ export default function CustomDrawerContent(props: any) {
   };
 
   const [draggingCalendar, setDraggingCalendar] = useState<calendarObj | null>(null);
-  const [folderLayouts, setFolderLayouts] = useState<Record<string, { y: number; height: number }>>({});
+  //const [folderLayouts, setFolderLayouts] = useState<Record<string, { y: number; height: number }>>({});
   const [hoverInfo, setHoverInfo] = useState<{ groupID: String; index: number } | null>(null);
 
-  // 2. The drop function we pass to DraggableCalendar
   const handleDrop = (calendarId: string, absoluteY: number) => {
-    // Check which folder the absoluteY (where your finger let go) is inside
-    for (const [groupId, layout] of Object.entries(folderLayouts)) {
-      // Basic hit-detection math
-      if (absoluteY >= layout.y && absoluteY <= layout.y + layout.height) {
-        moveCalendar(calendarId, groupId);
-        return;
-      }
+    // Find which folder contains the Y coordinate
+    const destination = Object.entries(folderLayouts.current).find(([id, layout]) => {
+      return absoluteY >= layout.y && absoluteY <= layout.y + layout.height;
+    });
+
+    if (destination) {
+      const [groupId] = destination;
+      moveCalendar(calendarId, groupId);
     }
+  };
+
+  const folderLayouts = useRef<Record<string, { y: number; height: number }>>({});
+  const folderRefs = useRef<Record<string, View | null>>({});
+  const hoverIndex = useSharedValue<number | null>(null);
+  const movingIndex = useSharedValue<number | null>(null);
+  const activeGroupIndex = useSharedValue<number | null>(null);
+
+  const updateLayout = (groupId: string) => {
+    folderRefs.current[groupId]?.measureInWindow((x, y, width, height) => {
+      folderLayouts.current[groupId] = { y, height };
+    });
   };
 
   return (
@@ -154,33 +215,30 @@ export default function CustomDrawerContent(props: any) {
         {/* --- CALENDAR VISIBILITY TOGGLE --- */}
         <View style={{ flex: 1 }}>
           <Text style={styles.headerText}>Calendars</Text>
-          {groupedCalendars.map((group) => (
-            <View key={group.id} style={styles.sectionContainer}>
+          {groupedCalendars.map((group, groupIndex) => (
+            <View key={group.id} style={{}} onLayout={() => updateLayout(group.id)}>
               {/* --- FOLDER HEADER --- */}
-              <View
-                onLayout={(event) => {
-                  const { target } = event;
-                  const { height } = event.nativeEvent.layout;
-                  // Use a ref and measure to get the true Screen Y position
-                }}
-                style={[
-                  styles.sectionHeader,
-                  // Optional: Highlight if we were able to detect a hover (requires more logic)
-                ]}
-              >
-                <Text style={styles.sectionHeaderText}>{group.id}</Text>
+              <Text style={styles.sectionHeaderText}>{group.id}</Text>
 
-                {/* List of Calendars */}
-                <View style={{ flex: 1 }}>
-                  {group.calendars.length > 0 ? (
-                    group.calendars.map((cal) => (
-                      <DraggableCalendar key={cal.calendarId} cal={cal} onDrop={handleDrop} toggleCalendar={toggleCalendar} />
-                    ))
-                  ) : (
-                    <Text style={styles.emptyText}>No Calendars Found</Text>
-                  )}
-                </View>
-              </View>
+              {/* --- List of Calendars --- */}
+              {group.calendars.length > 0 ? (
+                group.calendars.map((cal, index) => (
+                  <DraggableCalendar
+                    key={cal.calendarId}
+                    cal={cal}
+                    thisIndex={index}
+                    homeGroupId={group.id}
+                    homeGroupIndex={groupIndex}
+                    onDrop={handleDrop}
+                    toggleCalendar={toggleCalendar}
+                    hoverIndex={hoverIndex}
+                    movingIndex={movingIndex}
+                    activeGroupIndex={activeGroupIndex}
+                  />
+                ))
+              ) : (
+                <Text style={styles.emptyText}>No Calendars Found</Text>
+              )}
             </View>
           ))}
         </View>
@@ -238,9 +296,6 @@ const styles = StyleSheet.create({
   pressedButton: {
     transform: [{ scale: 0.96 }],
   },
-  sectionContainer: {
-    marginBottom: 10,
-  },
   sectionHeader: {
     paddingVertical: 6,
     fontSize: 10,
@@ -255,5 +310,5 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginVertical: 4,
   },
-  sectionHeaderText: {},
+  sectionHeaderText: { marginTop: 10, fontSize: 13, fontWeight: '600', height: calendarHeaderHeight },
 });
