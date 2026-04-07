@@ -135,6 +135,8 @@ app.post('/api/google-exchange', async (req, res) => {
     // 1. get payload
     const payload = ticket.getPayload();
       
+    console.log("Google payload: ", payload);
+
     // 2. get information from payload
     const { 
       sub: googleId,  // .sub and renames it to googleId
