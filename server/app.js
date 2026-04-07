@@ -124,6 +124,8 @@ app.post('/api/google-exchange', async (req, res) => {
     } else { // for mobile
       const response = await oAuth2ClientMobile.getToken({ code: code });
       tokens = response.tokens;
+      
+      console.log("Mobile tokens: ", tokens);
     }
       
     
@@ -135,7 +137,9 @@ app.post('/api/google-exchange', async (req, res) => {
     // 1. get payload
     const payload = ticket.getPayload();
       
+    //debug
     console.log("Google payload: ", payload);
+    //debug
 
     // 2. get information from payload
     const { 
