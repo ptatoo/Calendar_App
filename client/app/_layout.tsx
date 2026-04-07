@@ -11,16 +11,15 @@ import { UIProvider } from '@/components/contexts/ui-context';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider } from '../components/contexts/auth-context';
-import { DraxProvider } from 'react-native-drax';
 
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
-        <BottomSheetModalProvider>
-          <DateProvider>
-            <EventsProvider>
-              <UIProvider>
+        <DateProvider>
+          <EventsProvider>
+            <UIProvider>
+              <BottomSheetModalProvider>
                 <Drawer
                   drawerContent={(props) => <CustomDrawerContent {...props} />}
                   screenOptions={{
@@ -38,10 +37,10 @@ export default function RootLayout() {
                     }}
                   />
                 </Drawer>
-              </UIProvider>
-            </EventsProvider>
-          </DateProvider>
-        </BottomSheetModalProvider>
+              </BottomSheetModalProvider>
+            </UIProvider>
+          </EventsProvider>
+        </DateProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );

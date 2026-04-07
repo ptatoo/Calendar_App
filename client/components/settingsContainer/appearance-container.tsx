@@ -1,4 +1,4 @@
-import { PASTEL_COLORS } from '@/utility/constants';
+import { colorCache } from '@/utility/types';
 import { useContext, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { UIContext } from '../contexts/ui-context';
@@ -15,18 +15,6 @@ const ThemeButton = ({
   setActiveTheme: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   const isActive = activeTheme === index;
-  const {
-    isLoginVisible,
-    setLoginVisible,
-    colors,
-    updateColors,
-    changePalette,
-    syncCacheToPalette,
-    setManualCalendarColor,
-    getCalendarColor,
-  } = useContext(UIContext);
-
-  changePalette(0, 'pastel colors', PASTEL_COLORS);
 
   return (
     <Pressable
@@ -39,14 +27,26 @@ const ThemeButton = ({
 };
 
 export default function AppearanceContainer() {
+  const {
+    now,
+    allCaches,
+    activeCacheId,
+    isLoginVisible,
+    setLoginVisible,
+    colors,
+    updateColors,
+    changePalette,
+    syncCacheToPalette,
+    setManualCalendarColor,
+    getCalendarColor,
+  } = useContext(UIContext);
+
+  //Themes (light, dark, auto)
   const themeOptions = ['Light', 'Dark', 'Auto'];
   const [activeTheme, setActiveTheme] = useState(0);
 
-  // Main Source of Truth
-  const [palettes, setPalettes] = useState([
-    { id: 1, name: 'Default Blue', colors: ['#2563EB', '#60A5FA', '#DBEAFE'] },
-    { id: 2, name: 'Sunset', colors: ['#F59E0B', '#EF4444', '#FEE2E2'] },
-  ]);
+  // Palettes and palette ID's
+  const [palettes, setPalettes] = useState(allCaches);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // UI States
@@ -62,14 +62,16 @@ export default function AppearanceContainer() {
 
   // Start Editing: Copy real colors into the sandbox
   const handleModify = () => {
-    setTempColors([...palettes[selectedIndex].colors]);
+    setTempColors([...palettes[selectedIndex].palette]);
     setIsEditing(true);
   };
 
   // Save: Push sandbox colors into the main state
   const handleSave = () => {
     const updatedPalettes = [...palettes];
-    updatedPalettes[selectedIndex].colors = [...tempColors];
+    updatedPalettes[selectedIndex].palette = [...tempColors];
+    console.log(tempColors);
+    syncCacheToPalette(tempColors);
     setPalettes(updatedPalettes);
     setIsEditing(false);
     setPickingColorIndex(null);
@@ -84,10 +86,10 @@ export default function AppearanceContainer() {
   const addNewPalette = (type: 'generated' | 'blank') => {
     const newColors = type === 'blank' ? ['#D1D5DB', '#E5E7EB', '#F3F4F6'] : ['#8B5CF6', '#C4B5FD', '#EDE9FE'];
     const newPalette = {
-      id: Date.now(),
+      paletteId: Date.now(),
       name: type === 'blank' ? 'Custom Palette' : 'Generated Palette',
-      colors: newColors,
-    };
+      palette: newColors,
+    } as colorCache;
     const newList = [...palettes, newPalette];
     setPalettes(newList);
     setSelectedIndex(newList.length - 1);
@@ -107,54 +109,70 @@ export default function AppearanceContainer() {
   };
 
   // Decide which colors to display: Real ones or Temp ones
-  const displayColors = isEditing ? tempColors : palettes[selectedIndex].colors;
+  const displayColors = isEditing ? tempColors : palettes[selectedIndex].palette;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerText}>Theme</Text>
+      {/* -- Theme Editor --- */}
+      <View style={styles.rowHeader}>
+        <Text style={styles.headerText}>Theme</Text>
+      </View>
       <View style={styles.themeContainer}>
         {themeOptions.map((option, index) => (
           <ThemeButton key={option} option={option} index={index} activeTheme={activeTheme} setActiveTheme={setActiveTheme} />
         ))}
       </View>
 
+      {/* -- Color Palette Editor --- */}
       <View style={styles.rowHeader}>
         <Text style={styles.headerText}>Color & Appearance</Text>
+        {/* -- Add Palette Button --- */}
         <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
           <Text style={styles.addButtonText}>+ New Palette</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={[styles.paletteDisplayCard, isEditing && styles.editingCard]}>
-        <View style={styles.paletteInfo}>
+      {/* -- Palette Display --- */}
+      <View style={[styles.paletteDisplayCard, styles.paletteInfo, isEditing && styles.editingCard]}>
+        {/* -- Palette Header --- */}
+        <View style={styles.rowHeader}>
+          {/* -- Palette Title --- */}
           <Text style={styles.paletteNameText}>
             {isEditing ? `Editing: ${palettes[selectedIndex].name}` : palettes[selectedIndex].name}
           </Text>
-          <View style={styles.colorPreviewRow}>
-            {displayColors.map((color, i) => (
-              <TouchableOpacity
-                key={i}
-                onPress={() => isEditing && setPickingColorIndex(i)}
-                style={[styles.colorCircle, { backgroundColor: color }, isEditing && pickingColorIndex === i && styles.activeColorCircle]}
-              >
-                {isEditing && <View style={styles.editIconDot} />}
+          {/* -- Palette Modify, Cancel, Save --- */}
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {isEditing ? (
+              <>
+                <TouchableOpacity style={styles.cancelButton} onPress={handleCancelEdit}>
+                  <Text style={styles.modifyButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.saveButton]} onPress={handleSave}>
+                  <Text style={[styles.saveButtonText]}>Save</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <TouchableOpacity style={[styles.modifyButton]} onPress={handleModify}>
+                <Text style={[styles.modifyButtonText]}>Modify</Text>
               </TouchableOpacity>
-            ))}
+            )}
           </View>
         </View>
-
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {isEditing && (
-            <TouchableOpacity style={styles.cancelButton} onPress={handleCancelEdit}>
-              <Text style={styles.modifyButtonText}>Cancel</Text>
+        {/* -- Palette Color Map --- */}
+        <View style={styles.colorPreviewFlex}>
+          {displayColors.map((color, i) => (
+            <TouchableOpacity
+              key={i}
+              onPress={() => isEditing && setPickingColorIndex(i)}
+              style={[styles.colorCircle, { backgroundColor: color }, isEditing && pickingColorIndex === i && styles.activeColorCircle]}
+            >
+              {isEditing && <View style={styles.editIconDot} />}
             </TouchableOpacity>
-          )}
-          <TouchableOpacity style={[styles.modifyButton, isEditing && styles.saveButton]} onPress={isEditing ? handleSave : handleModify}>
-            <Text style={[styles.modifyButtonText, isEditing && styles.saveButtonText]}>{isEditing ? 'Save' : 'Modify'}</Text>
-          </TouchableOpacity>
+          ))}
         </View>
       </View>
 
+      {/* -- Live Preview Picker --- */}
       {isEditing && pickingColorIndex !== null && (
         <View style={styles.pickerContainer}>
           <Text style={styles.pickerLabel}>Live Preview Picker:</Text>
@@ -176,9 +194,9 @@ export default function AppearanceContainer() {
       <Text style={styles.headerText}>EventBlock</Text>
       <Text style={styles.headerText}>SideBar</Text>
 
-      {/* modal logic */}
+      {/* --- New Palette Modal --- */}
       <Modal visible={isModalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
+        <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>New Palette</Text>
             <TouchableOpacity style={styles.modalOption} onPress={() => addNewPalette('generated')}>
@@ -191,7 +209,7 @@ export default function AppearanceContainer() {
               <Text style={{ color: '#6B7280' }}>Cancel</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </Pressable>
       </Modal>
     </View>
   );
@@ -199,21 +217,29 @@ export default function AppearanceContainer() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'white', padding: 16 },
-  headerText: { fontSize: 15, color: '#000', fontWeight: '600', paddingBottom: 10 },
+  rowHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  headerText: {
+    fontSize: 15,
+    color: '#000',
+    fontWeight: '600',
+  },
   themeContainer: { flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 10, padding: 4, height: 35, marginBottom: 20 },
   segment: { flex: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 8 },
   activeSegment: { backgroundColor: '#FFF', elevation: 3, shadowOpacity: 0.1 },
   pressedSegment: { opacity: 0.7 },
   text: { fontSize: 12, color: '#6B7280' },
   activeText: { color: '#111827', fontWeight: '700' },
-  rowHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   addButton: { backgroundColor: '#EEF2FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   addButtonText: { fontSize: 12, fontWeight: '600', color: '#4F46E5' },
   paletteDisplayCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
     backgroundColor: '#F9FAFB',
-    padding: 16,
+    padding: 10,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',
@@ -221,13 +247,20 @@ const styles = StyleSheet.create({
   },
   editingCard: { borderColor: '#4F46E5', backgroundColor: '#F5F7FF' },
   paletteInfo: { flex: 1 },
-  paletteNameText: { fontSize: 13, fontWeight: '500', color: '#374151', marginBottom: 10 },
-  colorPreviewRow: { flexDirection: 'row' },
+  paletteNameText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  colorPreviewFlex: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
   colorCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    marginRight: 12,
     borderWidth: 2,
     borderColor: 'white',
     elevation: 2,
@@ -236,18 +269,28 @@ const styles = StyleSheet.create({
   },
   activeColorCircle: { borderColor: '#4F46E5', transform: [{ scale: 1.1 }] },
   editIconDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.8)' },
+  //modify, cancel, save
   modifyButton: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 4,
     backgroundColor: '#FFF',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#D1D5DB',
   },
-  cancelButton: { paddingHorizontal: 12, paddingVertical: 8, backgroundColor: 'transparent' },
-  saveButton: { backgroundColor: '#4F46E5', borderColor: '#4F46E5' },
+  cancelButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    backgroundColor: 'transparent',
+  },
+  saveButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    backgroundColor: '#4F46E5',
+    borderColor: '#4F46E5',
+  },
   modifyButtonText: { fontSize: 12, fontWeight: '600', color: '#374151' },
-  saveButtonText: { color: '#FFF' },
+  saveButtonText: { fontSize: 12, fontWeight: '600', color: '#FFF' },
   pickerContainer: { backgroundColor: '#F3F4F6', padding: 16, borderRadius: 12, marginBottom: 20 },
   pickerLabel: { fontSize: 11, fontWeight: '600', color: '#6B7280', marginBottom: 10, textTransform: 'uppercase' },
   presetGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 15 },
@@ -261,8 +304,24 @@ const styles = StyleSheet.create({
     borderColor: '#D1D5DB',
     textAlign: 'center',
   },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: 'white', padding: 25, borderTopLeftRadius: 20, borderTopRightRadius: 20 },
+  //modal styles
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 25,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+
+    // Shadow logic
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 }, // Negative height pushes shadow UP
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 10,
+  },
   modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: 15 },
   modalOption: { paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   modalOptionText: { fontSize: 16, color: '#1F2937' },
