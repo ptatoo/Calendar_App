@@ -17,7 +17,6 @@ export const useAuth = () => {
   const [error, setError] = useState<string | null>(null);
   const {jwtToken, loginWithCode} = useContext(AuthContext);
   const redirectUri = AuthSession.makeRedirectUri();
-  console.log(redirectUri); // Check this matches Google Console exactly
 
   //recieve code from google oauth
   const [request, response, promptAsync] = AuthSession.useAuthRequest(

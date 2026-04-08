@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (storedProfiles) setFamilyProfiles(storedProfiles);
         if (storeCalendarType) setCalendarType(storeCalendarType as CalendarView);
       } catch (err: any) {
-        console.log('error as fuck: ', err.message);
+        console.error('Failed to hydrate auth context:', err.message);
       } finally {
         setIsHydrated(true);
       }

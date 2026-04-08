@@ -5,7 +5,7 @@ import { useContext, useState } from "react";
 // 1. Configure Google Sign-In outside the hook so it initializes once.
 // We only need the Calendar scope here because email/profile/openid are included by default.
 GoogleSignin.configure({
-  webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID, // MUST be the Web Client IDwebClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID, 
+  webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID, // MUST be the Web Client ID
   iosClientId: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
   scopes: [
     "openid",
