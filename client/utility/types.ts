@@ -49,7 +49,7 @@ export interface calendarObj {
   shown: boolean,
 }
 
-//Raw calendar data from google API
+//Processed calendar data 
 export interface EventObj {
   //event data
   id: string,

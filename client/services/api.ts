@@ -137,6 +137,41 @@ export const addEventToGoogleCalendar = async (accessToken: string, eventObj : E
   }
 };
 
+//calendar writing
+export const editEventToGoogleCalendar = async (accessToken: string, eventObj : EventObj) => {
+  if (!eventObj.id) {
+    throw new Error("Event ID is required to edit an event.");
+  }
+
+  const googleEvent = convertToGoogleEvent(eventObj);
+  const calendarId = eventObj.calendarId || 'primary';
+  const eventId = eventObj.id;
+
+  try {
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(googleEvent),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log('Event updated successfully:', data.htmlLink);
+      return data;
+    } else {
+      console.error('Error updating event:', data);
+      throw new Error(data.error.message);
+    }
+  } catch (error) {
+    console.error('Network or API Error:', error);
+    throw error;
+  }
+};
+
 // const shareCalendar = async (calendarId: string, shareWithEmail: string) => {
 //   const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/acl`;
   

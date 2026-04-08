@@ -1,10 +1,9 @@
-import { getEventTimeDisplay } from '@/utility/eventUtils';
 import { EventObj } from '@/utility/types';
 
 import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Dimensions, StyleSheet, Text } from 'react-native';
-import { EventExpandedView } from './event-details-expanded-view';
+import { Dimensions, StyleSheet } from 'react-native';
+import { EventExpandedView } from './expanded-view';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -29,8 +28,7 @@ export default function EventDetails({ isVisible, event, onClose }: Props) {
   }, [isVisible, event]);
 
   if (!event) return null;
-  const { primary, secondary } = getEventTimeDisplay(event);
-
+  
   return (
     <BottomSheetModal
       ref={bottomSheetModalRef}
@@ -51,16 +49,7 @@ export default function EventDetails({ isVisible, event, onClose }: Props) {
       }}
     >
       <BottomSheetScrollView contentContainerStyle={styles.contentContainer}>
-        {/* --- TITLE --- */}
-        <Text style={styles.title} numberOfLines={1}>
-          {event.title}
-        </Text>
-        {/* --- HOURS --- */}
-        <Text style={styles.timeRow}>{primary}</Text>
-        {/* --- DATE --- */}
-        <Text style={styles.dateRow}>{secondary}</Text>
-        {/* --- EXPANDED CONTENT --- */}
-        {currentIndex > 0 && <EventExpandedView event={event} />}
+        {<EventExpandedView initialEvent={event} />}
       </BottomSheetScrollView>
     </BottomSheetModal>
   );

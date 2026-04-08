@@ -1,6 +1,26 @@
 import { format, isSameDay, parseISO } from 'date-fns';
 import { EventObj, calendarObj } from './types';
 
+export function createEventObj(data: Partial<EventObj>): EventObj {
+  return {
+    id: data.id ?? crypto.randomUUID(),
+    title: data.title ?? "",
+    description: data.description ?? "",
+    location: data.location ?? "",
+    organizer: data.organizer ?? "",
+    allDay: data.allDay ?? false,
+    startDate: data.startDate ?? new Date(),
+    endDate: data.endDate ?? new Date(),
+    eventType: data.eventType ?? "default",
+    sequence: data.sequence ?? 0,
+    reminders: data.reminders ?? { useDefault: true },
+    calendarId: data.calendarId ?? "",
+    calendar: data.calendar ?? ({} as calendarObj),
+    ...data // Overrides defaults with provided values
+  };
+} 
+// usage ex: const myEvent = createEvent({ title: "Meeting", allDay: true });
+
 export const processEvent = ( item : any, owner: string, calendarObj: calendarObj, calendarId: string ) : EventObj | null => {
     try {
     // check event is valid
