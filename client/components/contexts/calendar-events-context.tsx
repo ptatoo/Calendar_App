@@ -2,13 +2,15 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendar } from '@/hooks/useCalendar';
 import { useCalendarWrite } from '@/hooks/useCalendarWrite';
-import { calendarObj, EventObj } from '@/utility/types'; // Adjust path as needed
+import { useProfiles } from '@/hooks/useProfile';
+import { calendarObj, EventObj, FamilyProfileObjs } from '@/utility/types'; // Adjust path as needed
 import { createContext, Dispatch, ReactNode, SetStateAction, useEffect, useMemo, useState } from 'react';
 
 export interface EventsContextType {
   // Read state
   calendarObjs: calendarObj[] | null;
   allEvents: EventObj[];
+  familyProfiles: FamilyProfileObjs | null;
   isLoading: boolean;
   groupedCalendars: {
     id: string;
@@ -16,6 +18,7 @@ export interface EventsContextType {
   }[];
   moveCalendar: (calendarId: string, targetGroupId: string) => void;
   setCalendarObj: Dispatch<SetStateAction<calendarObj[] | null>>;
+  updateSingleGroup: (groupId: string, newCalendars: calendarObj[]) => void;
 
   // Write state
   createEvent: (eventDetails: any) => Promise<any>;
@@ -27,10 +30,12 @@ export interface EventsContextType {
 export const EventsContext = createContext<EventsContextType>({
   calendarObjs: null,
   allEvents: [],
+  familyProfiles: null,
   isLoading: false,
   setCalendarObj: () => {},
   groupedCalendars: [],
   moveCalendar: () => {},
+  updateSingleGroup: () => {},
   createEvent: async () => {}, // Added
   isWriting: false, // Added
   writeError: null, // Added
@@ -40,6 +45,7 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
   const [calendarObjs, setCalendarObj] = useState<calendarObj[] | null>(null);
   //fetch a crazy amount of data from everywhere
   const { jwtToken } = useAuth();
+  const { familyProfiles } = useProfiles(jwtToken?.sessionToken ?? null);
   const sessionTokenString = jwtToken?.sessionToken ?? null;
 
   const { calendars, newCalendarIds, isLoading } = useCalendar(sessionTokenString);
@@ -91,7 +97,8 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
       //Distribute new calendars
       newCalendars.forEach((cal) => {
         const isOwner = cal.owner;
-        const targetGroupId = isOwner ? 'owner' : 'other';
+        let targetGroupId = isOwner ? 'owner' : 'other';
+        if (cal.calendarName === 'alexsong6@g.ucla.edu') targetGroupId = 'primary';
 
         const targetGroup = ensureGroup(targetGroupId);
         targetGroup.calendars.push(cal);
@@ -129,15 +136,21 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const updateSingleGroup = (groupId: string, newCalendars: calendarObj[]) => {
+    setGroupedCalendars((prev) => prev.map((group) => (group.id === groupId ? { ...group, calendars: newCalendars } : group)));
+  };
+
   return (
     <EventsContext.Provider
       value={{
         calendarObjs,
         setCalendarObj,
         allEvents,
+        familyProfiles,
         isLoading,
         groupedCalendars,
         moveCalendar,
+        updateSingleGroup,
         createEvent,
         isWriting,
         writeError,
