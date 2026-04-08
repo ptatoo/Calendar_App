@@ -1,6 +1,8 @@
+import { getEventTimeDisplay } from '@/utility/eventUtils';
 import { EventObj } from '@/utility/types';
-import React from 'react';
+import React, { useContext } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { EventsContext } from '../contexts/calendar-events-context';
 
 interface ExpandedViewProps {
   event: EventObj;
@@ -9,11 +11,28 @@ interface ExpandedViewProps {
 const HorizontalBar = () => <View style={styles.bar} />;
 
 export const EventExpandedView = ({ event }: ExpandedViewProps) => {
+  const { createEvent } = useContext(EventsContext);
+
   // Logic to check if this is a recurring instance
   const isRecurring = !!event.recurringEventId || (event.recurrence && event.recurrence.length > 0);
 
+  const duplicateEvent = () => {
+    createEvent(event);
+  }
+  
+  const { primary, secondary } = getEventTimeDisplay(event);
+
   return (
     <View style={styles.container}>
+      {/* --- TITLE --- */}
+      <Text style={styles.title} numberOfLines={1}>
+        {event.title}
+      </Text>
+      {/* --- HOURS --- */}
+      <Text style={styles.timeRow}>{primary}</Text>
+      {/* --- DATE --- */}
+      <Text style={styles.dateRow}>{secondary}</Text>
+
       <HorizontalBar />
 
       {/* Section 1: People */}
@@ -77,14 +96,14 @@ export const EventExpandedView = ({ event }: ExpandedViewProps) => {
       <View style={styles.actionRow}>
         <Pressable
           style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}
-          onPress={() => console.log('Duplicate Event:', event.id)}
+          onPress={duplicateEvent}
         >
           <Text style={styles.btnText}>Duplicate</Text>
         </Pressable>
 
         <Pressable
           style={({ pressed }) => [styles.btn, styles.deleteBtn, pressed && styles.deleteBtnPressed]}
-          onPress={() => console.log('Delete Request for ID:', event.id)}
+          onPress={duplicateEvent}
         >
           <Text style={[styles.btnText, styles.deleteText]}>Delete</Text>
         </Pressable>
@@ -168,6 +187,23 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  timeRow: {
+    fontSize: 18,
+    color: '#374151', // Darker gray for the "Actionable" time
+    fontWeight: '500',
+    lineHeight: 24,
+  },
+  dateRow: {
+    fontSize: 16,
+    color: '#6B7280', // Lighter gray for the date
+    marginTop: 2,
   },
   btnPressed: { backgroundColor: '#E5E7EB' },
   deleteBtn: { backgroundColor: '#FEE2E2' },

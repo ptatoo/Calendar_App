@@ -4,6 +4,7 @@ import { isSameDay } from 'date-fns';
 import { useCallback, useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { createEventObj } from '@/utility/eventUtils';
 import Svg, { Line } from 'react-native-svg';
 import EventContainer from './event-container';
 import TimeIndicator from './time-indicator';
@@ -31,7 +32,7 @@ export default function DayContainer({
   handlePress: (event: EventObj | null) => void;
 }) {
   const isToday = isSameDay(day, new Date());
-
+    
   //calculate the necessary offset for each event
   const eventsWithOffsets = useMemo(() => {
     //sort events by start time
@@ -71,6 +72,13 @@ export default function DayContainer({
     [handlePress],
   );
 
+  const getYofEventPress = (event: any) => {
+    const locationY = event.nativeEvent.locationY;
+    const offsetY = event.nativeEvent.offsetY;
+    return locationY ?? offsetY; // Use locationY if available, otherwise fallback to offsetY
+  }
+
+
   //console.log(day, events);
   return (
     <View key={day.toLocaleDateString()} style={{ borderRightWidth: 1, borderColor: '#f0f0f0', width: dayWidth }}>
@@ -90,8 +98,20 @@ export default function DayContainer({
         ))}
         {/* --- CLOSE EVENT DETAILS BUTTON --- */}
         <Pressable
-          onPress={() => {
-            handlePress(null);
+          onPress={(event) => {
+            handlePress(null); // closes event container
+            const y = getYofEventPress(event); 
+            const hour = Math.floor(y / hourHeight);
+
+            const clickedTime = new Date(day);
+            clickedTime.setHours(hour, 0, 0, 0);
+
+            const draftEvent = createEventObj({
+              startDate: clickedTime,
+              endDate: new Date(clickedTime.getTime() + 60 * 60 * 1000), // Default 1 hr duration
+              title: 'New Event' // Or empty string, handled by your UI
+            });
+            handlePress(draftEvent);
           }}
           style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: 'transparent' }]}
         />

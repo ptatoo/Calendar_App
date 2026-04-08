@@ -18,7 +18,8 @@ export interface EventsContextType {
   setCalendarObj: Dispatch<SetStateAction<calendarObj[] | null>>;
 
   // Write state
-  createEvent: (eventDetails: any) => Promise<any>;
+  createEvent: (event: EventObj) => Promise<any>;
+  editEvent: (event: EventObj) => Promise<any>;
   isWriting: boolean;
   writeError: string | null;
 }
@@ -32,6 +33,7 @@ export const EventsContext = createContext<EventsContextType>({
   groupedCalendars: [],
   moveCalendar: () => {},
   createEvent: async () => {}, // Added
+  editEvent: async () => {}, // Added
   isWriting: false, // Added
   writeError: null, // Added
 });
@@ -46,7 +48,7 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
   const [groupedCalendars, setGroupedCalendars] = useState<{ id: string; calendars: calendarObj[] }[]>([]);
 
   //write functionality
-  const { createEvent, loading: isWriting, error: writeError } = useCalendarWrite(sessionTokenString);
+  const { editEvent, createEvent, loading: isWriting, error: writeError } = useCalendarWrite(sessionTokenString);
 
   //update calendarObjs (list of calendars)
   useEffect(() => {
@@ -139,6 +141,7 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
         groupedCalendars,
         moveCalendar,
         createEvent,
+        editEvent,
         isWriting,
         writeError,
       }}
