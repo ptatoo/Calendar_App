@@ -82,11 +82,11 @@ export const convertToGoogleEvent = (eventObj: EventObj) => {
     location: eventObj.location,
     eventType: eventObj.eventType !== "default" ? eventObj.eventType : undefined, 
     start: eventObj.allDay
-      ? { date: formatAllDay(eventObj.startDate) }
-      : { dateTime: eventObj.startDate.toISOString() },
+      ? { date: formatAllDay(eventObj.startDate), dateTime: null }
+      : { date:null, dateTime: eventObj.startDate.toISOString() },
     end: eventObj.allDay
-      ? { date: formatAllDay(eventObj.endDate) }
-      : { dateTime: eventObj.endDate.toISOString() },
+      ? { date: formatAllDay(eventObj.endDate), dateTime: null }
+      : { date:null, dateTime: eventObj.endDate.toISOString() },
     ...(eventObj.recurrence && { recurrence: eventObj.recurrence }),
     sequence: eventObj.sequence,
     reminders: eventObj.reminders,
@@ -129,7 +129,7 @@ export const getEventTimeDisplay = (event: EventObj) => {
   // Row 2: Jan 1 – Jan 2 | Row 3: All-day
   if (allDay) {
     return {
-      primary: `${format(startDate, 'MMM d')} – ${format(endDate, 'MMM d')}`,
+      primary: `${format(startDate, 'MMM d')}`,
       secondary: 'All-day',
     };
   }

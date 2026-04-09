@@ -5,12 +5,12 @@ import { useAccessToken } from "./useAccessToken";
 
 export function useCalendarWrite(jwtToken: string | null) {
   const { getValidAccessToken } = useAccessToken(jwtToken);
-  const [loading, isLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const createEvent = async (eventDetails: EventObj) => {
     console.log("Creating event with details:", eventDetails);
-    isLoading(true);
+    setLoading(true);
     setError(null);
 
     try {
@@ -30,13 +30,13 @@ export function useCalendarWrite(jwtToken: string | null) {
       setError(err.message || "Unknown error occurred");
       throw err; // Re-throw for component
     } finally {
-      isLoading(false);
+      setLoading(false);
     }
   };
   
   const editEvent = async (eventDetails: EventObj) => {
     console.log("Editing event with details:", eventDetails);
-    isLoading(true);
+    setLoading(true);
     setError(null);
 
     try {
@@ -56,7 +56,7 @@ export function useCalendarWrite(jwtToken: string | null) {
       setError(err.message || "Unknown error occurred");
       throw err; // Re-throw for component
     } finally {
-      isLoading(false);
+      setLoading(false);
     }
   };
 

@@ -1,7 +1,7 @@
 import { getEventTimeDisplay } from '@/utility/eventUtils';
 import { EventObj } from '@/utility/types';
 import React, { useContext, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { EventsContext } from '../contexts/calendar-events-context';
 
 interface ExpandedViewProps {
@@ -14,163 +14,184 @@ export const EventExpandedView = ({ initialEvent }: ExpandedViewProps) => {
   const { createEvent, editEvent } = useContext(EventsContext);
   const [event, setEvent] = useState<EventObj>(initialEvent);
 
-  const updateField = (field: keyof EventObj, value: string) => {
+  const updateField = (field: keyof EventObj, value: any) => {
     setEvent((prev) => ({ ...prev, [field]: value }));
   };
 
-  const mode = () => {
-    switch(event.id){
-      case "draft":
-        return "create";
-      default:
-        return "edit";
-    }
-  }
+  const toggleAllDay = (value: boolean) => {
+    updateField('allDay', value); 
+  };
 
-  // Logic to check if this is a recurring instance
-  const isRecurring = !!event.recurringEventId || (event.recurrence && event.recurrence.length > 0);
+  // Simplified Recurrence Picker Logic
+  const cycleRecurrence = () => {
+    const options = [
+      null, 
+      ['RRULE:FREQ=DAILY'], 
+      ['RRULE:FREQ=WEEKLY'], 
+      ['RRULE:FREQ=MONTHLY']
+    ];
+    const currentIdx = options.findIndex(opt => JSON.stringify(opt) === JSON.stringify(event.recurrence));
+    const nextIdx = (currentIdx + 1) % options.length;
+    updateField('recurrence', options[nextIdx]);
+  };
 
-  const duplicateEvent = () => {
-    createEvent(event);
-  }
+  const getRecurrenceLabel = () => {
+    if (!event.recurrence || event.recurrence.length === 0) return "Does not repeat";
+    const rrule = event.recurrence[0];
+    if (rrule.includes("DAILY")) return "Every day";
+    if (rrule.includes("WEEKLY")) return "Every week";
+    if (rrule.includes("MONTHLY")) return "Every month";
+    return "Custom repeat";
+  };
 
   const { primary, secondary } = getEventTimeDisplay(event);
 
   return (
-    <View style={styles.container}>
-      {/* --- TITLE (Editable) --- */}
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }}>
+      {/* TITLE */}
       <TextInput 
         style={styles.title} 
         value={event.title}
         onChangeText={(text) => updateField('title', text)}
-        placeholder="Event Title" 
+        placeholder="New Event" 
+        placeholderTextColor="#c9c8c6"
       />
-      
-      {/* --- HOURS & DATE (Read-only without a DatePicker) --- */}
-      <Text style={styles.timeRow}>{primary}</Text>
-      <Text style={styles.dateRow}>{secondary}</Text>
 
-      <HorizontalBar />
-
-      {/* Section 1: People (Read-only from Google) */}
-      <View style={styles.section}>
+      {/* TIME BLOCK */}
+      <View style={styles.timeSection}>
         <View style={styles.row}>
-          <Text style={styles.label}>Organizer:</Text>
-          <Text style={styles.value}>{event.organizer}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Type:</Text>
-          <Text style={styles.value}>{event.eventType}</Text>
-        </View>
-      </View>
-
-      <HorizontalBar />
-
-      {/* Section 2: Location (Editable) */}
-      <View style={styles.section}>
-        <View style={styles.row}>
-          <Text style={styles.label}>Location:</Text>
-          <TextInput 
-            style={[styles.value, styles.input]} 
-            value={event.location} 
-            onChangeText={(text) => updateField('location', text)}
-            placeholder="No location provided"
-          />
-        </View>
-      </View>
-
-      <HorizontalBar />
-
-      {/* Section 3: Description (Editable) */}
-      <View style={styles.section}>
-        <View style={styles.row}>
-          <Text style={styles.label}>Description:</Text>
-          <TextInput 
-            style={styles.descriptionText} 
-            value={event.description} 
-            onChangeText={(text) => updateField('description', text)} 
-            placeholder="No description"
-            multiline 
-          />
-        </View>
-      </View>
-
-      <HorizontalBar />
-
-      {/* Section 4: Calendar & Series Status (Read-only) */}
-      <View style={styles.section}>
-        <View style={styles.row}>
-          <View style={[styles.colorIndicator, { backgroundColor: event.displayColor }]} />
-          <Text style={styles.value}>Calendar Event</Text>
-
-          {isRecurring && (
-            <View style={[styles.badge, styles.recurringBadge]}>
-              <Text style={styles.badgeText}>Recurring</Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.chipRow}>
-          <View style={styles.chip}>
-            <Text style={styles.chipText}>
-              {event.reminders.useDefault ? 'Default Reminders' : `${event.reminders.overrides?.length || 0} Custom Reminders`}
-            </Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.timeRow}>{primary}</Text>
+            <Text style={styles.dateRow}>{secondary}</Text>
           </View>
         </View>
+
+        <View style={[styles.row, { marginTop: 12 }]}>
+          <View style={styles.iconCol}><Text style={styles.icon}>🌓</Text></View>
+          <Text style={styles.primaryText}>All-day</Text>
+          <View style={{ flex: 1, alignItems: 'flex-end' }}>
+            <Switch 
+              value={event.allDay} 
+              onValueChange={toggleAllDay}
+              trackColor={{ false: "#e1e1de", true: "#2383e2" }}
+              thumbColor="#FFFFFF"
+              ios_backgroundColor="#e1e1de"
+            />
+          </View>
+        </View>
+
+        <Pressable style={[styles.row, { marginTop: 12 }]} onPress={cycleRecurrence}>
+          <View style={styles.iconCol}><Text style={styles.icon}>🔁</Text></View>
+          <Text style={styles.primaryText}>{getRecurrenceLabel()}</Text>
+          <View style={{ flex: 1, alignItems: 'flex-end' }}>
+             <Text style={styles.chevron}>〉</Text>
+          </View>
+        </Pressable>
       </View>
 
       <HorizontalBar />
 
-      {/* Section 5: Actions */}
-      <View style={styles.actionRow}>
-        <Pressable
-          style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}
-          onPress={duplicateEvent}
-        >
-          <Text style={styles.btnText}>Duplicate</Text>
-        </Pressable>
+      {/* PROPERTIES BLOCK */}
+      <View style={styles.listBlock}>
+        <View style={styles.row}>
+          <View style={styles.iconCol}><Text style={styles.icon}>📍</Text></View>
+          <TextInput 
+            style={styles.input} 
+            value={event.location} 
+            onChangeText={(text) => updateField('location', text)}
+            placeholder="Location"
+            placeholderTextColor="#c9c8c6"
+          />
+        </View>
 
-        <Pressable
-          style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}
-          onPress={() => editEvent(event)}
-        >
-          <Text style={styles.btnText}>Save</Text>
-        </Pressable>
+        <View style={[styles.row, { marginTop: 8 }]}>
+          <View style={styles.iconCol}>
+            <View style={[styles.colorSquare, { backgroundColor: event.calendar?.calendarCustomColor || '#3B82F6' }]} />
+          </View>
+          <Text style={styles.primaryText} numberOfLines={1}>{event.organizer}</Text>
+        </View>
 
-        <Pressable
-          style={({ pressed }) => [styles.btn, styles.deleteBtn, pressed && styles.deleteBtnPressed]}
-          onPress={() => console.log('Deleted')}
-        >
-          <Text style={[styles.btnText, styles.deleteText]}>Delete</Text>
-        </Pressable>
+        <View style={[styles.row, { marginTop: 8 }]}>
+          <View style={styles.iconCol}><Text style={styles.icon}>🔔</Text></View>
+          <Text style={styles.secondaryText}>
+            {event.reminders.useDefault ? 'Default Reminders' : `${event.reminders.overrides?.length || 0} Custom Reminders`}
+          </Text>
+        </View>
       </View>
-    </View>
+
+      <HorizontalBar />
+
+      {/* DESCRIPTION BLOCK */}
+      <View style={styles.descBlock}>
+        <TextInput 
+          style={styles.descriptionInput} 
+          value={event.description} 
+          onChangeText={(text) => updateField('description', text)} 
+          placeholder="Add description..."
+          placeholderTextColor="#c9c8c6"
+          multiline 
+        />
+      </View>
+
+      <HorizontalBar />
+
+      {/* ACTIONS */}
+      <View style={styles.actionBlock}>
+        <Pressable style={({ pressed }) => [styles.btn, styles.primaryBtn, pressed && styles.primaryBtnPressed]} onPress={() => editEvent(event)}>
+          <Text style={styles.primaryBtnText}>Save Changes</Text>
+        </Pressable>
+        
+        <View style={styles.actionRowHalf}>
+          <Pressable style={({ pressed }) => [styles.btn, styles.secondaryBtn, pressed && styles.btnPressed]} onPress={() => createEvent(event)}>
+            <Text style={styles.secondaryBtnText}>Duplicate</Text>
+          </Pressable>
+          <Pressable style={({ pressed }) => [styles.btn, styles.secondaryBtn, pressed && styles.btnPressed]} onPress={() => console.log('Deleted')}>
+            <Text style={styles.deleteText}>Delete</Text>
+          </Pressable>
+        </View>
+      </View>
+    </ScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { marginTop: 10 },
-  label: { fontSize: 16, color: '#8b8e94', width: 85 },
-  section: { paddingHorizontal: 4 },
-  value: { fontSize: 16, color: '#111827', fontWeight: '500' },
-  input: { flex: 1, padding: 0 }, // Removes Android default padding on TextInputs
-  row: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 8 }, // Align to top for multiline
-  colorIndicator: { width: 12, height: 12, borderRadius: 6, alignSelf: 'center' },
-  badge: { backgroundColor: '#E5E7EB', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, alignSelf: 'center' },
-  recurringBadge: { backgroundColor: '#DBEAFE' },
-  badgeText: { fontSize: 11, fontWeight: '600', color: '#1E40AF' },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: '#E5E7EB' },
-  chipText: { fontSize: 13, color: '#4B5563' },
-  actionRow: { flexDirection: 'row', gap: 12, marginBottom: 40, marginTop: 16 },
-  btn: { flex: 1, backgroundColor: '#F3F4F6', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  title: { fontSize: 24, fontWeight: '700', color: '#111827', marginBottom: 8, padding: 0 },
+  container: { backgroundColor: '#FFFFFF', flex: 1, paddingHorizontal: 16, paddingTop: 12 },
+  bar: { height: 1, backgroundColor: '#ededed', marginVertical: 12 },
+  
+  // Title
+  title: { fontSize: 28, fontWeight: '700', color: '#37352f', padding: 0, marginBottom: 0 },
+  
+  // Time Section
+  timeSection: { marginVertical: 2 },
   timeRow: { fontSize: 18, color: '#374151', fontWeight: '500', lineHeight: 24 },
   dateRow: { fontSize: 16, color: '#6B7280', marginTop: 2 },
-  btnPressed: { backgroundColor: '#E5E7EB' },
-  deleteBtn: { backgroundColor: '#FEE2E2' },
-  deleteBtnPressed: { backgroundColor: '#FECACA' },
-  btnText: { fontSize: 16, fontWeight: '600', color: '#374151' },
-  deleteText: { color: '#DC2626' },
-  descriptionText: { flex: 1, fontSize: 16, color: '#4B5563', padding: 0, textAlignVertical: 'top', minHeight: 40 },
+
+  // Layout & Rows
+  listBlock: { marginVertical: 4 },
+  row: { flexDirection: 'row', alignItems: 'center', minHeight: 36 },
+  iconCol: { width: 32, alignItems: 'flex-start', justifyContent: 'center' },
+  icon: { fontSize: 18, color: '#787774' },
+  chevron: { fontSize: 14, color: '#c9c8c6', fontWeight: '600' },
+  colorSquare: { width: 14, height: 14, borderRadius: 3 },
+  
+  // Typography
+  primaryText: { fontSize: 15, color: '#37352f', fontWeight: '400' },
+  secondaryText: { fontSize: 15, color: '#787774', fontWeight: '400' },
+  input: { flex: 1, fontSize: 15, color: '#37352f', padding: 0, fontWeight: '400' },
+  
+  // Description Area
+  descBlock: { marginVertical: 8, minHeight: 150 },
+  descriptionInput: { flex: 1, fontSize: 15, color: '#37352f', padding: 0, textAlignVertical: 'top', lineHeight: 22 },
+
+  // Buttons
+  actionBlock: { marginTop: 20, gap: 10 },
+  actionRowHalf: { flexDirection: 'row', gap: 10 },
+  btn: { flex: 1, paddingVertical: 12, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  primaryBtn: { backgroundColor: '#2383e2' },
+  primaryBtnPressed: { backgroundColor: '#1d6ebc' },
+  primaryBtnText: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
+  secondaryBtn: { backgroundColor: '#f1f1ef', borderHeight: 1, borderColor: '#e1e1de' },
+  btnPressed: { backgroundColor: '#e1e1de' },
+  secondaryBtnText: { fontSize: 14, fontWeight: '500', color: '#37352f' },
+  deleteText: { fontSize: 14, fontWeight: '500', color: '#eb5757' },
 });
