@@ -1,6 +1,6 @@
 import { getEventTimeDisplay } from '@/utility/eventUtils';
 import { EventObj } from '@/utility/types';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { EventsContext } from '../contexts/calendar-events-context';
 
@@ -13,6 +13,11 @@ const HorizontalBar = () => <View style={styles.bar} />;
 export const EventExpandedView = ({ initialEvent }: ExpandedViewProps) => {
   const { createEvent, editEvent } = useContext(EventsContext);
   const [event, setEvent] = useState<EventObj>(initialEvent);
+
+  // Sync the state when the initialEvent prop changes
+  useEffect(() => {
+    setEvent(initialEvent);
+  }, [initialEvent]);
 
   const updateField = (field: keyof EventObj, value: any) => {
     setEvent((prev) => ({ ...prev, [field]: value }));

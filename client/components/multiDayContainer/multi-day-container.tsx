@@ -48,9 +48,8 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
 
   //stabilizes callback
   const handlePress = useCallback((event: EventObj | null) => {
-    if (!event) setEventDetailsVisible(false);
     setSelectedEvent(event);
-    setEventDetailsVisible(!!event);
+    setEventDetailsVisible(event !== null);
   }, []);
 
   //pregroups events instead of on render

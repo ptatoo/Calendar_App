@@ -26,8 +26,6 @@ export default function EventDetails({ isVisible, event, onClose }: Props) {
       bottomSheetModalRef.current?.dismiss();
     }
   }, [isVisible, event]);
-
-  if (!event) return null;
   
   return (
     <BottomSheetModal
@@ -49,7 +47,7 @@ export default function EventDetails({ isVisible, event, onClose }: Props) {
       }}
     >
       <BottomSheetScrollView contentContainerStyle={styles.contentContainer}>
-        {<EventExpandedView initialEvent={event} />}
+        {event && <EventExpandedView initialEvent={event} />}
       </BottomSheetScrollView>
     </BottomSheetModal>
   );

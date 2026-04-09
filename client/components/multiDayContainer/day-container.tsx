@@ -99,7 +99,6 @@ export default function DayContainer({
         {/* --- CLOSE EVENT DETAILS BUTTON --- */}
         <Pressable
           onPress={(event) => {
-            handlePress(null); // closes event container
             const y = getYofEventPress(event); 
             const hour = Math.floor(y / hourHeight);
 
@@ -111,6 +110,7 @@ export default function DayContainer({
               endDate: new Date(clickedTime.getTime() + 60 * 60 * 1000), // Default 1 hr duration
               title: 'New Event' // Or empty string, handled by your UI
             });
+            console.log("Clicked at hour: ", hour);
             handlePress(draftEvent);
           }}
           style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: 'transparent' }]}
