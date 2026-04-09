@@ -1,6 +1,6 @@
 import { calendarObj } from '@/utility/types';
 import { Ionicons } from '@expo/vector-icons';
-import { useContext, useMemo, useRef } from 'react';
+import { useContext, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector, ScrollView } from 'react-native-gesture-handler';
 import Animated, { SharedValue, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -61,13 +61,13 @@ function DraggableCalendar({
     .onUpdate((e) => {
       offset.value = { x: e.translationX, y: e.translationY };
       hoverIndex.value = thisIndex + e.translationY / calendarIndividualHeight;
+      console.log(hoverIndex.value);
     })
     .onEnd((e) => {
-      onDrop(thisIndex, hoverIndex.value ? Math.round(hoverIndex.value - 1) : 0);
+      onDrop(thisIndex, hoverIndex.value && hoverIndex.value >= 0 ? Math.round(hoverIndex.value) : 0);
       isDragging.value = false;
       hoverIndex.value = null;
       activeIndex.value = null;
-      // Tell the main thread to move the data
       offset.value = withSpring({ x: 0, y: 0 });
     });
 
@@ -86,6 +86,7 @@ function DraggableCalendar({
     let translateY1 = 0;
     let translateY2 = 0;
 
+    //Stop movement immediatey onDrop
     if (hoverIndex.value === null) {
       return {
         transform: [{ translateY: 0 }],
@@ -95,12 +96,13 @@ function DraggableCalendar({
       };
     }
 
-    //If the calendar is above us, move down
-    if (hoverIndex.value !== null) {
-      const isAfterHover = thisIndex >= hoverIndex.value;
+    //Move the Calendars around the active Calendars
+    if (hoverIndex.value !== null && activeIndex.value !== null) {
+      let isAfterHover = thisIndex + 0.0 >= hoverIndex.value - 0.5 && thisIndex <= activeIndex.value;
+      isAfterHover = isAfterHover || (thisIndex + 0.0 >= hoverIndex.value + 0.5 && thisIndex >= activeIndex.value);
       if (isAfterHover) translateY1 = calendarIndividualHeight;
     }
-    //If the calendar is within the OG one and below us, move up
+    //Adjust the calendars below the moving one
     if (activeIndex.value !== null) {
       const isBeforeOriginal = thisIndex >= activeIndex.value;
       if (isBeforeOriginal) translateY2 = -calendarIndividualHeight;
@@ -115,31 +117,40 @@ function DraggableCalendar({
   });
 
   return (
-    <GestureDetector gesture={gesture}>
-      <Animated.View style={[animatedStyle, { backgroundColor: 'white' }]}>
-        {cal.calendar !== null ? (
-          <CalendarDrawerList calendarObj={cal.calendar} onToggle={toggleCalendar} />
-        ) : (
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <Ionicons name={'folder-outline'} size={14} />
-            <Text style={styles.sectionHeaderText}>{toTitleCase(cal.id)}</Text>
-          </View>
-        )}
-      </Animated.View>
-    </GestureDetector>
+    <>
+      {cal.folder === true ? (
+        <Animated.View style={[animatedStyle, { backgroundColor: 'white' }]}>
+          {cal.calendar !== null ? (
+            <CalendarDrawerList calendarObj={cal.calendar} onToggle={toggleCalendar} />
+          ) : (
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <Ionicons name={'folder-outline'} size={14} />
+              <Text style={styles.sectionHeaderText}>{toTitleCase(cal.id)}</Text>
+            </View>
+          )}
+        </Animated.View>
+      ) : (
+        <GestureDetector gesture={gesture}>
+          <Animated.View style={[animatedStyle, { backgroundColor: 'white' }]}>
+            {cal.calendar !== null ? (
+              <CalendarDrawerList calendarObj={cal.calendar} onToggle={toggleCalendar} />
+            ) : (
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <Ionicons name={'folder-outline'} size={14} />
+                <Text style={styles.sectionHeaderText}>{toTitleCase(cal.id)}</Text>
+              </View>
+            )}
+          </Animated.View>
+        </GestureDetector>
+      )}
+    </>
   );
 }
 
 export default function CustomDrawerContent(props: any) {
   const { calendarType, setCalendarType } = useContext(AuthContext);
-  const { familyProfiles, setCalendarObj, groupedCalendars, updateSingleGroup } = useContext(EventsContext);
+  const { familyProfiles, setCalendarObj, groupedCalendars, updateSingleGroup, updateMultipleGroups } = useContext(EventsContext);
   const { setLoginVisible } = useContext(UIContext);
-
-  const groupSizes: number[] = useMemo(() => {
-    return groupedCalendars.map((cal) => {
-      return cal.calendars.length;
-    });
-  }, [groupedCalendars]);
 
   const getButtonStyle = (option: '1' | '2' | '3' | 'W' | 'M', pressed: boolean) => [
     styles.viewButton,
@@ -163,57 +174,31 @@ export default function CustomDrawerContent(props: any) {
     setLoginVisible(true);
   };
 
-  const handleDropOld = (thisIndex: number, newIndex: number): void => {
-    let originalGroupIndex = 0;
-    let newGroupIndex = 0;
-    flatData.map((data, index) => {
-      if (index < thisIndex && data.folder === true) originalGroupIndex += 1;
-      if (index < newIndex && data.folder === true) newGroupIndex += 1;
-    });
-
-    //shifted around in same group
-    if (originalGroupIndex === newGroupIndex) {
-      let inCorrectGroup = false;
-      const group = groupedCalendars[originalGroupIndex];
-      const newGroup: { id: string; calendars: calendarObj[] } = { id: group.id, calendars: [] };
-
-      flatData.map((data, index) => {
-        if (data.folder === true && data.id === group.id) inCorrectGroup = true;
-        else inCorrectGroup = false;
-        //moves the event to new position
-        if (inCorrectGroup && index === newIndex && flatData[thisIndex].calendar) newGroup.calendars.push(flatData[thisIndex].calendar);
-        if (inCorrectGroup && data.calendar) newGroup.calendars.push(data.calendar);
-      });
-      const temp = { ...flatData[thisIndex] };
-      flatData[thisIndex] = flatData[newIndex];
-      flatData[newIndex] = temp;
-    }
-
-    console.log(flatData);
-  };
-
   const handleDrop = (thisIndex: number, newIndex: number): void => {
     const movingItem = flatData[thisIndex];
     if (!movingItem || movingItem.folder || !movingItem.calendar) return;
 
-    // 1. Identify Source and Destination Folders
+    // Identify Source and Destination Folders
     let currentGroupIdx = -1;
     let sourceGroupIdx = -1;
     let destGroupIdx = -1;
 
     flatData.forEach((item, idx) => {
       if (item.folder) currentGroupIdx++;
-      if (idx === thisIndex) sourceGroupIdx = currentGroupIdx;
-      if (idx === newIndex) destGroupIdx = currentGroupIdx;
+      if (idx === thisIndex) {
+        sourceGroupIdx = currentGroupIdx;
+      }
+      if (idx === newIndex - 1 && thisIndex > newIndex) destGroupIdx = currentGroupIdx;
+      if (idx === newIndex && thisIndex <= newIndex) destGroupIdx = currentGroupIdx;
     });
 
     const sourceGroup = groupedCalendars[sourceGroupIdx];
     const destGroup = groupedCalendars[destGroupIdx];
 
-    // 2. Remove from Source Group
+    // Remove from Source Group
     const updatedSourceCals = sourceGroup.calendars.filter((c) => c.calendarId !== movingItem.calendar?.calendarId);
 
-    // 3. Insert into Destination Group
+    // Insert into Destination Group
     const updatedDestCals =
       sourceGroup.id === destGroup.id
         ? [...updatedSourceCals] // If same group, start with the filtered list
@@ -222,32 +207,36 @@ export default function CustomDrawerContent(props: any) {
     // Calculate relative index within the destination folder
     let targetRelIndex = 0;
     let foundTargetFolder = false;
-    for (let i = 0; i <= newIndex; i++) {
+    for (let i = 0; i < newIndex; i++) {
       const item = flatData[i];
       if (item.folder && item.id === destGroup.id) {
         foundTargetFolder = true;
         targetRelIndex = 0;
-      } else if (foundTargetFolder && !item.folder) {
-        targetRelIndex++;
+        continue;
+      }
+      if (foundTargetFolder && !item.folder) {
+        targetRelIndex += 1;
       }
     }
-
+    console.log(thisIndex, newIndex);
+    console.log(sourceGroupIdx, destGroupIdx);
     updatedDestCals.splice(targetRelIndex, 0, movingItem.calendar);
 
-    // 4. Update the Context
+    // Update the Context
     if (sourceGroup.id === destGroup.id) {
-      // Case A: Moved within the same folder
       updateSingleGroup(destGroup.id, updatedDestCals);
     } else {
-      // Case B: Moved to a different folder
-      // We update both in one go to prevent two separate render cycles
+      updateMultipleGroups([
+        { groupId: sourceGroup.id, newCalendars: updatedSourceCals },
+        { groupId: destGroup.id, newCalendars: updatedDestCals },
+      ]);
     }
   };
 
-  const folderLayouts = useRef<Record<string, { y: number; height: number }>>({});
   const hoverIndex = useSharedValue<number | null>(null);
   const activeIndex = useSharedValue<number | null>(null);
 
+  //Both Folders and Calendars are mapped to Draggable Flatlist in flatData
   const flatData = useMemo(() => {
     return groupedCalendars.flatMap((group) => [
       { id: group.id, folder: true, calendar: null as calendarObj | null },
@@ -256,7 +245,6 @@ export default function CustomDrawerContent(props: any) {
       }),
     ]);
   }, [groupedCalendars]);
-  console.log(flatData);
 
   return (
     <SafeAreaView style={styles.headerContainer}>
