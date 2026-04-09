@@ -41,3 +41,15 @@ export const getPositions = (
     });
   });
 };
+
+export const toTitleCase = (str: string): string => {
+  // Convert the whole string to lowercase first for consistent results
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map((word) => {
+      // Capitalize the first letter of each word and concatenate with the rest of the word
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}
