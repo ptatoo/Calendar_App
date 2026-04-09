@@ -16,9 +16,14 @@ export interface EventsContextType {
     id: string;
     calendars: calendarObj[];
   }[];
-  moveCalendar: (calendarId: string, targetGroupId: string) => void;
   setCalendarObj: Dispatch<SetStateAction<calendarObj[] | null>>;
   updateSingleGroup: (groupId: string, newCalendars: calendarObj[]) => void;
+  updateMultipleGroups: (
+    updates: {
+      groupId: string;
+      newCalendars: calendarObj[];
+    }[],
+  ) => void;
 
   // Write state
   createEvent: (event: EventObj) => Promise<any>;
@@ -35,8 +40,8 @@ export const EventsContext = createContext<EventsContextType>({
   isLoading: false,
   setCalendarObj: () => {},
   groupedCalendars: [],
-  moveCalendar: () => {},
   updateSingleGroup: () => {},
+  updateMultipleGroups: () => {},
   createEvent: async () => {}, // Added
   editEvent: async () => {}, // Added
   isWriting: false, // Added
@@ -110,36 +115,20 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [calendarObjs]);
 
-  const moveCalendar = (calendarId: string, targetGroupId: string) => {
-    setGroupedCalendars((prev) => {
-      // 1. Find the calendar in the current groups and remove it
-      let calendarToMove: calendarObj | undefined;
-      const cleanedGroups = prev.map((group) => {
-        const filtered = group.calendars.filter((c) => {
-          if (c.calendarId === calendarId) {
-            calendarToMove = c;
-            return false;
-          }
-          return true;
-        });
-        return { ...group, calendars: filtered };
-      });
-
-      // 2. Add it to the target group
-      if (calendarToMove) {
-        return cleanedGroups.map((group) => {
-          if (group.id === targetGroupId) {
-            return { ...group, calendars: [...group.calendars, calendarToMove!] };
-          }
-          return group;
-        });
-      }
-      return prev;
-    });
-  };
-
   const updateSingleGroup = (groupId: string, newCalendars: calendarObj[]) => {
     setGroupedCalendars((prev) => prev.map((group) => (group.id === groupId ? { ...group, calendars: newCalendars } : group)));
+  };
+
+  const updateMultipleGroups = (updates: { groupId: string; newCalendars: calendarObj[] }[]) => {
+    setGroupedCalendars((prev) =>
+      prev.map((group) => {
+        // Find if there is an update for this specific group
+        const update = updates.find((u) => u.groupId === group.id);
+
+        // If an update exists, return the new calendars, otherwise return the group as is
+        return update ? { ...group, calendars: update.newCalendars } : group;
+      }),
+    );
   };
 
   return (
@@ -151,8 +140,8 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
         familyProfiles,
         isLoading,
         groupedCalendars,
-        moveCalendar,
         updateSingleGroup,
+        updateMultipleGroups,
         createEvent,
         editEvent,
         isWriting,
