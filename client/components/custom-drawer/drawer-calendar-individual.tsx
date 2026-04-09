@@ -1,3 +1,4 @@
+import { DRAWER_DRAGGABLE_HEIGHT } from '@/utility/constants';
 import { getPositions } from '@/utility/drawerUtil';
 import { calendarObj } from '@/utility/types';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,14 +20,20 @@ export default function CalendarDrawerList({
   const [isVisible, setVisible] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const buttonRef = useRef<View>(null);
+  const [opacity, setOpacity] = useState(calendarObj.shown ? 1 : 0.5);
 
-  const { allCaches, activeCacheId, setManualCalendarColor, getCalendarColor } = useContext(UIContext);
+  const { allCaches, activeCacheId, getCalendarColor } = useContext(UIContext);
   const [color, setColor] = useState<string>();
 
   //Sync color with colorCache
   useEffect(() => {
     setColor(getCalendarColor(calendarObj.calendarId));
   }, [allCaches, activeCacheId]);
+
+  useEffect(() => {
+    setOpacity(calendarObj.shown ? 1 : 0.5);
+    console.log(opacity);
+  }, [calendarObj.shown]);
 
   return (
     <View key={calendarObj.calendarId} style={styles.calendarItem}>
@@ -37,11 +44,11 @@ export default function CalendarDrawerList({
             styles.colorSquare,
             {
               backgroundColor: color || calendarObj.calendarDefaultColor,
-              opacity: calendarObj.shown ? 1 : 0.5,
+              opacity: opacity,
             },
           ]}
         />
-        <Text style={[styles.calendarName, { opacity: calendarObj.shown ? 1 : 0.5 }]} numberOfLines={1}>
+        <Text style={[styles.calendarName, { opacity: opacity }]} numberOfLines={1}>
           {calendarObj.calendarName}
         </Text>
       </View>
@@ -57,7 +64,7 @@ export default function CalendarDrawerList({
             }}
             style={({ pressed }) => [styles.iconButton, pressed && styles.pressedButton]}
           >
-            <Ionicons name={'ellipsis-horizontal-outline'} size={14} color={calendarObj.shown ? '#333' : '#ccc'} />
+            <Ionicons name={'ellipsis-horizontal-outline'} size={14} color={opacity === 1 ? '#333' : '#ccc'} />
           </Pressable>
         </View>
         {/* --- SETTINGS MODAL --- */}
@@ -66,11 +73,12 @@ export default function CalendarDrawerList({
         {/* --- VISIBILITY TOGGLE --- */}
         <Pressable
           onPress={() => {
+            setOpacity(opacity === 0.5 ? 1 : 0.5);
             onToggle(calendarObj.calendarId);
           }}
           style={({ pressed }) => [styles.iconButton, pressed && styles.pressedButton]}
         >
-          <Ionicons name={calendarObj.shown ? 'eye-outline' : 'eye-off-outline'} size={14} color={calendarObj.shown ? '#333' : '#ccc'} />
+          <Ionicons name={calendarObj.shown ? 'eye-outline' : 'eye-off-outline'} size={14} color={opacity === 1 ? '#333' : '#ccc'} />
         </Pressable>
       </View>
     </View>
@@ -83,7 +91,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 6,
     backgroundColor: 'white',
-    height: 36,
+    height: DRAWER_DRAGGABLE_HEIGHT,
   },
   calendarInfo: {
     flexDirection: 'row',

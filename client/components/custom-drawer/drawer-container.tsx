@@ -1,9 +1,8 @@
 import { calendarObj } from '@/utility/types';
-import { Ionicons } from '@expo/vector-icons';
 import { useContext, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Gesture, GestureDetector, ScrollView } from 'react-native-gesture-handler';
-import Animated, { SharedValue, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { ScrollView } from 'react-native-gesture-handler';
+import { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 //Global Contexts
@@ -11,141 +10,8 @@ import { AuthContext } from '../contexts/auth-context';
 import { EventsContext } from '../contexts/calendar-events-context';
 import { UIContext } from '../contexts/ui-context';
 
-import CalendarDrawerList from './drawer-calendar-individual';
-
-const calendarIndividualHeight = 36;
-const calendarHeaderHeight = 36;
-
-function toTitleCase(str: string): string {
-  // Convert the whole string to lowercase first for consistent results
-  return str
-    .toLowerCase()
-    .split(' ')
-    .map((word) => {
-      // Capitalize the first letter of each word and concatenate with the rest of the word
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
-    .join(' ');
-}
-
-//Each Individual Calendar
-function DraggableCalendar({
-  cal,
-  onDrop,
-  toggleCalendar,
-  thisIndex,
-  hoverIndex,
-  activeIndex,
-}: {
-  cal: {
-    id: string;
-    folder: boolean;
-    calendar: calendarObj | null;
-  };
-  onDrop: (thisIndex: number, hoverIndex: number) => void;
-  toggleCalendar: (id: string) => void;
-  thisIndex: number;
-  hoverIndex: SharedValue<number | null>;
-  activeIndex: SharedValue<number | null>;
-}) {
-  const isDragging = useSharedValue(false);
-  const offset = useSharedValue({ x: 0, y: 0 });
-
-  const gesture = Gesture.Pan()
-    .shouldCancelWhenOutside(false)
-    .onStart(() => {
-      isDragging.value = true;
-      activeIndex.value = thisIndex;
-      hoverIndex.value = thisIndex;
-    })
-    .onUpdate((e) => {
-      offset.value = { x: e.translationX, y: e.translationY };
-      hoverIndex.value = thisIndex + e.translationY / calendarIndividualHeight;
-      console.log(hoverIndex.value);
-    })
-    .onEnd((e) => {
-      onDrop(thisIndex, hoverIndex.value && hoverIndex.value >= 0 ? Math.round(hoverIndex.value) : 0);
-      isDragging.value = false;
-      hoverIndex.value = null;
-      activeIndex.value = null;
-      offset.value = withSpring({ x: 0, y: 0 });
-    });
-
-  //for animated view
-  const animatedStyle = useAnimatedStyle(() => {
-    // If this item is the one being dragged:
-    if (isDragging.value) {
-      return {
-        transform: [{ translateX: 0 }, { translateY: offset.value.y }, { scale: 1.0 }],
-        zIndex: 1000,
-        opacity: 1,
-      };
-    }
-
-    // Move Calendars around the dynamic calendar
-    let translateY1 = 0;
-    let translateY2 = 0;
-
-    //Stop movement immediatey onDrop
-    if (hoverIndex.value === null) {
-      return {
-        transform: [{ translateY: 0 }],
-        width: '100%',
-        zIndex: 1,
-        opacity: 1,
-      };
-    }
-
-    //Move the Calendars around the active Calendars
-    if (hoverIndex.value !== null && activeIndex.value !== null) {
-      let isAfterHover = thisIndex + 0.0 >= hoverIndex.value - 0.5 && thisIndex <= activeIndex.value;
-      isAfterHover = isAfterHover || (thisIndex + 0.0 >= hoverIndex.value + 0.5 && thisIndex >= activeIndex.value);
-      if (isAfterHover) translateY1 = calendarIndividualHeight;
-    }
-    //Adjust the calendars below the moving one
-    if (activeIndex.value !== null) {
-      const isBeforeOriginal = thisIndex >= activeIndex.value;
-      if (isBeforeOriginal) translateY2 = -calendarIndividualHeight;
-    }
-
-    return {
-      transform: [{ translateY: withSpring(translateY1 + translateY2) }],
-      width: '100%',
-      zIndex: 1,
-      opacity: 1,
-    };
-  });
-
-  return (
-    <>
-      {cal.folder === true ? (
-        <Animated.View style={[animatedStyle, { backgroundColor: 'white' }]}>
-          {cal.calendar !== null ? (
-            <CalendarDrawerList calendarObj={cal.calendar} onToggle={toggleCalendar} />
-          ) : (
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <Ionicons name={'folder-outline'} size={14} />
-              <Text style={styles.sectionHeaderText}>{toTitleCase(cal.id)}</Text>
-            </View>
-          )}
-        </Animated.View>
-      ) : (
-        <GestureDetector gesture={gesture}>
-          <Animated.View style={[animatedStyle, { backgroundColor: 'white' }]}>
-            {cal.calendar !== null ? (
-              <CalendarDrawerList calendarObj={cal.calendar} onToggle={toggleCalendar} />
-            ) : (
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                <Ionicons name={'folder-outline'} size={14} />
-                <Text style={styles.sectionHeaderText}>{toTitleCase(cal.id)}</Text>
-              </View>
-            )}
-          </Animated.View>
-        </GestureDetector>
-      )}
-    </>
-  );
-}
+import { toTitleCase } from '@/utility/drawerUtil';
+import DraggableCalendar from './drawer-draggable-calendar';
 
 export default function CustomDrawerContent(props: any) {
   const { calendarType, setCalendarType } = useContext(AuthContext);
@@ -362,5 +228,4 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginVertical: 4,
   },
-  sectionHeaderText: { fontSize: 13, fontWeight: '600', height: calendarHeaderHeight, borderWidth: 1 },
 });
