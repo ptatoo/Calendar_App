@@ -143,17 +143,25 @@ export const EventExpandedView = ({ initialEvent }: ExpandedViewProps) => {
 
       {/* ACTIONS */}
       <View style={styles.actionBlock}>
-        <Pressable style={({ pressed }) => [styles.btn, styles.primaryBtn, pressed && styles.primaryBtnPressed]} onPress={() => editEvent(event)}>
-          <Text style={styles.primaryBtnText}>Save Changes</Text>
-        </Pressable>
+        {
+        event.id ? ( 
+          <Pressable style={({ pressed }) => [styles.btn, styles.primaryBtn, pressed && styles.primaryBtnPressed]} onPress={() => editEvent(event)}>
+            <Text style={styles.primaryBtnText}>Save Changes</Text>
+          </Pressable>
+        ) : (null)
+    }
         
         <View style={styles.actionRowHalf}>
           <Pressable style={({ pressed }) => [styles.btn, styles.secondaryBtn, pressed && styles.btnPressed]} onPress={() => createEvent(event)}>
-            <Text style={styles.secondaryBtnText}>Duplicate</Text>
+            <Text style={styles.secondaryBtnText}>{event.id ? 'Duplicate' : 'Create Event'}</Text>
           </Pressable>
-          <Pressable style={({ pressed }) => [styles.btn, styles.secondaryBtn, pressed && styles.btnPressed]} onPress={() => deleteEvent(event)}>
-            <Text style={styles.deleteText}>Delete</Text>
-          </Pressable>
+          {
+          event.id ? ( 
+            <Pressable style={({ pressed }) => [styles.btn, styles.secondaryBtn, pressed && styles.btnPressed]} onPress={() => deleteEvent(event)}>
+              <Text style={styles.deleteText}>Delete</Text>
+            </Pressable>
+          ) : (null)
+          }
         </View>
       </View>
     </ScrollView>
