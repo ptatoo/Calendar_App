@@ -5,6 +5,7 @@ import { UIContext } from '../contexts/ui-context';
 import { differenceInMinutes, getHours, getMinutes } from 'date-fns';
 import React, { useContext, useMemo } from 'react';
 
+import { lightenColor } from '@/utility/eventUtils';
 import { StyleSheet, Text, View } from 'react-native';
 import { Pressable } from 'react-native-gesture-handler';
 
@@ -24,26 +25,6 @@ const getEventLayout = (event: EventObj, offset: number, hourHeight: number, day
     left: left,
     width: dayWidth - left - EVENT_GAP,
   };
-};
-
-const lightenColor = (hex: string, percent: number): string => {
-  // Remove the hash if it exists
-  let color = hex.replace(/^#/, '');
-
-  // Parse the RGB components
-  let r = parseInt(color.substring(0, 2), 16);
-  let g = parseInt(color.substring(2, 4), 16);
-  let b = parseInt(color.substring(4, 6), 16);
-
-  // Lighten each channel
-  r = Math.floor(r + (255 - r) * (percent / 100));
-  g = Math.floor(g + (255 - g) * (percent / 100));
-  b = Math.floor(b + (255 - b) * (percent / 100));
-
-  // Convert back to hex and pad with zeros if necessary
-  const toHex = (c: number) => c.toString(16).padStart(2, '0');
-
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 };
 
 //TODO: MAKE THIS LOOK PRETTY
@@ -71,13 +52,13 @@ const EventContainer = ({
 
   const rawColor = useMemo(() => {
     let c = getCalendarColor(event.calendarId);
-    if (now.getTime() > event.endDate.getTime()) {
-      c = lightenColor(c, 60);
-    }
-    return c;
+    return lightenColor(c, 0, 0);
   }, [allCaches, activeCacheId, event.calendarId, now]);
-  const color = useMemo(() => {
-    return lightenColor(rawColor, 50);
+  const borderColor = useMemo(() => {
+    return lightenColor(rawColor, 50, 20);
+  }, [rawColor]);
+  const textColor = useMemo(() => {
+    return lightenColor(rawColor, 40, -50);
   }, [rawColor]);
 
   return (
@@ -100,9 +81,9 @@ const EventContainer = ({
         hitSlop={5}
       >
         {/* --- EVENT LEFT BAR --- */}
-        <View style={[styles.event, { backgroundColor: color, borderLeftColor: rawColor }]}>
+        <View style={[styles.event, { backgroundColor: rawColor, borderLeftColor: borderColor }]}>
           {/* --- EVENT TITLE --- */}
-          <Text style={styles.eventText} numberOfLines={1}>
+          <Text style={[styles.eventText, { color: textColor }]} numberOfLines={1}>
             {event.title}
           </Text>
         </View>
@@ -130,7 +111,6 @@ const styles = StyleSheet.create({
   eventText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#000000',
   },
   eventTime: {
     fontSize: 8,

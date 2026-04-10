@@ -36,8 +36,8 @@ export default function CustomDrawerContent(props: any) {
 
   //open up settings/login page
   const handleSettingspress = () => {
-    props.navigation.closeDrawer();
     setLoginVisible(true);
+    props.navigation.closeDrawer();
   };
 
   const handleDrop = (thisIndex: number, newIndex: number): void => {
@@ -84,8 +84,6 @@ export default function CustomDrawerContent(props: any) {
         targetRelIndex += 1;
       }
     }
-    console.log(thisIndex, newIndex);
-    console.log(sourceGroupIdx, destGroupIdx);
     updatedDestCals.splice(targetRelIndex, 0, movingItem.calendar);
 
     // Update the Context

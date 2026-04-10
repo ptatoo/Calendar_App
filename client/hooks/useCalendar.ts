@@ -68,7 +68,7 @@ export function useCalendar(jwtToken: string | null) {
           owner: cal.dataOwner,
           name: cal.summary,
           color: cal.backgroundColor || "#4285F4",
-          events: processCalendar(rawEvents, cal.summary, cal.backgroundColor || "#4285F4", cal.summary, newCalendarObj)
+          events: processCalendar(rawEvents, cal.id, cal.summary, newCalendarObj)
         } as CalendarData;
       });
 
@@ -114,7 +114,7 @@ export function useCalendar(jwtToken: string | null) {
             owner: token.id, 
             name: cal.summary,
             color: cal.backgroundColor || "#34A853",
-            events: processCalendar(rawEvents, cal.id, cal.backgroundColor || "#34A853", token.email, newCalendarObj)
+            events: processCalendar(rawEvents, cal.id, token.email, newCalendarObj)
           } as CalendarData;
         })
       });
