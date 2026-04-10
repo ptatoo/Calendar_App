@@ -61,7 +61,7 @@ export const fetchCalendar = async (accessToken: string) => {
 }
 // Google Api: Fetch Calendar Events
 export const fetchGivenCalendar = async (accessToken: string, calendarId: string = "primary", isPrimary: boolean = false) => {
-    const encodedId = (!isPrimary) ? encodeURIComponent(calendarId) : encodeURIComponent("primary");
+    const encodedId = encodeURIComponent(calendarId);
     let allEvents: any[] = [];
     let pageToken: string | undefined = undefined;
 
@@ -144,7 +144,7 @@ export const editEventToGoogleCalendar = async (accessToken: string, eventObj : 
   }
 
   const googleEvent = convertToGoogleEvent(eventObj);
-  const calendarId = eventObj.calendarId || 'primary';
+  const calendarId = eventObj.calendarId;
   const eventId = eventObj.id;
 
   try {
@@ -165,6 +165,41 @@ export const editEventToGoogleCalendar = async (accessToken: string, eventObj : 
     } else {
       console.error('Error updating event:', data);
       throw new Error(data.error.message);
+    }
+  } catch (error) {
+    console.error('Network or API Error:', error);
+    throw error;
+  }
+};
+
+//calendar writing
+export const deleteEventToGoogleCalendar = async (accessToken: string, eventObj : EventObj) => {
+  if (!eventObj.id) {
+    throw new Error("Event ID is required to delete an event.");
+  }
+
+  const googleEvent = convertToGoogleEvent(eventObj);
+  const calendarId = eventObj.calendarId;
+  const eventId = eventObj.id;
+
+  try {
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, {
+      method: 'DELETE'  ,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log("ilovejson");
+    const data = await response;
+    console.log("ilovesjson");
+
+    if (response.ok) {
+      console.log('Event deleted successfully');
+      return data;
+    } else {
+      console.error('Error deleting event:', data);
+      throw new Error("errpr");
     }
   } catch (error) {
     console.error('Network or API Error:', error);

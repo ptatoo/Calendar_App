@@ -1,6 +1,6 @@
 import { EventObj } from "@/utility/types";
 import { useState } from "react";
-import { addEventToGoogleCalendar, editEventToGoogleCalendar } from "../services/api"; // Adjust path
+import { addEventToGoogleCalendar, deleteEventToGoogleCalendar, editEventToGoogleCalendar } from "../services/api"; // Adjust path
 import { useAccessToken } from "./useAccessToken";
 
 export function useCalendarWrite(jwtToken: string | null) {
@@ -52,7 +52,33 @@ export function useCalendarWrite(jwtToken: string | null) {
       return result; // Returns HTML link to the editd event
       
     } catch (err: any) {
-      console.error("Failed to create event:", err);
+      console.error("Failed to edit event:", err);
+      setError(err.message || "Unknown error occurred");
+      throw err; // Re-throw for component
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const deleteEvent = async (eventDetails: EventObj) => {
+    console.log("Deleting event with details:", eventDetails);
+    setLoading(true);
+    setError(null);
+
+    try {
+      //get a valid token obj
+      const tokenObj = await getValidAccessToken();
+      
+      //get access token
+      const googleToken = tokenObj?.parent?.accessToken;
+
+      //call api to make event
+      const result = await deleteEventToGoogleCalendar(googleToken, eventDetails);
+      
+      return result; // Returns HTML link to the editd event
+      
+    } catch (err: any) {
+      console.error("Failed to delete event:", err);
       setError(err.message || "Unknown error occurred");
       throw err; // Re-throw for component
     } finally {
@@ -60,5 +86,5 @@ export function useCalendarWrite(jwtToken: string | null) {
     }
   };
 
-  return { createEvent, editEvent, loading, error };
+  return { createEvent, editEvent, deleteEvent, loading, error };
 }

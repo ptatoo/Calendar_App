@@ -21,6 +21,27 @@ export function createEventObj(data: Partial<EventObj>): EventObj {
 } 
 // usage ex: const myEvent = createEvent({ title: "Meeting", allDay: true });
 
+
+export const convertToGoogleEvent = (eventObj: EventObj) => {
+  const formatAllDay = (date: Date) => date.toISOString().split("T")[0];
+
+  return {
+    summary: eventObj.title,
+    description: eventObj.description,
+    location: eventObj.location,
+    eventType: eventObj.eventType !== "default" ? eventObj.eventType : undefined, 
+    start: eventObj.allDay
+      ? { date: formatAllDay(eventObj.startDate), dateTime: null }
+      : { date:null, dateTime: eventObj.startDate.toISOString() },
+    end: eventObj.allDay
+      ? { date: formatAllDay(eventObj.endDate), dateTime: null }
+      : { date:null, dateTime: eventObj.endDate.toISOString() },
+    ...(eventObj.recurrence && { recurrence: eventObj.recurrence }),
+    sequence: eventObj.sequence,
+    reminders: eventObj.reminders,
+  };
+};
+
 export const processEvent = ( item : any, owner: string, calendarObj: calendarObj, calendarId: string ) : EventObj | null => {
     try {
     // check event is valid
@@ -41,6 +62,32 @@ export const processEvent = ( item : any, owner: string, calendarObj: calendarOb
 
     const formattedDescription = item.description ?? "";
     const isAllday = !!item.start.date && !item.start.dateTime;    
+
+    const gay: EventObj = {
+      //event data
+      id: item.id,
+      title: item.summary,
+      description: formattedDescription,
+      location: item.location ?? "",
+      organizer: owner,
+      allDay: isAllday,
+      startDate: formattedStart,
+      endDate: formattedEnd,
+      eventType: item.eventType ?? "default",
+
+      //recurrence
+      recurrence: item.recurrence ?? null,
+      recurringEventId: item.recurringEventId ?? null, 
+      sequence: item.sequence ?? 0,
+      reminders: {
+          useDefault: item.reminders?.useDefault ?? true,
+          overrides: item.reminders?.overrides ?? [],
+      },
+
+      //calendar data
+      calendar: calendarObj,
+      calendarId: calendarId,
+    };
 
     return {
       //event data
@@ -71,26 +118,6 @@ export const processEvent = ( item : any, owner: string, calendarObj: calendarOb
         console.warn("Failed to process event: ", item?.id, error);
         return null;
     }
-};
-
-export const convertToGoogleEvent = (eventObj: EventObj) => {
-  const formatAllDay = (date: Date) => date.toISOString().split("T")[0];
-
-  return {
-    summary: eventObj.title,
-    description: eventObj.description,
-    location: eventObj.location,
-    eventType: eventObj.eventType !== "default" ? eventObj.eventType : undefined, 
-    start: eventObj.allDay
-      ? { date: formatAllDay(eventObj.startDate), dateTime: null }
-      : { date:null, dateTime: eventObj.startDate.toISOString() },
-    end: eventObj.allDay
-      ? { date: formatAllDay(eventObj.endDate), dateTime: null }
-      : { date:null, dateTime: eventObj.endDate.toISOString() },
-    ...(eventObj.recurrence && { recurrence: eventObj.recurrence }),
-    sequence: eventObj.sequence,
-    reminders: eventObj.reminders,
-  };
 };
 
 export const processCalendar = ( calendar : any[], calendarId: string, calendarColor: string, owner: string, calendarObj: calendarObj ) : EventObj[] => {

@@ -48,9 +48,13 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
 
   //stabilizes callback
   const handlePress = useCallback((event: EventObj | null) => {
-    setSelectedEvent(event);
-    setEventDetailsVisible(event !== null);
-  }, []);
+    if(eventDetailsVisible){
+      setEventDetailsVisible(false);
+    } else {
+      setSelectedEvent(event);
+      setEventDetailsVisible(true);
+    }
+  }, [eventDetailsVisible]);
 
   //pregroups events instead of on render
   const { groupedTimedEvents, groupedAllDayEvents } = useMemo(() => {
@@ -185,7 +189,11 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
         </View>
       </GestureDetector>
 
-      <EventDetails event={selectedEvent} isVisible={eventDetailsVisible} onClose={() => handlePress(null)} />
+      <EventDetails 
+        event={selectedEvent} 
+        isVisible={eventDetailsVisible} 
+        onClose={() => handlePress(null)}
+      />
     </View>
   );
 }

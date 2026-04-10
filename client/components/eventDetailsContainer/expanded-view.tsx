@@ -11,7 +11,7 @@ interface ExpandedViewProps {
 const HorizontalBar = () => <View style={styles.bar} />;
 
 export const EventExpandedView = ({ initialEvent }: ExpandedViewProps) => {
-  const { createEvent, editEvent } = useContext(EventsContext);
+  const { deleteEvent, createEvent, editEvent } = useContext(EventsContext);
   const [event, setEvent] = useState<EventObj>(initialEvent);
 
   // Sync the state when the initialEvent prop changes
@@ -68,6 +68,7 @@ export const EventExpandedView = ({ initialEvent }: ExpandedViewProps) => {
           <View style={{ flex: 1 }}>
             <Text style={styles.timeRow}>{primary}</Text>
             <Text style={styles.dateRow}>{secondary}</Text>
+            <Text style={styles.dateRow}>{event.calendarId}</Text>
           </View>
         </View>
 
@@ -150,7 +151,7 @@ export const EventExpandedView = ({ initialEvent }: ExpandedViewProps) => {
           <Pressable style={({ pressed }) => [styles.btn, styles.secondaryBtn, pressed && styles.btnPressed]} onPress={() => createEvent(event)}>
             <Text style={styles.secondaryBtnText}>Duplicate</Text>
           </Pressable>
-          <Pressable style={({ pressed }) => [styles.btn, styles.secondaryBtn, pressed && styles.btnPressed]} onPress={() => console.log('Deleted')}>
+          <Pressable style={({ pressed }) => [styles.btn, styles.secondaryBtn, pressed && styles.btnPressed]} onPress={() => deleteEvent(event)}>
             <Text style={styles.deleteText}>Delete</Text>
           </Pressable>
         </View>
@@ -169,11 +170,11 @@ const styles = StyleSheet.create({
   // Time Section
   timeSection: { marginVertical: 2 },
   timeRow: { fontSize: 18, color: '#374151', fontWeight: '500', lineHeight: 24 },
-  dateRow: { fontSize: 16, color: '#6B7280', marginTop: 2 },
+  dateRow: { fontSize: 16, color: '#6B7280', marginTop: 2, marginBottom: 16 },
 
   // Layout & Rows
   listBlock: { marginVertical: 4 },
-  row: { flexDirection: 'row', alignItems: 'center', minHeight: 36 },
+  row: { flexDirection: 'row', alignItems: 'center', minHeight: 24 },
   iconCol: { width: 32, alignItems: 'flex-start', justifyContent: 'center' },
   icon: { fontSize: 18, color: '#787774' },
   chevron: { fontSize: 14, color: '#c9c8c6', fontWeight: '600' },
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
   primaryBtn: { backgroundColor: '#2383e2' },
   primaryBtnPressed: { backgroundColor: '#1d6ebc' },
   primaryBtnText: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
-  secondaryBtn: { backgroundColor: '#f1f1ef', borderHeight: 1, borderColor: '#e1e1de' },
+  secondaryBtn: { backgroundColor: '#f1f1ef', borderColor: '#e1e1de' },
   btnPressed: { backgroundColor: '#e1e1de' },
   secondaryBtnText: { fontSize: 14, fontWeight: '500', color: '#37352f' },
   deleteText: { fontSize: 14, fontWeight: '500', color: '#eb5757' },
