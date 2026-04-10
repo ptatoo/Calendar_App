@@ -1,4 +1,4 @@
-import { DEAFULT_COLORS_2, DEFAULT_COLORS } from '@/utility/constants';
+import { DEFAULT_COLORS, PASTEL_COLORS_2 } from '@/utility/constants';
 import { colorCache } from '@/utility/types';
 import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useEffect, useState } from 'react';
 import { EventsContext } from './calendar-events-context';
@@ -65,37 +65,17 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   const [isLoginVisible, setLoginVisible] = useState(false);
   const { calendarObjs, setCalendarObj } = useContext(EventsContext);
   const [colors, updateColors] = useState<string[]>(DEFAULT_COLORS);
-  const [colorId, updateColorId] = useState<number>(0);
   const [now, setNow] = useState(new Date());
 
   const [allCaches, setAllCaches] = useState<colorCache[]>([
     {
       paletteId: 0,
       name: 'Default Palette',
-      palette: DEAFULT_COLORS_2,
+      palette: PASTEL_COLORS_2,
       colorMap: {},
-    },
+    } as colorCache,
   ]);
   const [activeCacheId, setActiveCacheId] = useState<number>(0);
-
-  //DEPRECIATED
-  useEffect(() => {
-    if (!calendarObjs) return;
-
-    // 1. Calculate the new version
-    const updated = calendarObjs.map((cal) => ({
-      ...cal,
-      calendarCustomColor: findClosestColor(cal.calendarDefaultColor, colors),
-    }));
-
-    // 2. CHECK: Is the new version actually different from the current one?
-    // We check if ANY calendar's custom color doesn't match the newly calculated one
-    const isDifferent = updated.some((newCal, index) => newCal.calendarCustomColor !== calendarObjs[index].calendarCustomColor);
-
-    if (isDifferent) {
-      setCalendarObj(updated);
-    }
-  }, [colors, calendarObjs, colorId]);
 
   //totally change color palette
   const changePalette = (newPaletteId: number, newPaletteName: string, newColors: string[]) => {

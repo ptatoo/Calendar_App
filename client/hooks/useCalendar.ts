@@ -71,7 +71,7 @@ export function useCalendar(jwtToken: string | null) {
           owner: cal.dataOwner,
           name: cal.summary,
           color: cal.backgroundColor || "#4285F4",
-          events: processCalendar(rawEvents, cal.id, cal.backgroundColor || "#4285F4", cal.summary, newCalendarObj)
+          events: processCalendar(rawEvents, cal.id, cal.summary, newCalendarObj)
         } as CalendarData;
       });
 

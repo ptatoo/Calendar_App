@@ -18,9 +18,15 @@ export const DEFAULT_COLORS = [
     '#444746', '#cabdbf', '#cca6ac', '#f691b2', '#cd74e6', '#a47ae2', '#9a9cff', '#b99aff',
 ]
 export const PASTEL_COLORS = [
-    '#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#a0c4ff', '#bdb2ff', '#ffc6ff', 
-    '#fffffc',
+   '#ffc6ff',  "#ffd1dc", '#ffadad', '#ffd6a5', '#ffe5ad','#fdffb6',
+    '#caffbf', '#deffe3','#adffdd', '#adf4ff','#adc7ff', '#eddeff','#cfbaf0', 
 ]
+
+export const PASTEL_COLORS_2 = [
+    '#ffdef2','#ffdede', '#fff2de', '#feffde', '#e4ffde', '#deffeb', '#def3ff',
+    '#deebff', '#e4deff', '#f8deff', 
+]
+
 export const DEAFULT_COLORS_2 = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#8B5CF6', '#EC4899', '#6B7280'];
 
 export const DRAWER_DRAGGABLE_HEIGHT = 36;

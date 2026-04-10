@@ -41,10 +41,9 @@ export default function DraggableCalendar({
     .onUpdate((e) => {
       offset.value = { x: e.translationX, y: e.translationY };
       hoverIndex.value = thisIndex + e.translationY / DRAWER_DRAGGABLE_HEIGHT;
-      console.log(hoverIndex.value);
     })
     .onEnd((e) => {
-      onDrop(thisIndex, hoverIndex.value && hoverIndex.value >= 0 ? Math.round(hoverIndex.value) : 0);
+      onDrop(thisIndex, hoverIndex.value && hoverIndex.value >= 1 ? Math.round(hoverIndex.value) : 1);
       isDragging.value = false;
       hoverIndex.value = null;
       activeIndex.value = null;
@@ -98,28 +97,17 @@ export default function DraggableCalendar({
 
   return (
     <>
-      {cal.folder === true ? (
+      {cal.calendar === null ? (
         <Animated.View style={[animatedStyle, { backgroundColor: 'white' }]}>
-          {cal.calendar !== null ? (
-            <CalendarDrawerList calendarObj={cal.calendar} onToggle={toggleCalendar} />
-          ) : (
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <Ionicons name={'folder-outline'} size={14} />
-              <Text style={styles.sectionHeaderText}>{toTitleCase(cal.id)}</Text>
-            </View>
-          )}
+          <View style={styles.folderContainer}>
+            <Ionicons name={'folder-outline'} size={16} />
+            <Text style={styles.sectionHeaderText}>{toTitleCase(cal.id)}</Text>
+          </View>
         </Animated.View>
       ) : (
         <GestureDetector gesture={gesture}>
           <Animated.View style={[animatedStyle, { backgroundColor: 'white' }]}>
-            {cal.calendar !== null ? (
-              <CalendarDrawerList calendarObj={cal.calendar} onToggle={toggleCalendar} />
-            ) : (
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                <Ionicons name={'folder-outline'} size={14} />
-                <Text style={styles.sectionHeaderText}>{toTitleCase(cal.id)}</Text>
-              </View>
-            )}
+            <CalendarDrawerList calendarObj={cal.calendar} onToggle={toggleCalendar} />
           </Animated.View>
         </GestureDetector>
       )}
@@ -128,5 +116,15 @@ export default function DraggableCalendar({
 }
 
 const styles = StyleSheet.create({
-  sectionHeaderText: { fontSize: 13, fontWeight: '600', height: DRAWER_DRAGGABLE_HEIGHT, borderWidth: 1 },
+  folderContainer: {
+    flexDirection: 'row',
+    marginTop: 'auto',
+    gap: 8,
+    paddingTop: 16,
+    height: DRAWER_DRAGGABLE_HEIGHT,
+  },
+  sectionHeaderText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
 });

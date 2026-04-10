@@ -4,8 +4,9 @@
 // 3. when adding a new color palette, have some preset options shown
 // 4. when modifying a pallete, a user can remove and add colors
 
+import { lightenColor } from '@/utility/eventUtils';
 import { colorCache } from '@/utility/types';
-import { useContext, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { UIContext } from '../contexts/ui-context';
 
@@ -33,19 +34,7 @@ const ThemeButton = ({
 };
 
 export default function AppearanceContainer() {
-  const {
-    now,
-    allCaches,
-    activeCacheId,
-    isLoginVisible,
-    setLoginVisible,
-    colors,
-    updateColors,
-    changePalette,
-    syncCacheToPalette,
-    setManualCalendarColor,
-    getCalendarColor,
-  } = useContext(UIContext);
+  const { allCaches, activeCacheId, syncCacheToPalette } = useContext(UIContext);
 
   //Themes (light, dark, auto)
   const themeOptions = ['Light', 'Dark', 'Auto'];
@@ -59,6 +48,7 @@ export default function AppearanceContainer() {
   const [isModalVisible, setModalVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [pickingColorIndex, setPickingColorIndex] = useState<number | null>(null);
+  const [isDebug, setDebug] = useState<boolean>(true);
 
   // --- temporary state ---
   // hold colors while editing
@@ -76,7 +66,6 @@ export default function AppearanceContainer() {
   const handleSave = () => {
     const updatedPalettes = [...palettes];
     updatedPalettes[selectedIndex].palette = [...tempColors];
-    console.log(tempColors);
     syncCacheToPalette(tempColors);
     setPalettes(updatedPalettes);
     setIsEditing(false);
@@ -116,6 +105,30 @@ export default function AppearanceContainer() {
 
   // Decide which colors to display: Real ones or Temp ones
   const displayColors = isEditing ? tempColors : palettes[selectedIndex].palette;
+
+  //temp
+  const rawColors = useMemo(() => {
+    const c = allCaches[activeCacheId];
+    const output: string[] = [];
+    c.palette.map((color, index) => {
+      output.push(color);
+    });
+    return output;
+  }, [allCaches, activeCacheId]);
+  const colors = useMemo(() => {
+    const output2: string[] = [];
+    rawColors.map((color, index) => {
+      output2.push(lightenColor(color, 50, 20));
+    });
+    return output2;
+  }, [rawColors]);
+  const textColors = useMemo(() => {
+    const output2: string[] = [];
+    rawColors.map((color, index) => {
+      output2.push(lightenColor(color, 90, -40));
+    });
+    return output2;
+  }, [rawColors]);
 
   return (
     <View style={styles.container}>
@@ -199,6 +212,27 @@ export default function AppearanceContainer() {
 
       <Text style={styles.headerText}>EventBlock</Text>
       <Text style={styles.headerText}>SideBar</Text>
+
+      {isDebug === true && (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, width: '100%' }}>
+          {colors.map((color, index) => (
+            <View
+              style={{
+                height: 50,
+                width: 85,
+              }}
+            >
+              {/* --- EVENT LEFT BAR --- */}
+              <View style={[styles.event, { backgroundColor: rawColors[index], borderLeftColor: color }]}>
+                {/* --- EVENT TITLE --- */}
+                <Text style={[styles.eventText, { color: textColors[index] }]} numberOfLines={1}>
+                  Title
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
 
       {/* --- New Palette Modal --- */}
       <Modal visible={isModalVisible} transparent animationType="slide">
@@ -334,4 +368,27 @@ const styles = StyleSheet.create({
   modalOption: { paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   modalOptionText: { fontSize: 16, color: '#1F2937' },
   modalCancel: { marginTop: 15, alignItems: 'center' },
+
+  eventContainer: {
+    borderWidth: 1,
+    borderColor: 'white',
+    overflow: 'hidden',
+    position: 'absolute', // Allows use of 'top'
+    borderRadius: 4,
+  },
+  event: {
+    flex: 1,
+    borderLeftWidth: 6,
+    borderRadius: 4,
+    padding: 4,
+  },
+  eventText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  eventTime: {
+    fontSize: 8,
+    fontWeight: '600',
+    color: '#000000',
+  },
 });

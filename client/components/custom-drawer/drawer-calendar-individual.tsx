@@ -1,6 +1,8 @@
 import { DRAWER_DRAGGABLE_HEIGHT } from '@/utility/constants';
 import { getPositions } from '@/utility/drawerUtil';
+import { lightenColor } from '@/utility/eventUtils';
 import { calendarObj } from '@/utility/types';
+
 import { Ionicons } from '@expo/vector-icons';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -27,13 +29,8 @@ export default function CalendarDrawerList({
 
   //Sync color with colorCache
   useEffect(() => {
-    setColor(getCalendarColor(calendarObj.calendarId));
+    setColor(lightenColor(getCalendarColor(calendarObj.calendarId), 20, 0));
   }, [allCaches, activeCacheId]);
-
-  useEffect(() => {
-    setOpacity(calendarObj.shown ? 1 : 0.5);
-    console.log(opacity);
-  }, [calendarObj.shown]);
 
   return (
     <View key={calendarObj.calendarId} style={styles.calendarItem}>
