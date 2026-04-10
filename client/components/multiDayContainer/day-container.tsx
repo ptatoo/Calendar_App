@@ -1,7 +1,7 @@
 import { GRID_COLOR } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
 import { isSameDay } from 'date-fns';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { createEventObj } from '@/utility/eventUtils';
@@ -31,6 +31,9 @@ export default function DayContainer({
   events: EventObj[];
   handlePress: (event: EventObj | null) => void;
 }) {
+  
+  const clickStartInside = useRef(false);
+  
   const isToday = isSameDay(day, new Date());
     
   //calculate the necessary offset for each event
@@ -98,7 +101,15 @@ export default function DayContainer({
         ))}
         {/* --- CLOSE EVENT DETAILS BUTTON --- */}
         <Pressable
+          onPressIn={(event) => { 
+            clickStartInside.current = true; 
+          }}
+          onPressOut={() => { 
+            // Delay reset slightly to ensure onPress checks it first
+            setTimeout(() => { clickStartInside.current = false; }, 0);
+          }}
           onPress={(event) => {
+            if(!clickStartInside.current) return;
             const y = getYofEventPress(event); 
             const hour = Math.floor(y / hourHeight);
 

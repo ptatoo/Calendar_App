@@ -3,7 +3,7 @@ import { EventObj, calendarObj } from './types';
 
 export function createEventObj(data: Partial<EventObj>): EventObj {
   return {
-    id: data.id ?? crypto.randomUUID(),
+    id: data.id ?? "",
     title: data.title ?? "",
     description: data.description ?? "",
     location: data.location ?? "",
