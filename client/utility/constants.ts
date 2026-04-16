@@ -8,6 +8,7 @@ export const HOUR_LABEL_WIDTH = 40;
 export const DATE_HEADER_HEIGHT = 40;
 export const EVENT_GAP = 10;
 export const EVENT_OFFSET = 15;
+export const GRID_WIDTH = SCREEN_WIDTH - HOUR_LABEL_WIDTH;
 
 export const GRID_COLOR = '#f0f0f0';
 export const HEADER_BACKGROUND_COLOR = '#f0f0f0';

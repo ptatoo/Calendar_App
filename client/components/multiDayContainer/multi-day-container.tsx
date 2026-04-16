@@ -1,103 +1,67 @@
-import { useCalendarRange } from '@/hooks/calendarHooks/useCalendarRange';
-import {
-  DATE_HEADER_HEIGHT,
-  GRID_COLOR,
-  HEADER_BACKGROUND_COLOR,
-  HOUR_HEIGHT,
-  HOUR_LABEL_WIDTH,
-  PAST_BUFFER,
-  SCREEN_WIDTH,
-} from '@/utility/constants';
-import { CalendarView, EventObj } from '@/utility/types';
 import { useIsFocused } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { DateContext } from '../contexts/calendar-index-context';
-
+import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+
+import { useCalendarRange } from '@/hooks/calendarHooks/useCalendarRange';
+import { useEventGrouping } from '@/hooks/calendarHooks/useEventGrouping';
+import { usePinchZoom } from '@/hooks/calendarHooks/usePinchZoom';
+import {
+  DATE_HEADER_HEIGHT, GRID_COLOR, HEADER_BACKGROUND_COLOR,
+  HOUR_LABEL_WIDTH, PAST_BUFFER, SCREEN_WIDTH
+} from '@/utility/constants';
+import { CalendarView, EventObj } from '@/utility/types';
+import { DateContext } from '../contexts/calendar-index-context';
+
 import EventDetails from '../eventDetailsContainer/event-details';
 import AllDayChip from './allday-chip';
 import DateHeader from './date-header';
 import DayContainer from './day-container';
 import HourGuide from './hour-guide';
+import TrackWindow from './track-window';
 
 const GRID_WIDTH = SCREEN_WIDTH - HOUR_LABEL_WIDTH;
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
-  //set witdh of each day column (accounting for the hour guide)
-  const dividers = parseInt(calendarType) || 3;
-  const dayWidth = Math.floor(GRID_WIDTH / dividers);
+  const dividers = parseInt(calendarType) || 3;   
+  const dayWidth = GRID_WIDTH / dividers;
 
   const listRef = useAnimatedRef<FlashListRef<any>>();
-  //replace other two refs with scrollX
   const scrollX = useSharedValue(PAST_BUFFER * dayWidth);
-
-  const [hourHeight, setHourHeight] = useState(HOUR_HEIGHT);
-  const [baseHeight, setBaseHeight] = useState(HOUR_HEIGHT);
-
+  
+  const { hourHeight, pinchGesture } = usePinchZoom();
+  const { groupedTimedEvents, groupedAllDayEvents } = useEventGrouping(events);
+  const { days, initialIndex } = useCalendarRange();
+  const { setCurDate } = useContext(DateContext);
+  
   const [selectedEvent, setSelectedEvent] = useState<EventObj | null>(null);
   const [eventDetailsVisible, setEventDetailsVisible] = useState(false);
 
-  const { days, initialIndex } = useCalendarRange();
-  const { curDate, setCurDate } = useContext(DateContext);
-  const today = new Date();
-
-  //stabilizes callback
   const handlePress = useCallback((event: EventObj | null) => {
-    if(eventDetailsVisible){
-      setEventDetailsVisible(false);
-    } else {
-      setSelectedEvent(event);
-      setEventDetailsVisible(true);
-    }
-  }, [eventDetailsVisible]);
-
-  //pregroups events instead of on render
-  const { groupedTimedEvents, groupedAllDayEvents } = useMemo(() => {
-    const timed: Record<string, EventObj[]> = {};
-    const allDay: Record<string, EventObj[]> = {};
-
-    events.forEach((e) => {
-      const dateKey = new Date(e.startDate).toDateString();
-      const isAllDay = e.allDay === true || String(e.allDay) === 'true';
-
-      if (isAllDay) {
-        if (!allDay[dateKey]) allDay[dateKey] = [];
-        allDay[dateKey].push(e);
-      } else {
-        if (!timed[dateKey]) timed[dateKey] = [];
-        timed[dateKey].push(e);
-      }
-    });
-
-    return { groupedTimedEvents: timed, groupedAllDayEvents: allDay };
-  }, [events]);
-
-  const updateContextOnScroll = (offsetX: number) => {
-    const itemsScrolled = Math.floor(offsetX / dayWidth + 0.5);
-    setCurDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - PAST_BUFFER + itemsScrolled));
-  };
+    setSelectedEvent(event);
+    setEventDetailsVisible(!!event);
+  }, []);
 
   const onMainScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollX.value = event.contentOffset.x;
-      scheduleOnRN(updateContextOnScroll, event.contentOffset.x);
+      scheduleOnRN((offsetX: number) => {
+        const itemsScrolled = Math.floor(offsetX / dayWidth + 0.5);
+        const today = new Date();
+        setCurDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - PAST_BUFFER + itemsScrolled));
+      }, event.contentOffset.x);
     },
   });
 
-  //animated style for all headers
-  const headerAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: -scrollX.value }],
-      flexDirection: 'row',
-    };
-  });
+  const headerAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: -scrollX.value }],
+    flexDirection: 'row',
+  }));
 
-  //temporary: forces calendar to initialIndex on rerender
   const isFocused = useIsFocused();
   useEffect(() => {
     if (isFocused && listRef.current && initialIndex !== undefined) {
@@ -107,85 +71,61 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     }
   }, [isFocused, initialIndex]);
 
-  const [viewType, setViewType] = useState('3-Day');
-
   return (
     <View style={styles.container}>
-      <GestureDetector
-        gesture={Gesture.Pinch()
-          .onUpdate((e) => {
-            let newHeight = baseHeight * e.scale;
-            setHourHeight(Math.min(Math.max(newHeight, 30), 200));
-          })
-          .onEnd(() => setBaseHeight(hourHeight))}
-      >
+      <GestureDetector gesture={pinchGesture}>
         <View style={styles.container}>
-          {/* --- DATE HEADER --- */}
+          
+          {/* DATE HEADER */}
           <View style={styles.headerWrapper}>
             <View style={styles.dateHourGuide} />
-            {/* The clipping window */}
-            <View style={{ width: GRID_WIDTH, overflow: 'hidden' }}>
-              {/* The sliding track */}
-              <Animated.View style={headerAnimatedStyle}>
-                {days.map((item) => (
-                  <DateHeader key={item.date.toISOString()} day={item.date} dayWidth={dayWidth} />
-                ))}
-              </Animated.View>
-            </View>
+            <TrackWindow animatedStyle={headerAnimatedStyle}>
+              {days.map((item) => (
+                <DateHeader key={item.date.toISOString()} day={item.date} dayWidth={dayWidth} />
+              ))}
+            </TrackWindow>
           </View>
 
-          {/* --- ALL DAY HEADER --- */}
+          {/* ALL DAY HEADER */}
           <View style={styles.allDayRow}>
             <View style={styles.allDaySpacer}>
               <Text style={styles.debugLabel}>ALL-DAY</Text>
             </View>
-            {/* The clipping window */}
-            <View style={{ width: GRID_WIDTH, overflow: 'hidden' }}>
-              {/* The sliding track */}
-              <Animated.View style={headerAnimatedStyle}>
-                {days.map((item) => {
-                  const dayEvents = groupedAllDayEvents[item.date.toDateString()] || [];
-                  return (
-                    <View key={item.date.toISOString()} style={[styles.allDayColumn, { width: dayWidth }]}>
-                      {dayEvents.map((event) => (
-                        <AllDayChip key={event.id} event={event} handlePress={handlePress} />
-                      ))}
-                    </View>
-                  );
-                })}
-              </Animated.View>
-            </View>
+            <TrackWindow animatedStyle={headerAnimatedStyle}>
+              {days.map((item) => (
+                <View key={item.date.toISOString()} style={[styles.allDayColumn, { width: dayWidth }]}>
+                  {(groupedAllDayEvents[item.date.toDateString()] || []).map((event) => (
+                    <AllDayChip key={event.id} event={event} handlePress={handlePress} />
+                  ))}
+                </View>
+              ))}
+            </TrackWindow>
           </View>
 
-          {/* --- MAIN GRID --- */}
+          {/* MAIN GRID */}
           <ScrollView nestedScrollEnabled style={{ flex: 1 }} contentContainerStyle={{ height: hourHeight * 24, flexDirection: 'row' }}>
             <HourGuide hourHeight={hourHeight} labelWidth={HOUR_LABEL_WIDTH} />
-
             <AnimatedFlashList
               ref={listRef}
               data={days}
-              renderItem={(props) => {
-                const item = props.item as { date: Date };
-                return (
-                  <DayContainer
-                    day={item.date}
-                    dayWidth={dayWidth}
-                    events={groupedTimedEvents[item.date.toDateString()] || []}
-                    hourHeight={hourHeight}
-                    handlePress={handlePress}
-                    //showEventDetails={setEventDetailsVisible}
-                    //setSelectedEvent={setSelectedEvent}
-                  />
-                );
-              }}
               horizontal
-              onScroll={onMainScroll} // Native UI Thread scroll
+              onScroll={onMainScroll}
               scrollEventThrottle={16}
               keyExtractor={(item: any) => item.date.toISOString()}
               style={{ width: GRID_WIDTH }}
               initialScrollIndex={PAST_BUFFER}
+              renderItem={({ item }) => (
+                <DayContainer
+                  day={(item as any).date}
+                  dayWidth={dayWidth}
+                  events={groupedTimedEvents[(item as any).date.toDateString()] || []}
+                  hourHeight={hourHeight}
+                  handlePress={handlePress}
+                />
+              )}
             />
           </ScrollView>
+
         </View>
       </GestureDetector>
 
@@ -197,6 +137,8 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     </View>
   );
 }
+
+// ... styles remain unchanged ...
 
 const styles = StyleSheet.create({
   container: { backgroundColor: 'white', flex: 1 },
