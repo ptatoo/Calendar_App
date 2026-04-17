@@ -213,6 +213,7 @@ export default function AppearanceContainer() {
       <Text style={styles.headerText}>EventBlock</Text>
       <Text style={styles.headerText}>SideBar</Text>
 
+      {/* --- DEBUGGER --- */}
       {isDebug === true && (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, width: '100%' }}>
           {colors.map((color, index) => (

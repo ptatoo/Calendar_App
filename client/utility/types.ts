@@ -84,6 +84,12 @@ export interface CalendarData {
   events: EventObj[];
 }
 
+export interface sharedObj {
+  id: string;
+  name: string,
+  sharedIds: {id: string, accessRole: string}[];
+}
+
 export interface FamilyCalendarState {
   parent: CalendarData[];
   children: CalendarData[];

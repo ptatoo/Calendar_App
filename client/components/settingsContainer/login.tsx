@@ -8,50 +8,48 @@ export default function LoginButton() {
   const authProps = useAuth();
 
   return (
-    <View style={styles.homepg}>
-      {/* calendar icon */}
-      <View style={styles.logoContainer}>
-        <Animated.View entering={FadeInUp.duration(600).delay(600)} style={styles.iconCircle}>
-          <MaterialCommunityIcons name="calendar-month" size={60} color="#4285F4" />
-        </Animated.View>
-        <Animated.View entering={FadeInUp.duration(600).delay(400)}>
-          <Text style={styles.appName}>Calendar App</Text>
-        </Animated.View>
-        <Animated.View entering={FadeInUp.duration(600).delay(400)}>
-          <Text style={styles.appDescription}>insert description</Text>
-        </Animated.View>
-      </View>
-
-      {/* --- login button --- */}
-      <Animated.View entering={FadeInDown.duration(600).delay(400)} style={styles.buttonContainer}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.button, 
-            pressed && styles.buttonPressed
-          ]}
-          onPress={() => authProps.promptAsync()}
-          disabled={false}
-        >
-          {authProps.isLoading ? (
-            <Text style={styles.buttonText}>Loading...</Text>
-          ) : authProps.jwtToken ? (
-            <Text style={styles.buttonText}>Welcome Back</Text>
-          ) : (
-            <Text style={styles.buttonText}>Sign in with Google</Text>
-          )}
-        </Pressable>
-      </Animated.View>
-      {/* hide jwt token */}
-      <View style={{}}>
-        <View style={styles.tokenContainer}>
-          <Text style={styles.label}>JWT Token:</Text>
-          <Text style={styles.tokenText}>{authProps.jwtToken ? authProps.jwtToken.sessionToken : 'No token yet'}</Text>
+    <>
+      <View style={styles.homepg}>
+        {/* calendar icon */}
+        <View style={styles.logoContainer}>
+          <Animated.View entering={FadeInUp.duration(600).delay(600)} style={styles.iconCircle}>
+            <MaterialCommunityIcons name="calendar-month" size={60} color="#4285F4" />
+          </Animated.View>
+          <Animated.View entering={FadeInUp.duration(600).delay(400)}>
+            <Text style={styles.appName}>Calendar App</Text>
+          </Animated.View>
+          <Animated.View entering={FadeInUp.duration(600).delay(400)}>
+            <Text style={styles.appDescription}>insert description</Text>
+          </Animated.View>
         </View>
+
+        {/* --- login button --- */}
+        <Animated.View entering={FadeInDown.duration(600).delay(400)} style={styles.buttonContainer}>
+          <Pressable
+            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+            onPress={() => authProps.promptAsync()}
+            disabled={false}
+          >
+            {authProps.isLoading ? (
+              <Text style={styles.buttonText}>Loading...</Text>
+            ) : authProps.jwtToken ? (
+              <Text style={styles.buttonText}>Welcome Back</Text>
+            ) : (
+              <Text style={styles.buttonText}>Sign in with Google</Text>
+            )}
+          </Pressable>
+        </Animated.View>
+        {/* hide jwt token */}
+        <View style={{}}>
+          <View style={styles.tokenContainer}>
+            <Text style={styles.label}>JWT Token:</Text>
+            <Text style={styles.tokenText}>{authProps.jwtToken ? authProps.jwtToken.sessionToken : 'No token yet'}</Text>
+          </View>
+        </View>
+        <View></View>
       </View>
-      <View>
-        <InviteManager />
-      </View>
-    </View>
+      <InviteManager />
+    </>
   );
 }
 

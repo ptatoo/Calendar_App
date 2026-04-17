@@ -34,3 +34,4 @@ export const DRAWER_DRAGGABLE_HEIGHT = 36;
 
 export const PAST_BUFFER = 100; // ~6 years back
 export const FUTURE_BUFFER = 100; // ~6 years forward
+export const MAX_RESULTS = "250";

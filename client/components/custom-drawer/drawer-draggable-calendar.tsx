@@ -99,13 +99,22 @@ export default function DraggableCalendar({
     <>
       {cal.calendar === null ? (
         <Animated.View style={[animatedStyle, { backgroundColor: 'white' }]}>
+          {/* --- FOLDER HEADER --- */}
           <View style={styles.folderContainer}>
-            <Ionicons name={'folder-outline'} size={16} />
-            <Text style={styles.sectionHeaderText}>{toTitleCase(cal.id)}</Text>
+            <View style={styles.folderFront}>
+              <Ionicons name={'folder-outline'} size={16} />
+              <Text style={styles.sectionHeaderText}>{toTitleCase(cal.id)}</Text>
+            </View>
+            <View style={styles.folderFront}>
+              <Ionicons name={'ellipsis-horizontal-outline'} size={16} />
+              <Ionicons name={'caret-up-outline'} size={16} />
+              <Ionicons name={'caret-down-outline'} size={16} />
+            </View>
           </View>
         </Animated.View>
       ) : (
         <GestureDetector gesture={gesture}>
+          {/* --- CALENDAR INDIVIDUAL --- */}
           <Animated.View style={[animatedStyle, { backgroundColor: 'white' }]}>
             <CalendarDrawerList calendarObj={cal.calendar} onToggle={toggleCalendar} />
           </Animated.View>
@@ -118,10 +127,15 @@ export default function DraggableCalendar({
 const styles = StyleSheet.create({
   folderContainer: {
     flexDirection: 'row',
-    marginTop: 'auto',
+    justifyContent: 'space-between',
     gap: 8,
     paddingTop: 16,
     height: DRAWER_DRAGGABLE_HEIGHT,
+  },
+  folderFront: {
+    flexDirection: 'row',
+    marginTop: 'auto',
+    gap: 8,
   },
   sectionHeaderText: {
     fontSize: 13,

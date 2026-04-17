@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10, // Higher = softer, wider spread
 
-    // Android Settings (Elevation is limited; use a library for better control)
+    // Android Settings
     elevation: 10,
   },
   colorButton: {

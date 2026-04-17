@@ -1,4 +1,5 @@
 //Backend Fetching
+import { MAX_RESULTS } from "@/utility/constants";
 import { convertToGoogleEvent } from "@/utility/eventUtils";
 import { EventObj, ProfileObj } from "@/utility/types";
 
@@ -38,27 +39,10 @@ export const fetchFamilyAccessTokens = async (jwtToken : string) => {
     return await res.json();
 }
 
-
 // ===========================================================
 // GOOGLE API FUNCTIONS
 // ===========================================================
 
-export const fetchCalendar = async (accessToken: string) => {
-    const url = new URL("https://www.googleapis.com/calendar/v3/calendars/primary/events");
-    url.searchParams.append("showDeleted", "false");
-
-    const res = await fetch(
-      url.toString(),
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      },
-    );
-    return await res.json();
-}
 // Google Api: Fetch Calendar Events
 export const fetchGivenCalendar = async (accessToken: string, calendarId: string = "primary", isPrimary: boolean = false) => {
     const encodedId = encodeURIComponent(calendarId);
@@ -93,6 +77,38 @@ export const fetchGivenCalendar = async (accessToken: string, calendarId: string
     } while (pageToken);
 
     return allEvents;
+}
+
+// Google Api: Fetch Calendar Events
+export const fetchGivenCalendarAndPage = async (accessToken: string, calendarId: string = "primary", pageToken: string | undefined ,isPrimary: boolean = false): Promise<{events: any[], pageToken: string | undefined}> => {
+  const encodedId = encodeURIComponent(calendarId);
+  let allEvents: any[] = [];
+  if (pageToken) {
+    const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events`);
+    url.searchParams.append("showDeleted", "false");
+    url.searchParams.append("singleEvents", "true");
+    url.searchParams.append("orderBy", "startTime");
+    url.searchParams.append("maxResults", MAX_RESULTS);
+    url.searchParams.append("pageToken", pageToken);
+
+    const res = await fetch(
+      url.toString(),
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    const data = await res.json();
+
+    if (data.items) allEvents = [...allEvents, ...data.items];
+    pageToken = data.nextPageToken;
+
+  return {events: allEvents, pageToken: pageToken};
+  }
+  else return {events: [], pageToken: undefined};
 }
 
 // Google Api: Fetch Calendar List
@@ -207,27 +223,54 @@ export const deleteEventToGoogleCalendar = async (accessToken: string, eventObj 
   }
 };
 
-// const shareCalendar = async (calendarId: string, shareWithEmail: string) => {
-//   const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/acl`;
-  
-//   const response = await fetch(url, {
-//     method: 'POST',
-//     headers: {
-//       'Authorization': `Bearer ${userAccessToken}`,
-//       'Content-Type': 'application/json',
-//     },
-//     body: JSON.stringify({
-//       role: 'reader', // or 'writer'
-//       scope: {
-//         type: 'user',
-//         value: shareWithEmail
-//       }
-//     }),
-//   });
+//calendar sharing with ACL
+export const shareCalendar = async (calendarId: string, shareWithEmail: string, jwtToken: string) => {
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/acl`;
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${jwtToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        role: 'reader', // or 'writer'
+        scope: {
+          type: 'user',
+          value: shareWithEmail
+        }
+      }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      console.log("shared calendar successfully");
+      return data;
+    }
+  } catch (err) {
+    console.error("Failed to Share Calendar: ", err);
+    throw new Error;
+  }
+};
 
-//   const data = await response.json();
-//   return data;
-// };
+//viewing shared calendars with ACL
+export const getCalendarSharingSettings = async (calendarId: string, accessToken: string) => {
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/acl`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error("Failed to Share Calendar: ", err);
+    throw new Error;
+  }
+};
 
 // ===========================================================
 // INVITATION FUNCTIONS 
