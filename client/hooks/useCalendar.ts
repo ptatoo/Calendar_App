@@ -1,7 +1,7 @@
 import { processCalendar } from "@/utility/eventUtils";
 import { CalendarData, calendarObj, FamilyCalendarState, sharedObj } from "@/utility/types";
 import { useCallback, useEffect, useState } from "react";
-import { fetchCalendarList, fetchGivenCalendar, getCalendarSharingSettings, shareCalendar } from "../services/api";
+import { fetchCalendarList, fetchGivenCalendar, getCalendarSharingSettings } from "../services/api";
 import { storage } from "../services/storage";
 import { useAccessToken } from "./useAccessToken";
 import { useProfiles } from "./useProfile";
@@ -102,9 +102,6 @@ export function useCalendar(jwtToken: string | null) {
       setSharedObjs(allSharedObjs);
       storage.save("calendar", formattedFamilyCalendars);
 
-      
-      shareCalendar('alexsong6@g.ucla.edu', 'i.alexander.song@gmail.com', tokens.parent.accessToken);
-      
     } catch (err: any) {
       console.error("Google Calendar Fetch Error:", err);
       setError(err.message);

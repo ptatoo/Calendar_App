@@ -2,7 +2,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import InviteManager from './invite-manager';
 
 export default function LoginButton() {
   const authProps = useAuth();
@@ -48,7 +47,6 @@ export default function LoginButton() {
         </View>
         <View></View>
       </View>
-      <InviteManager />
     </>
   );
 }
