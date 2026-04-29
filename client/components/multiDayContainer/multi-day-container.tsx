@@ -1,16 +1,24 @@
 import { useIsFocused } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import Animated, { useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle } from 'react-native-reanimated';
 
 import { useCalendarRange } from '@/hooks/calendarHooks/useCalendarRange';
 import { useEventGrouping } from '@/hooks/calendarHooks/useEventGrouping';
 import { usePinchZoom } from '@/hooks/calendarHooks/usePinchZoom';
-import { DATE_HEADER_HEIGHT, GRID_COLOR, HEADER_BACKGROUND_COLOR, HOUR_LABEL_WIDTH, PAST_BUFFER, SCREEN_WIDTH } from '@/utility/constants';
+import {
+  DATE_HEADER_HEIGHT,
+  GRID_COLOR,
+  GRID_WIDTH,
+  HEADER_BACKGROUND_COLOR,
+  HOUR_LABEL_WIDTH,
+  PAST_BUFFER,
+  SCREEN_WIDTH,
+} from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
-import { DateContext } from '../contexts/calendar-index-context';
+import { useCalendarIndex } from '../contexts/calendar-index-context';
 
 import EventDetails from '../eventDetailsContainer/event-details';
 import AllDayChip from './allday-chip';
@@ -19,20 +27,22 @@ import DayContainer from './day-container';
 import HourGuide from './hour-guide';
 import TrackWindow from './track-window';
 
-const GRID_WIDTH = SCREEN_WIDTH - HOUR_LABEL_WIDTH;
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
   const dividers = parseInt(calendarType) || 3;
-  const dayWidth = GRID_WIDTH / dividers;
+  const dayWidth = Math.round(GRID_WIDTH / dividers);
 
+  //calendarIndex
   const listRef = useAnimatedRef<FlashListRef<any>>();
-  const scrollX = useSharedValue(PAST_BUFFER * dayWidth);
+  const { setDayWidth, scrollX } = useCalendarIndex();
+  useLayoutEffect(() => {
+    setDayWidth(dayWidth);
+  }, [dayWidth, setDayWidth]);
 
   const { hourHeight, pinchGesture } = usePinchZoom();
   const { groupedTimedEvents, groupedAllDayEvents } = useEventGrouping(events);
   const { days, initialIndex } = useCalendarRange();
-  const { setCurDate } = useContext(DateContext);
 
   const [selectedEvent, setSelectedEvent] = useState<EventObj | null>(null);
   const [eventDetailsVisible, setEventDetailsVisible] = useState(false);
