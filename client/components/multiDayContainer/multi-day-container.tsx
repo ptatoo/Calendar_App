@@ -4,15 +4,11 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
 
 import { useCalendarRange } from '@/hooks/calendarHooks/useCalendarRange';
 import { useEventGrouping } from '@/hooks/calendarHooks/useEventGrouping';
 import { usePinchZoom } from '@/hooks/calendarHooks/usePinchZoom';
-import {
-  DATE_HEADER_HEIGHT, GRID_COLOR, HEADER_BACKGROUND_COLOR,
-  HOUR_LABEL_WIDTH, PAST_BUFFER, SCREEN_WIDTH
-} from '@/utility/constants';
+import { DATE_HEADER_HEIGHT, GRID_COLOR, HEADER_BACKGROUND_COLOR, HOUR_LABEL_WIDTH, PAST_BUFFER, SCREEN_WIDTH } from '@/utility/constants';
 import { CalendarView, EventObj } from '@/utility/types';
 import { DateContext } from '../contexts/calendar-index-context';
 
@@ -27,17 +23,17 @@ const GRID_WIDTH = SCREEN_WIDTH - HOUR_LABEL_WIDTH;
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
-  const dividers = parseInt(calendarType) || 3;   
+  const dividers = parseInt(calendarType) || 3;
   const dayWidth = GRID_WIDTH / dividers;
 
   const listRef = useAnimatedRef<FlashListRef<any>>();
   const scrollX = useSharedValue(PAST_BUFFER * dayWidth);
-  
+
   const { hourHeight, pinchGesture } = usePinchZoom();
   const { groupedTimedEvents, groupedAllDayEvents } = useEventGrouping(events);
   const { days, initialIndex } = useCalendarRange();
   const { setCurDate } = useContext(DateContext);
-  
+
   const [selectedEvent, setSelectedEvent] = useState<EventObj | null>(null);
   const [eventDetailsVisible, setEventDetailsVisible] = useState(false);
 
@@ -49,11 +45,11 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const onMainScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollX.value = event.contentOffset.x;
-      scheduleOnRN((offsetX: number) => {
-        const itemsScrolled = Math.floor(offsetX / dayWidth + 0.5);
-        const today = new Date();
-        setCurDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - PAST_BUFFER + itemsScrolled));
-      }, event.contentOffset.x);
+      // scheduleOnRN((offsetX: number) => {
+      //   const itemsScrolled = Math.floor(offsetX / dayWidth + 0.5);
+      //   const today = new Date();
+      //   setCurDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - PAST_BUFFER + itemsScrolled));
+      // }, event.contentOffset.x);
     },
   });
 
@@ -75,7 +71,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     <View style={styles.container}>
       <GestureDetector gesture={pinchGesture}>
         <View style={styles.container}>
-          
           {/* DATE HEADER */}
           <View style={styles.headerWrapper}>
             <View style={styles.dateHourGuide} />
@@ -125,15 +120,10 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
               )}
             />
           </ScrollView>
-
         </View>
       </GestureDetector>
 
-      <EventDetails 
-        event={selectedEvent} 
-        isVisible={eventDetailsVisible} 
-        onClose={() => handlePress(null)}
-      />
+      <EventDetails event={selectedEvent} isVisible={eventDetailsVisible} onClose={() => handlePress(null)} />
     </View>
   );
 }

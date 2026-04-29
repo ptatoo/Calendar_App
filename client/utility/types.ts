@@ -35,11 +35,6 @@ export interface AuthContextType {
   loginWithCode: (code: string, codeVerifier: string, redirectUri: string) => void;
 }
 
-export interface DateContextType {
-  curDate: Date,
-  setCurDate: (curDate: Date) => void;
-}
-
 export interface calendarObj {
   calendarName: string;
   calendarId: string;
