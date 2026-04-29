@@ -22,19 +22,6 @@ export interface FamilyAccessTokenObjs {
 }
 export type CalendarView = "M" | "W" | "3" | "2" | "1";
 
-export interface AuthContextType {
-  jwtToken: JwtTokenObj | null;
-  setJwtToken: (jwtToken : JwtTokenObj | null) => void;
-  
-  familyProfiles: FamilyProfileObjs | null;
-  setFamilyProfiles: (familyProfile : FamilyProfileObjs | null) => void;
-
-  calendarType: CalendarView;
-  setCalendarType: (calendarType: CalendarView) => void;
-
-  loginWithCode: (code: string, codeVerifier: string, redirectUri: string) => void;
-}
-
 export interface calendarObj {
   calendarName: string;
   calendarId: string;
