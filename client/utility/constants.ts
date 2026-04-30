@@ -32,6 +32,8 @@ export const DEAFULT_COLORS_2 = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3
 
 export const DRAWER_DRAGGABLE_HEIGHT = 36;
 
-export const PAST_BUFFER = 100; // ~6 years back
-export const FUTURE_BUFFER = 100; // ~6 years forward
+export const PAST_BUFFER = 10; // ~6 years back
+export const FUTURE_BUFFER = 10; // ~6 years forward
+export const BUFFER_INCREMENT = 10;
+export const DAYS_PADDING_THRESHOLD = 5;
 export const MAX_RESULTS = "250";

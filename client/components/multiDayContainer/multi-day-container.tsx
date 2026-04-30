@@ -32,6 +32,7 @@ const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 export default function MultiDayContainer({ calendarType, events }: { calendarType: CalendarView; events: EventObj[] }) {
   const dividers = parseInt(calendarType) || 3;
   const dayWidth = Math.round(GRID_WIDTH / dividers);
+  const { hourHeight, pinchGesture } = usePinchZoom();
 
   //calendarIndex
   const listRef = useAnimatedRef<FlashListRef<any>>();
@@ -40,9 +41,8 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     setDayWidth(dayWidth);
   }, [dayWidth, setDayWidth]);
 
-  const { hourHeight, pinchGesture } = usePinchZoom();
   const { groupedTimedEvents, groupedAllDayEvents } = useEventGrouping(events);
-  const { days, initialIndex } = useCalendarRange();
+  const { days, initialIndex, extendFuture, totalItems } = useCalendarRange();
 
   const [selectedEvent, setSelectedEvent] = useState<EventObj | null>(null);
   const [eventDetailsVisible, setEventDetailsVisible] = useState(false);
@@ -54,7 +54,10 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
 
   const onMainScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
-      scrollX.value = event.contentOffset.x;
+      const offsetX = event.contentOffset.x;
+      scrollX.value = offsetX;
+
+      //TODO: MOVE THIS LOGIC ELSWHERE
       // scheduleOnRN((offsetX: number) => {
       //   const itemsScrolled = Math.floor(offsetX / dayWidth + 0.5);
       //   const today = new Date();
@@ -123,7 +126,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
                 <DayContainer
                   day={(item as any).date}
                   dayWidth={dayWidth}
-                  events={groupedTimedEvents[(item as any).date.toDateString()] || []}
+                  eventsWithOffsets={groupedTimedEvents[(item as any).date.toDateString()] || []}
                   hourHeight={hourHeight}
                   handlePress={handlePress}
                 />
@@ -137,8 +140,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     </View>
   );
 }
-
-// ... styles remain unchanged ...
 
 const styles = StyleSheet.create({
   container: { backgroundColor: 'white', flex: 1 },

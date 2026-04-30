@@ -38,36 +38,55 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
 
   const allEvents = useMemo(() => {
     if (!calendars || !calendarObjs) return [];
-    const visibleIds = new Set(calendarObjs.filter(c => c.shown).map(c => c.calendarId));
-    
+    const visibleIds = new Set(calendarObjs.filter((c) => c.shown).map((c) => c.calendarId));
+
     // Only map parent array, ignore deprecated children
-    return (calendars.parent || [])
-      .filter(cal => visibleIds.has(cal.id))
-      .flatMap(cal => cal.events);
+    return (calendars.parent || []).filter((cal) => visibleIds.has(cal.id)).flatMap((cal) => cal.events);
   }, [calendars, calendarObjs]);
 
+  // -------------------
+  // calendar groups
   const groupedCalendars = useMemo(() => {
     if (!calendarObjs) return [];
-    return calendarObjs.reduce((groups, cal) => {
-      const type = cal.owner ? 'owner' : 'other';
-      let group = groups.find(g => g.id === type);
-      if (!group) groups.push(group = { id: type, calendars: [] });
-      group.calendars.push(cal);
-      return groups;
-    }, [] as { id: string; calendars: calendarObj[] }[]);
+    return calendarObjs.reduce(
+      (groups, cal) => {
+        const type = cal.owner ? 'owner' : 'other';
+        let group = groups.find((g) => g.id === type);
+        if (!group) groups.push((group = { id: type, calendars: [] }));
+        group.calendars.push(cal);
+        return groups;
+      },
+      [] as { id: string; calendars: calendarObj[] }[],
+    );
   }, [calendarObjs]);
 
   const updateSingleGroup = (groupId: string, newCalendars: calendarObj[]) => {
-    setCalendarObj(prev => !prev ? null : prev.map(c => newCalendars.find(n => n.calendarId === c.calendarId) || c));
+    setCalendarObj((prev) => (!prev ? null : prev.map((c) => newCalendars.find((n) => n.calendarId === c.calendarId) || c)));
   };
 
   const updateMultipleGroups = (updates: { groupId: string; newCalendars: calendarObj[] }[]) => {
-    const flatUpdates = updates.flatMap(u => u.newCalendars);
-    setCalendarObj(prev => !prev ? null : prev.map(c => flatUpdates.find(n => n.calendarId === c.calendarId) || c));
+    const flatUpdates = updates.flatMap((u) => u.newCalendars);
+    setCalendarObj((prev) => (!prev ? null : prev.map((c) => flatUpdates.find((n) => n.calendarId === c.calendarId) || c)));
   };
 
   return (
-    <EventsContext.Provider value={{ calendarObjs, setCalendarObj, allEvents, familyProfiles, isLoading, groupedCalendars, updateSingleGroup, updateMultipleGroups, deleteEvent, createEvent, editEvent, isWriting, writeError }}>
+    <EventsContext.Provider
+      value={{
+        calendarObjs,
+        setCalendarObj,
+        allEvents,
+        familyProfiles,
+        isLoading,
+        groupedCalendars,
+        updateSingleGroup,
+        updateMultipleGroups,
+        deleteEvent,
+        createEvent,
+        editEvent,
+        isWriting,
+        writeError,
+      }}
+    >
       {children}
     </EventsContext.Provider>
   );

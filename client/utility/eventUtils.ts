@@ -1,4 +1,5 @@
-import { format, isSameDay, parseISO } from 'date-fns';
+import { differenceInMinutes, format, getHours, getMinutes, isSameDay, parseISO } from 'date-fns';
+import { EVENT_GAP } from './constants';
 import { EventObj, calendarObj } from './types';
 
 export function createEventObj(data: Partial<EventObj>): EventObj {
@@ -145,6 +146,23 @@ export const compareEvents = (a: EventObj, b: EventObj): number => {
 
     // 3. returns which id is smallest
     return a.id.localeCompare(b.id);
+};
+
+export const getEventLayout = (event: EventObj, offset: number, hourHeight: number, dayWidth: number, columnWidth: number) => {
+  const startHour = getHours(event.startDate);
+  const startMin = getMinutes(event.startDate);
+  const durationInMinutes = differenceInMinutes(event.endDate, event.startDate);
+
+  const pixelsPerMinute = hourHeight / 60;
+  const minutesFromMidnight = startHour * 60 + startMin;
+  const left = offset * columnWidth;
+
+  return {
+    top: minutesFromMidnight * pixelsPerMinute,
+    height: durationInMinutes * pixelsPerMinute,
+    left: left,
+    width: dayWidth - left - EVENT_GAP,
+  };
 };
 
 //creates the time display for event details

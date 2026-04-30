@@ -1,12 +1,11 @@
 // hooks/calendarHooks/useCalendarRange.ts
-import { FUTURE_BUFFER, PAST_BUFFER } from '@/utility/constants';
+import { BUFFER_INCREMENT, FUTURE_BUFFER, PAST_BUFFER } from '@/utility/constants';
 import { addDays, startOfDay, subDays } from 'date-fns';
-import { useMemo } from 'react';
+import { useCallback, useState } from 'react';
 
 export const useCalendarRange = () => {
-  // 1. Generate one massive array ONCE.
-  // No state updates, no re-renders, no stutter.
-  const days = useMemo(() => {
+  // 1. Generate one massive array
+  const [days, setDays] = useState<{date: Date}[]>(() => {
     const today = startOfDay(new Date());
     const start = subDays(today, PAST_BUFFER);
     const end = addDays(today, FUTURE_BUFFER);
@@ -17,7 +16,31 @@ export const useCalendarRange = () => {
       current = addDays(current, 1);
     }
     return range;
+  });
+
+  //extend Days array by increasing futureDate
+  const extendFuture = useCallback(() => {
+    setDays((prev) => {
+      const lastDate = prev[prev.length - 1].date;
+      const newDays = [];
+      for (let i = 1; i <= BUFFER_INCREMENT; i++) {
+        newDays.push({date: addDays(lastDate, i)})
+      }
+      return [...prev, ...newDays];
+    })
   }, []);
 
-  return { days, initialIndex: PAST_BUFFER };
+  //extend Days array by decreasing pastDate
+  const extendPast = useCallback(() => {
+    setDays((prev) => {
+      const firstDate = prev[0].date;
+      const newDays = [];
+      for (let i = BUFFER_INCREMENT; i >= 1; i--) {
+        newDays.push({ date: subDays(firstDate, i) });
+      }
+      return [...newDays, ...prev];
+    });
+  }, []);
+
+  return { days, extendFuture, extendPast, initialIndex: PAST_BUFFER, totalItems: days.length };
 };

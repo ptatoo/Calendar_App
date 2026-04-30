@@ -1,14 +1,12 @@
-import { DEFAULT_COLORS, PASTEL_COLORS_2 } from '@/utility/constants';
+import { PASTEL_COLORS_2 } from '@/utility/constants';
 import { colorCache } from '@/utility/types';
-import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { EventsContext } from './calendar-events-context';
 
 interface UIContextType {
   now: Date;
   isLoginVisible: boolean;
   setLoginVisible: (visible: boolean) => void;
-  colors: string[];
-  updateColors: Dispatch<SetStateAction<string[]>>;
   allCaches: colorCache[];
   activeCacheId: number;
   changePalette: (newPaletteId: number, newPaletteName: string, newColors: string[]) => void;
@@ -21,10 +19,8 @@ export const UIContext = createContext<UIContextType>({
   now: new Date(),
   isLoginVisible: false,
   setLoginVisible: () => {},
-  colors: [],
   allCaches: [],
   activeCacheId: 0,
-  updateColors: () => {},
   changePalette: () => {},
   syncCacheToPalette: () => {},
   setManualCalendarColor: () => {},
@@ -64,7 +60,6 @@ const findClosestColor = (targetHex: string, palette: string[]) => {
 export const UIProvider = ({ children }: { children: ReactNode }) => {
   const [isLoginVisible, setLoginVisible] = useState(false);
   const { calendarObjs, setCalendarObj } = useContext(EventsContext);
-  const [colors, updateColors] = useState<string[]>(DEFAULT_COLORS);
   const [now, setNow] = useState(new Date());
 
   const [allCaches, setAllCaches] = useState<colorCache[]>([
@@ -200,8 +195,6 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
         activeCacheId,
         isLoginVisible,
         setLoginVisible,
-        colors,
-        updateColors,
         changePalette,
         syncCacheToPalette,
         setManualCalendarColor,

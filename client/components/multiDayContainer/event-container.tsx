@@ -2,21 +2,24 @@ import { EVENT_GAP, EVENT_OFFSET } from '@/utility/constants';
 import { EventObj, EventWithOffset } from '@/utility/types';
 import { UIContext } from '../contexts/ui-context';
 
-import { differenceInMinutes, getHours, getMinutes } from 'date-fns';
 import React, { useContext, useMemo } from 'react';
 
 import { lightenColor } from '@/utility/eventUtils';
 import { StyleSheet, Text, View } from 'react-native';
 import { Pressable } from 'react-native-gesture-handler';
 
+//import { getEventLayout } from '@/utility/eventUtils';
+
 //TODO: MOVE THIS TO A NEW FILE
 const getEventLayout = (event: EventObj, offset: number, hourHeight: number, dayWidth: number, columnWidth: number) => {
-  const startHour = getHours(event.startDate);
-  const startMin = getMinutes(event.startDate);
-  const durationInMinutes = differenceInMinutes(event.endDate, event.startDate);
+  const start = new Date(event.startDate).getTime();
+  const end = new Date(event.endDate).getTime();
+  const durationInMinutes = (end - start) / 60000;
+
+  const startOfDay = new Date(event.startDate).setHours(0, 0, 0, 0);
+  const minutesFromMidnight = (start - startOfDay) / 60000;
 
   const pixelsPerMinute = hourHeight / 60;
-  const minutesFromMidnight = startHour * 60 + startMin;
   const left = offset * columnWidth;
 
   return {
@@ -40,20 +43,18 @@ const EventContainer = ({
   onSelect: (event: EventObj) => void;
 }) => {
   const { event, offset } = eventWithOffset;
+  const { allCaches, activeCacheId, getCalendarColor } = useContext(UIContext);
 
-  const { allCaches, now, activeCacheId, getCalendarColor } = useContext(UIContext);
-  const { top, height, left, width } = getEventLayout(
-    event,
-    offset,
-    hourHeight,
-    dayWidth,
-    EVENT_OFFSET, //horizontal offset step
-  );
+  //position on screen
+  const layout = useMemo(() => {
+    return getEventLayout(event, offset, hourHeight, dayWidth, EVENT_OFFSET);
+  }, [event, offset, hourHeight, dayWidth]);
 
+  //color on screen
   const rawColor = useMemo(() => {
     let c = getCalendarColor(event.calendarId);
     return lightenColor(c, 0, 0);
-  }, [allCaches, activeCacheId, event.calendarId, now]);
+  }, [allCaches, activeCacheId, event.calendarId]);
   const borderColor = useMemo(() => {
     return lightenColor(rawColor, 50, 20);
   }, [rawColor]);
@@ -70,10 +71,7 @@ const EventContainer = ({
         style={[
           styles.eventContainer,
           {
-            top,
-            height,
-            left,
-            width,
+            ...layout,
             zIndex: offset + 100,
             elevation: offset + 100, // Required for Android layering
           },
