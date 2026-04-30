@@ -5,12 +5,12 @@ import React from 'react';
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-export default function TrackWindow({ animatedStyle, children }: { animatedStyle: any, children: React.ReactNode }) {
+export const TrackWindow = React.memo(({ animatedStyle, children }: { animatedStyle: any; children: React.ReactNode }) => {
+  console.log('tracked window');
+
   return (
     <View style={{ width: GRID_WIDTH, overflow: 'hidden' }}>
-      <Animated.View style={animatedStyle}>
-        {children}
-      </Animated.View>
+      <Animated.View style={animatedStyle}>{children}</Animated.View>
     </View>
   );
-}
+});

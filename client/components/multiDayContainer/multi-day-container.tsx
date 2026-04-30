@@ -3,13 +3,15 @@ import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { useAnimatedRef, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 import { useCalendarRange } from '@/hooks/calendarHooks/useCalendarRange';
 import { useEventGrouping } from '@/hooks/calendarHooks/useEventGrouping';
 import { usePinchZoom } from '@/hooks/calendarHooks/usePinchZoom';
 import {
   DATE_HEADER_HEIGHT,
+  DAYS_PADDING_THRESHOLD,
   GRID_COLOR,
   GRID_WIDTH,
   HEADER_BACKGROUND_COLOR,
@@ -17,7 +19,7 @@ import {
   PAST_BUFFER,
   SCREEN_WIDTH,
 } from '@/utility/constants';
-import { CalendarView, EventObj } from '@/utility/types';
+import { CalendarView, EventObj, EventWithOffset } from '@/utility/types';
 import { useCalendarIndex } from '../contexts/calendar-index-context';
 
 import EventDetails from '../eventDetailsContainer/event-details';
@@ -25,7 +27,7 @@ import AllDayChip from './allday-chip';
 import DateHeader from './date-header';
 import DayContainer from './day-container';
 import HourGuide from './hour-guide';
-import TrackWindow from './track-window';
+import { TrackWindow } from './track-window';
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
@@ -36,13 +38,14 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
 
   //calendarIndex
   const listRef = useAnimatedRef<FlashListRef<any>>();
-  const { setDayWidth, scrollX } = useCalendarIndex();
+  const { setDayWidth } = useCalendarIndex();
   useLayoutEffect(() => {
     setDayWidth(dayWidth);
   }, [dayWidth, setDayWidth]);
 
   const { groupedTimedEvents, groupedAllDayEvents } = useEventGrouping(events);
-  const { days, initialIndex, extendFuture, totalItems } = useCalendarRange();
+  const { days, initialIndex, extendFuture, extendPast, totalItems } = useCalendarRange();
+  const EMPTY_EVENTS: EventWithOffset[] = []; // Define once
 
   const [selectedEvent, setSelectedEvent] = useState<EventObj | null>(null);
   const [eventDetailsVisible, setEventDetailsVisible] = useState(false);
@@ -52,11 +55,28 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     setEventDetailsVisible(!!event);
   }, []);
 
+  const scrollX = useSharedValue<number>(0);
+
   const onMainScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       const offsetX = event.contentOffset.x;
       scrollX.value = offsetX;
 
+      const currentIndex = Math.floor(offsetX / dayWidth);
+      const totalDays = totalItems; // Use a shared value for the length
+
+      // Check Right (Future)
+      if (currentIndex > totalDays - DAYS_PADDING_THRESHOLD) {
+        scheduleOnRN(() => {
+          extendFuture();
+          console.log('entering the future');
+        });
+      }
+      // Check Left (Past)
+      if (currentIndex < DAYS_PADDING_THRESHOLD) {
+        extendPast();
+        console.log('entering the past...');
+      }
       //TODO: MOVE THIS LOGIC ELSWHERE
       // scheduleOnRN((offsetX: number) => {
       //   const itemsScrolled = Math.floor(offsetX / dayWidth + 0.5);
@@ -92,6 +112,14 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
                 <DateHeader key={item.date.toISOString()} day={item.date} dayWidth={dayWidth} />
               ))}
             </TrackWindow>
+
+            {/* <View style={{ width: GRID_WIDTH, overflow: 'hidden' }}>
+              <Animated.View style={headerAnimatedStyle}>
+                {days.map((item) => (
+                  <DateHeader key={item.date.toISOString()} day={item.date} dayWidth={dayWidth} />
+                ))}
+              </Animated.View>
+            </View> */}
           </View>
 
           {/* ALL DAY HEADER */}
@@ -122,11 +150,14 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
               keyExtractor={(item: any) => item.date.toISOString()}
               style={{ width: GRID_WIDTH }}
               initialScrollIndex={PAST_BUFFER}
+              maintainVisibleContentPosition={{
+                autoscrollToTopThreshold: 0, // Keeps it from jumping to index 0
+              }}
               renderItem={({ item }) => (
                 <DayContainer
                   day={(item as any).date}
                   dayWidth={dayWidth}
-                  eventsWithOffsets={groupedTimedEvents[(item as any).date.toDateString()] || []}
+                  eventsWithOffsets={groupedTimedEvents[(item as any).date.toDateString()] ?? EMPTY_EVENTS}
                   hourHeight={hourHeight}
                   handlePress={handlePress}
                 />
