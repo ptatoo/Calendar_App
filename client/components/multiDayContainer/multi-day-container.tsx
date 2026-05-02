@@ -1,7 +1,7 @@
 import { SCREEN_HEIGHT } from '@gorhom/bottom-sheet';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   cancelAnimation,
@@ -155,6 +155,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
       const totalDays = days.length; // Ensure this dynamically matches your data length if needed
 
       if (currentIndex > totalDays - DAYS_PADDING_THRESHOLD) {
+        console.log('entering the future...');
         scheduleOnRN(extendFuture);
       }
       if (currentIndex < DAYS_PADDING_THRESHOLD) {
@@ -168,14 +169,38 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     transform: [{ translateY: -scrollY.value }],
   }));
 
+  const webContainerRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !webContainerRef.current) return;
+    const node = webContainerRef.current;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        e.preventDefault();
+        scrollX.value = Math.max(0, scrollX.value + e.deltaX);
+      } else {
+        const maxScroll = hourHeight * 24 - SCREEN_HEIGHT + HEADER_HEIGHT + DATE_HEADER_HEIGHT;
+        scrollY.value = Math.max(0, Math.min(scrollY.value + e.deltaY, maxScroll));
+      }
+    };
+
+    node.addEventListener('wheel', handleWheel, { passive: false });
+    return () => node.removeEventListener('wheel', handleWheel);
+  }, [hourHeight]); // Re-bind if hourHeight changes
+
   return (
     <View style={styles.container}>
       <GestureDetector gesture={combined}>
-        <Animated.View style={{ flex: 1, overflow: 'hidden' }}>
+        <Animated.View 
+          ref={webContainerRef}
+          style={{ flex: 1, overflow: 'hidden', overscrollBehaviorX: 'none' }}
+          
+        >
           {/* HOUR GUIDE */}
           <View style={{ flex: 1, flexDirection: 'row' }}>
             {/* HourGuide syncs vertically via useAnimatedStyle */}
-            <Animated.View style={animatedHourGuideStyle}>
+            <Animated.View ref={webContainerRef} style={animatedHourGuideStyle}>
               <HourGuide hourHeight={hourHeight} labelWidth={HOUR_LABEL_WIDTH} />
             </Animated.View>
 
