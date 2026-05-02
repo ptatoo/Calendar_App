@@ -1,3 +1,4 @@
+import { HEADER_HEIGHT } from '@/utility/constants';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
@@ -43,7 +44,7 @@ export default function CalendarHeader(props: any) {
 
 const styles = StyleSheet.create({
   headerContainer: {
-    height: 66,
+    height: HEADER_HEIGHT,
     flexDirection: 'row',
     backgroundColor: 'HEADER_BACKGROUND_COLOR',
     padding: 16,

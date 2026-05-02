@@ -6,12 +6,10 @@ const DateHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
   const isToday = new Date().toDateString() === day.toDateString();
   return (
     <View style={[styles.date, { width: dayWidth }]}>
-      <View style={styles.dateInner}>
-        <Text style={[styles.dateText, isToday && styles.todayText]}>
-          {day.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
-        </Text>
-        <Text style={[styles.dateNumber, isToday && styles.todayNumber]}>{day.toLocaleDateString('en-US', { day: 'numeric' })}</Text>
-      </View>
+      <Text style={[styles.dateText, isToday && styles.todayText]}>
+        {day.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
+      </Text>
+      <Text style={[styles.dateNumber, isToday && styles.todayNumber]}>{day.toLocaleDateString('en-US', { day: 'numeric' })}</Text>
     </View>
   );
 };
@@ -23,10 +21,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: HEADER_BACKGROUND_COLOR,
     height: DATE_HEADER_HEIGHT,
-  },
-  dateInner: {
     alignItems: 'center',
-    width: '100%',
     paddingRight: 8,
   },
   dateText: {

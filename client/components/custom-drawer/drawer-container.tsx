@@ -14,9 +14,22 @@ import { toTitleCase } from '@/utility/drawerUtil';
 import DraggableCalendar from './drawer-draggable-calendar';
 
 export default function CustomDrawerContent(props: any) {
+  // All hooks must be called at the top level before any other code
   const { calendarType, setCalendarType } = useContext(AuthContext);
   const { familyProfiles, setCalendarObj, groupedCalendars, updateSingleGroup, updateMultipleGroups } = useContext(EventsContext);
   const { setLoginVisible } = useContext(UIContext);
+  const hoverIndex = useSharedValue<number | null>(null);
+  const activeIndex = useSharedValue<number | null>(null);
+
+  //Both Folders and Calendars are mapped to Draggable Flatlist in flatData
+  const flatData = useMemo(() => {
+    return groupedCalendars.flatMap((group) => [
+      { id: group.id, folder: true, calendar: null as calendarObj | null },
+      ...group.calendars.map((cal) => {
+        return { id: group.id, folder: false, calendar: cal as calendarObj | null };
+      }),
+    ]);
+  }, [groupedCalendars]);
 
   const getButtonStyle = (option: '1' | '2' | '3' | 'W' | 'M', pressed: boolean) => [
     styles.viewButton,
@@ -96,19 +109,6 @@ export default function CustomDrawerContent(props: any) {
       ]);
     }
   };
-
-  const hoverIndex = useSharedValue<number | null>(null);
-  const activeIndex = useSharedValue<number | null>(null);
-
-  //Both Folders and Calendars are mapped to Draggable Flatlist in flatData
-  const flatData = useMemo(() => {
-    return groupedCalendars.flatMap((group) => [
-      { id: group.id, folder: true, calendar: null as calendarObj | null },
-      ...group.calendars.map((cal) => {
-        return { id: group.id, folder: false, calendar: cal as calendarObj | null };
-      }),
-    ]);
-  }, [groupedCalendars]);
 
   return (
     <SafeAreaView style={styles.headerContainer}>
