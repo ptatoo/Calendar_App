@@ -1,7 +1,7 @@
 import { SCREEN_HEIGHT } from '@gorhom/bottom-sheet';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   cancelAnimation,
@@ -28,6 +28,7 @@ import {
   PAST_BUFFER,
   SCREEN_WIDTH,
 } from '@/utility/constants';
+import { COLORS, FONT_WEIGHTS, SIZES } from '@/utility/theme';
 import { CalendarView, EventObj, EventWithOffset } from '@/utility/types';
 import { useCalendarIndex } from '../contexts/calendar-index-context';
 
@@ -192,17 +193,18 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   return (
     <View style={styles.container}>
       <GestureDetector gesture={combined}>
-        <Animated.View 
-          ref={webContainerRef}
-          style={{ flex: 1, overflow: 'hidden', overscrollBehaviorX: 'none' }}
-          
-        >
+        <Animated.View ref={webContainerRef} style={{ flex: 1, overflow: 'hidden', overscrollBehaviorX: 'none' }}>
           {/* HOUR GUIDE */}
           <View style={{ flex: 1, flexDirection: 'row' }}>
-            {/* HourGuide syncs vertically via useAnimatedStyle */}
-            <Animated.View ref={webContainerRef} style={animatedHourGuideStyle}>
-              <HourGuide hourHeight={hourHeight} labelWidth={HOUR_LABEL_WIDTH} />
-            </Animated.View>
+            {/* HOUR GUIDE */}
+            <View style={{ flexDirection: 'column' }}>
+              <View style={[styles.timeZone, { height: hourHeight }]}>
+                <Text style={styles.timeZoneText}>PDT</Text>
+              </View>
+              <Animated.View ref={webContainerRef} style={[animatedHourGuideStyle, { zIndex: 8 }]}>
+                <HourGuide hourHeight={hourHeight} labelWidth={HOUR_LABEL_WIDTH} />
+              </Animated.View>
+            </View>
 
             {/* MAIN GRID */}
             <AnimatedFlashList
@@ -240,6 +242,20 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
 
 const styles = StyleSheet.create({
   container: { backgroundColor: 'white', flex: 1 },
+  timeZone: {
+    width: HOUR_LABEL_WIDTH,
+    zIndex: 10,
+    justifyContent: 'flex-end',
+    textAlign: 'center',
+    backgroundColor: COLORS.headerBackground,
+    padding: 3,
+  },
+  timeZoneText: {
+    fontSize: SIZES.s,
+    color: COLORS.text,
+    fontWeight: FONT_WEIGHTS.light,
+    textAlign: 'center',
+  },
   headerWrapper: {
     height: DATE_HEADER_HEIGHT,
     flexDirection: 'row',
@@ -263,14 +279,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#111827',
     fontWeight: '500',
-  },
-  todayText: { color: '#2563EB' },
-  todayNumber: { color: '#2563EB', fontWeight: '700' },
-  dateHourGuide: {
-    width: HOUR_LABEL_WIDTH,
-    backgroundColor: HEADER_BACKGROUND_COLOR,
-    borderRightWidth: 1,
-    borderColor: GRID_COLOR,
   },
   allDayRow: {
     flexDirection: 'row',

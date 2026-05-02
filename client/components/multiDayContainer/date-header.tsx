@@ -1,9 +1,17 @@
-import { DATE_HEADER_HEIGHT, HEADER_BACKGROUND_COLOR } from '@/utility/constants';
-import React, { memo } from 'react';
+import { DATE_HEADER_HEIGHT } from '@/utility/constants';
+import { COLORS, FONT_WEIGHTS, SIZES } from '@/utility/theme';
+import React, { memo, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useUIContext } from '../contexts/ui-context';
 
 const DateHeader = ({ day, dayWidth }: { day: Date; dayWidth: number }) => {
-  const isToday = new Date().toDateString() === day.toDateString();
+  const { now } = useUIContext();
+
+  const isToday = useMemo(() => {
+    if (!now || !day) return false;
+    return now.toDateString() === day.toDateString();
+  }, [now, day]);
+
   return (
     <View style={[styles.date, { width: dayWidth }]}>
       <Text style={[styles.dateText, isToday && styles.todayText]}>
@@ -19,21 +27,20 @@ export default memo(DateHeader);
 const styles = StyleSheet.create({
   date: {
     justifyContent: 'center',
-    backgroundColor: HEADER_BACKGROUND_COLOR,
+    backgroundColor: COLORS.headerBackground,
     height: DATE_HEADER_HEIGHT,
     alignItems: 'center',
-    paddingRight: 8,
   },
   dateText: {
-    fontSize: 11,
-    color: '#6B7280',
-    fontWeight: '600',
+    fontSize: SIZES.xs,
+    color: COLORS.text,
+    fontWeight: FONT_WEIGHTS.light,
   },
   dateNumber: {
-    fontSize: 18,
-    color: '#111827',
-    fontWeight: '500',
+    fontSize: SIZES.l,
+    color: COLORS.text,
+    fontWeight: FONT_WEIGHTS.medium,
   },
-  todayText: { color: '#2563EB' },
-  todayNumber: { color: '#2563EB', fontWeight: '700' },
+  todayText: { color: COLORS.primary },
+  todayNumber: { color: COLORS.primary, fontWeight: FONT_WEIGHTS.medium },
 });

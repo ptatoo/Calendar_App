@@ -205,3 +205,9 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
     </UIContext.Provider>
   );
 };
+
+export function useUIContext() {
+  const ctx = useContext(UIContext);
+  if (!ctx) throw new Error('useCalendarIndex must be within DateProvider');
+  return ctx;
+}

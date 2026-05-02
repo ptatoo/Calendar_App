@@ -1,4 +1,5 @@
 import { HEADER_HEIGHT } from '@/utility/constants';
+import { COLORS, FONT_WEIGHTS, SIZES } from '@/utility/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { DrawerActions } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
@@ -28,14 +29,17 @@ export default function CalendarHeader(props: any) {
 
         {/* --- Date --- */}
         <View style={{ justifyContent: 'center' }}>
-          <Text style={{ fontWeight: 500, fontSize: 22 }}>{curDate.toLocaleString('default', { month: 'long' })}</Text>
+          <Text style={styles.headerDateText}>{curDate.toLocaleString('default', { month: 'long' })}</Text>
         </View>
 
         {/* --- Extra Buttons on the Right --- */}
+
         <View style={styles.headerButtonContainer}>
-          <Pressable style={styles.headerButton} onPress={handleSnapToToday}>
-            <Text style={{ fontWeight: 500, fontSize: 16 }}>{currentDate.toLocaleString('default', { day: 'numeric' })}</Text>
-          </Pressable>
+          <View style={{ justifyContent: 'center' }}>
+            <Pressable style={styles.headerButton} onPress={handleSnapToToday}>
+              <Text style={{ fontWeight: 500, fontSize: 16 }}>{currentDate.toLocaleString('default', { day: 'numeric' })}</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -46,14 +50,17 @@ const styles = StyleSheet.create({
   headerContainer: {
     height: HEADER_HEIGHT,
     flexDirection: 'row',
-    backgroundColor: 'HEADER_BACKGROUND_COLOR',
+    backgroundColor: COLORS.headerBackground,
     padding: 16,
-    paddingRight: 24,
     gap: 10,
     alignItems: 'stretch',
   },
   waffle: {
     alignSelf: 'flex-start',
+  },
+  headerDateText: {
+    fontWeight: FONT_WEIGHTS.medium,
+    fontSize: SIZES.xl,
   },
   headerButtonContainer: {
     flex: 1,
@@ -64,7 +71,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   headerButton: {
-    backgroundColor: '#77a7f7',
+    width: 30,
+    height: 30,
+    backgroundColor: COLORS.primary,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
