@@ -31,6 +31,7 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
   const { familyProfiles } = useProfiles(sessionTokenString);
   const { calendars, newCalendarIds, isLoading } = useCalendar(sessionTokenString);
   const { editEvent, createEvent, deleteEvent, loading: isWriting, error: writeError } = useCalendarWrite(sessionTokenString);
+  const [timeZone, setTimeZone] = useState<number>(0);
 
   useEffect(() => {
     if (newCalendarIds?.length) setCalendarObj(newCalendarIds);
@@ -44,29 +45,44 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     return (calendars.parent || []).filter((cal) => visibleIds.has(cal.id)).flatMap((cal) => cal.events);
   }, [calendars, calendarObjs]);
 
-  // -------------------
+  // -------------------------------------------
   // calendar groups
-  const groupedCalendars = useMemo(() => {
-    if (!calendarObjs) return [];
-    return calendarObjs.reduce(
+  // -------------------------------------------
+  const [groupedCalendars, setGroupedCalendars] = useState<{ id: string; calendars: calendarObj[] }[]>([]);
+
+  //add new calendarObjs to either "owner" or "other" group
+  useEffect(() => {
+    if (!calendarObjs) return;
+
+    const initialGroups = calendarObjs.reduce(
       (groups, cal) => {
         const type = cal.owner ? 'owner' : 'other';
         let group = groups.find((g) => g.id === type);
-        if (!group) groups.push((group = { id: type, calendars: [] }));
+
+        if (!group) {
+          group = { id: type, calendars: [] };
+          groups.push(group);
+        }
+
         group.calendars.push(cal);
         return groups;
       },
       [] as { id: string; calendars: calendarObj[] }[],
     );
+
+    setGroupedCalendars(initialGroups);
   }, [calendarObjs]);
 
   const updateSingleGroup = (groupId: string, newCalendars: calendarObj[]) => {
-    setCalendarObj((prev) => (!prev ? null : prev.map((c) => newCalendars.find((n) => n.calendarId === c.calendarId) || c)));
+    setGroupedCalendars((prev) => prev.map((group) => (group.id === groupId ? { ...group, calendars: newCalendars } : group)));
   };
 
   const updateMultipleGroups = (updates: { groupId: string; newCalendars: calendarObj[] }[]) => {
-    const flatUpdates = updates.flatMap((u) => u.newCalendars);
-    setCalendarObj((prev) => (!prev ? null : prev.map((c) => flatUpdates.find((n) => n.calendarId === c.calendarId) || c)));
+    setGroupedCalendars((prev) => {
+      const updatesMap = new Map(updates.map((u) => [u.groupId, u.newCalendars]));
+
+      return prev.map((group) => (updatesMap.has(group.id) ? { ...group, calendars: updatesMap.get(group.id)! } : group));
+    });
   };
 
   return (

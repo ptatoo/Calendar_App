@@ -11,6 +11,8 @@ import { EventsContext } from '../contexts/calendar-events-context';
 import { UIContext } from '../contexts/ui-context';
 
 import { toTitleCase } from '@/utility/drawerUtil';
+import { globalStyles } from '@/utility/globalStyles';
+import { COLORS, FONT_WEIGHTS, SIZES } from '@/utility/theme';
 import DraggableCalendar from './drawer-draggable-calendar';
 
 export default function CustomDrawerContent(props: any) {
@@ -23,6 +25,7 @@ export default function CustomDrawerContent(props: any) {
 
   //Both Folders and Calendars are mapped to Draggable Flatlist in flatData
   const flatData = useMemo(() => {
+    console.log(groupedCalendars);
     return groupedCalendars.flatMap((group) => [
       { id: group.id, folder: true, calendar: null as calendarObj | null },
       ...group.calendars.map((cal) => {
@@ -33,8 +36,8 @@ export default function CustomDrawerContent(props: any) {
 
   const getButtonStyle = (option: '1' | '2' | '3' | 'W' | 'M', pressed: boolean) => [
     styles.viewButton,
-    calendarType === option && styles.activeButton,
-    pressed && styles.pressedButton,
+    calendarType === option && globalStyles.activeButton,
+    pressed && globalStyles.pressedButton,
   ];
 
   //toggle visibility of specific calendar
@@ -171,59 +174,39 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 14,
-    color: 'Gray',
-    fontWeight: '700',
+    color: COLORS.text,
+    fontWeight: FONT_WEIGHTS.heavy,
   },
   profile: {
     height: 42,
     marginBottom: 20,
   },
   username: {
-    fontSize: 16,
+    fontSize: SIZES.l,
     marginBottom: 4,
-    fontWeight: '600',
+    fontWeight: FONT_WEIGHTS.medium,
+    color: COLORS.text,
   },
   email: {
-    fontSize: 12,
-    color: 'gray',
+    fontSize: SIZES.s,
+    color: COLORS.textLight,
   },
   viewToggleContainer: {
     justifyContent: 'space-between',
     marginBottom: 10,
   },
   viewButton: {
-    padding: 6,
+    padding: 8,
     marginVertical: 2,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-  },
-  activeButton: {
-    backgroundColor: '#f0f0f0',
   },
   viewButtonText: {
-    fontSize: 12,
-    color: '#333',
-    fontWeight: '500',
+    fontSize: SIZES.s,
+    color: COLORS.text,
+    fontWeight: FONT_WEIGHTS.light,
   },
   activeButtonText: {
-    color: '#333',
-    fontWeight: '600',
-  },
-  pressedButton: {
-    transform: [{ scale: 0.96 }],
-  },
-  sectionHeader: {
-    paddingVertical: 6,
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#6B7280',
-    letterSpacing: 1,
-  },
-  emptyText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    fontStyle: 'italic',
-    marginLeft: 10,
-    marginVertical: 4,
+    color: COLORS.text,
+    fontWeight: FONT_WEIGHTS.medium,
   },
 });
