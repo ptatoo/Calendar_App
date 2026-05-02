@@ -17,6 +17,7 @@ export const useCalendarRange = () => {
     }
     return range;
   });
+  const [pastDaysCount, setPastDaysCount] = useState(PAST_BUFFER);
 
   //extend Days array by increasing futureDate
   const extendFuture = useCallback(() => {
@@ -40,7 +41,8 @@ export const useCalendarRange = () => {
       }
       return [...newDays, ...prev];
     });
+    setPastDaysCount((prev) => prev + BUFFER_INCREMENT);
   }, []);
 
-  return { days, extendFuture, extendPast, initialIndex: PAST_BUFFER, totalItems: days.length };
+  return { days, extendFuture, extendPast, pastDaysCount, totalItems: days.length };
 };

@@ -52,7 +52,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   }, [dayWidth, setDayWidth]);
 
   const { groupedTimedEvents, groupedAllDayEvents } = useEventGrouping(events);
-  const { days, initialIndex, extendFuture, extendPast } = useCalendarRange();
+  const { days, extendFuture, extendPast, pastDaysCount } = useCalendarRange();
 
   const [selectedEvent, setSelectedEvent] = useState<EventObj | null>(null);
   const [eventDetailsVisible, setEventDetailsVisible] = useState(false);
@@ -69,6 +69,21 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const startX = useSharedValue<number>(0);
   const startY = useSharedValue<number>(0);
   const nativeRef = useRef(Gesture.Native());
+
+  //offset and prepending work
+  const baseOffset = useSharedValue(pastDaysCount * dayWidth);
+
+  useLayoutEffect(() => {
+    baseOffset.value = pastDaysCount * dayWidth;
+  }, [pastDaysCount, dayWidth, baseOffset]);
+
+  const isLoading = useSharedValue(false);
+
+  // Reset the lock whenever the days array length changes
+  useLayoutEffect(() => {
+    isLoading.value = false;
+  }, [days.length]);
+  //offset and prepending work
 
   const verticalPan = Gesture.Pan()
     .simultaneousWithExternalGesture(nativeRef)
@@ -98,6 +113,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     .onUpdate((event) => {
       const nextY = contextY.value - event.translationY;
       scrollY.value = Math.max(0, Math.min(nextY, hourHeight * 24 - SCREEN_HEIGHT + HEADER_HEIGHT + DATE_HEADER_HEIGHT));
+      console.log(scrollY.value);
     })
     .onEnd((event) => {
       const maxScroll = hourHeight * 24 - SCREEN_HEIGHT + HEADER_HEIGHT + DATE_HEADER_HEIGHT;
@@ -135,7 +151,8 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     })
     .onUpdate((event) => {
       const nextX = contextX.value - event.translationX;
-      scrollX.value = Math.max(0, nextX);
+      const minScroll = -baseOffset.value;
+      scrollX.value = Math.max(minScroll, nextX); // Clamp to physical 0
     })
     .onEnd((event) => {
       scrollX.value = withDecay({
@@ -147,20 +164,28 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
   const combined = Gesture.Simultaneous(verticalPan, horizontalPan);
 
   // Sync FlashList horizontal scrolling programmatically and handle infinite loading
+  // Sync FlashList horizontal scrolling programmatically and handle infinite loading
   useAnimatedReaction(
-    () => scrollX.value,
-    (x) => {
-      scrollTo(listRef, x, 0, false);
+    () => ({ logX: scrollX.value, base: baseOffset.value, loading: isLoading.value }),
+    ({ logX, base, loading }) => {
+      const physicalX = logX + base;
+      scrollTo(listRef, physicalX, 0, false);
 
-      const currentIndex = Math.floor(x / dayWidth);
-      const totalDays = days.length; // Ensure this dynamically matches your data length if needed
+      if (loading) return; // Prevent spamming
+
+      const currentIndex = Math.floor(physicalX / dayWidth);
+      const totalDays = days.length;
 
       if (currentIndex > totalDays - DAYS_PADDING_THRESHOLD) {
-        console.log('entering the future...');
+        isLoading.value = true;
         scheduleOnRN(extendFuture);
+        console.log('FUTURE');
       }
+
       if (currentIndex < DAYS_PADDING_THRESHOLD) {
-        console.log('entering the past...');
+        isLoading.value = true;
+        scheduleOnRN(extendPast);
+        console.log('PAST');
       }
     },
   );
@@ -179,7 +204,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     const handleWheel = (e: WheelEvent) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
         e.preventDefault();
-        scrollX.value = Math.max(0, scrollX.value + e.deltaX);
+        scrollX.value = Math.max(-baseOffset.value, scrollX.value + e.deltaX);
       } else {
         const maxScroll = hourHeight * 24 - SCREEN_HEIGHT + HEADER_HEIGHT + DATE_HEADER_HEIGHT;
         scrollY.value = Math.max(0, Math.min(scrollY.value + e.deltaY, maxScroll));
@@ -189,6 +214,21 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     node.addEventListener('wheel', handleWheel, { passive: false });
     return () => node.removeEventListener('wheel', handleWheel);
   }, [hourHeight]); // Re-bind if hourHeight changes
+
+  const renderDay = useCallback(
+    ({ item }: any) => (
+      <DayContainer
+        day={item.date}
+        dayWidth={dayWidth}
+        eventsWithOffsets={groupedTimedEvents[item.date.toDateString()] ?? EMPTY_EVENTS}
+        hourHeight={hourHeight}
+        handlePress={handlePress}
+        scrollY={scrollY}
+        contextY={contextY}
+      />
+    ),
+    [dayWidth, groupedTimedEvents, hourHeight, handlePress, scrollY, contextY],
+  );
 
   return (
     <View style={styles.container}>
@@ -209,6 +249,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
             {/* MAIN GRID */}
             <AnimatedFlashList
               ref={listRef}
+              drawDistance={dayWidth * 7}
               data={days}
               horizontal
               scrollEnabled={false}
@@ -216,20 +257,7 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
               keyExtractor={(item: any) => item.date.toISOString()}
               style={{ width: GRID_WIDTH }}
               initialScrollIndex={PAST_BUFFER}
-              maintainVisibleContentPosition={{
-                autoscrollToTopThreshold: 0,
-              }}
-              renderItem={({ item }) => (
-                <DayContainer
-                  day={(item as any).date}
-                  dayWidth={dayWidth}
-                  eventsWithOffsets={groupedTimedEvents[(item as any).date.toDateString()] ?? EMPTY_EVENTS}
-                  hourHeight={hourHeight}
-                  handlePress={handlePress}
-                  scrollY={scrollY}
-                  contextY={contextY}
-                />
-              )}
+              renderItem={renderDay}
             />
           </View>
         </Animated.View>
