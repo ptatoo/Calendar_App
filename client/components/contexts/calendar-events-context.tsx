@@ -1,10 +1,10 @@
 // events-context.tsx
-import { useAuth } from '@/hooks/useAuth';
 import { useCalendar } from '@/hooks/useCalendar';
 import { useCalendarWrite } from '@/hooks/useCalendarWrite';
 import { useProfiles } from '@/hooks/useProfile';
 import { calendarObj, EventObj, FamilyProfileObjs } from '@/utility/types';
 import { createContext, Dispatch, ReactNode, SetStateAction, useEffect, useMemo, useState } from 'react';
+import { useAuth } from './auth-context';
 
 export interface EventsContextType {
   calendarObjs: calendarObj[] | null;

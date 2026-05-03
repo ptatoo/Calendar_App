@@ -6,7 +6,7 @@ import { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 //Global Contexts
-import { AuthContext } from '../contexts/auth-context';
+import { AuthContext, useAuth } from '../contexts/auth-context';
 import { EventsContext } from '../contexts/calendar-events-context';
 import { UIContext } from '../contexts/ui-context';
 
@@ -16,6 +16,8 @@ import { COLORS, FONT_WEIGHTS, SIZES } from '@/utility/theme';
 import DraggableCalendar from './drawer-draggable-calendar';
 
 export default function CustomDrawerContent(props: any) {
+  const { jwtToken } = useAuth();
+  if (!jwtToken) return null;
   // All hooks must be called at the top level before any other code
   const { calendarType, setCalendarType } = useContext(AuthContext);
   const { familyProfiles, setCalendarObj, groupedCalendars, updateSingleGroup, updateMultipleGroups } = useContext(EventsContext);
@@ -25,7 +27,6 @@ export default function CustomDrawerContent(props: any) {
 
   //Both Folders and Calendars are mapped to Draggable Flatlist in flatData
   const flatData = useMemo(() => {
-    console.log(groupedCalendars);
     return groupedCalendars.flatMap((group) => [
       { id: group.id, folder: true, calendar: null as calendarObj | null },
       ...group.calendars.map((cal) => {

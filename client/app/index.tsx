@@ -2,6 +2,7 @@
 import MonthContainer from '@/components/monthContainer/month-container';
 import MultiDayContainer from '@/components/multiDayContainer/multi-day-container';
 import SettingsModal from '@/components/settingsContainer/settings-modal';
+import WelcomeScreen from '@/components/welcome-screen';
 
 import { useContext } from 'react';
 import { View } from 'react-native';
@@ -14,12 +15,12 @@ import { AuthContext } from '../components/contexts/auth-context';
 // --- MAIN COMPONENT ---
 export default function Index() {
   // --- STATE ---
-  const { calendarType } = useContext(AuthContext);
+  const { calendarType, jwtToken } = useContext(AuthContext);
   const { allEvents } = useContext(EventsContext);
   const { isLoginVisible, setLoginVisible } = useContext(UIContext);
 
   // --- DISPLAY ---
-  return (
+  return jwtToken ? (
     <View style={{ flex: 1 }}>
       {(calendarType === '3' || calendarType === '2' || calendarType === '1') && (
         <MultiDayContainer calendarType={calendarType} events={allEvents} />
@@ -29,5 +30,7 @@ export default function Index() {
 
       <SettingsModal isVisible={isLoginVisible} onClose={() => setLoginVisible(false)} />
     </View>
+  ) : (
+    <WelcomeScreen />
   );
 }

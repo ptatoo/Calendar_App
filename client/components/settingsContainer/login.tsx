@@ -1,51 +1,54 @@
-import { useAuth } from '@/hooks/useAuth';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import {} from '@/hooks/useAuth';
+import { toTitleCase } from '@/utility/drawerUtil';
+import { globalStyles } from '@/utility/globalStyles';
+import { COLORS, FONT_WEIGHTS, SIZES } from '@/utility/theme';
+import { useContext } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { EventsContext } from '../contexts/calendar-events-context';
+import { useAuth } from '../contexts/auth-context';
 
 export default function LoginButton() {
   const authProps = useAuth();
+  const { familyProfiles } = useContext(EventsContext);
 
   return (
     <>
       <View style={styles.homepg}>
-        {/* calendar icon */}
-        <View style={styles.logoContainer}>
-          <Animated.View entering={FadeInUp.duration(600).delay(600)} style={styles.iconCircle}>
-            <MaterialCommunityIcons name="calendar-month" size={60} color="#4285F4" />
-          </Animated.View>
-          <Animated.View entering={FadeInUp.duration(600).delay(400)}>
-            <Text style={styles.appName}>Calendar App</Text>
-          </Animated.View>
-          <Animated.View entering={FadeInUp.duration(600).delay(400)}>
-            <Text style={styles.appDescription}>insert description</Text>
-          </Animated.View>
+        {/* --- profile --- */}
+        <View style={globalStyles.rowHeader}>
+          <Text style={globalStyles.headerText}>Profile</Text>
         </View>
-
-        {/* --- login button --- */}
-        <Animated.View entering={FadeInDown.duration(600).delay(400)} style={styles.buttonContainer}>
-          <Pressable
-            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-            onPress={() => authProps.promptAsync()}
-            disabled={false}
-          >
-            {authProps.isLoading ? (
-              <Text style={styles.buttonText}>Loading...</Text>
-            ) : authProps.jwtToken ? (
-              <Text style={styles.buttonText}>Welcome Back</Text>
-            ) : (
-              <Text style={styles.buttonText}>Sign in with Google</Text>
-            )}
-          </Pressable>
-        </Animated.View>
-        {/* hide jwt token */}
-        <View style={{}}>
-          <View style={styles.tokenContainer}>
-            <Text style={styles.label}>JWT Token:</Text>
-            <Text style={styles.tokenText}>{authProps.jwtToken ? authProps.jwtToken.sessionToken : 'No token yet'}</Text>
+        <View style={styles.profileContainer}>
+          <View style={styles.profileIconContainer}></View>
+          <View style={{ flexDirection: 'column', justifyContent: 'center' }}>
+            <View>
+              <Text style={styles.username}>
+                {familyProfiles && familyProfiles.parent ? toTitleCase(familyProfiles.parent.name) : 'Username'}
+              </Text>
+              <Text style={styles.email}>{familyProfiles && familyProfiles.parent ? familyProfiles.parent.email : 'Email'}</Text>
+            </View>
           </View>
         </View>
-        <View></View>
+        {/* --- login / logout buttons --- */}
+        <View style={styles.buttonContainer}>
+          {authProps.jwtToken ? (
+            <Pressable
+              style={({ pressed }) => [styles.button, styles.logoutButton, pressed && styles.buttonPressed]}
+              // Make sure your useAuth hook exports a logout/clear token method!
+              onPress={() => authProps.logout && authProps.logout()}
+            >
+              <Text style={styles.buttonText}>Log Out</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              style={({ pressed }) => [styles.button, pressed && styles.buttonPressed, authProps.isLoading && styles.buttonDisabled]}
+              onPress={() => authProps.promptAsync()}
+              disabled={authProps.isLoading}
+            >
+              <Text style={styles.buttonText}>{authProps.isLoading ? 'Loading...' : 'Sign in with Google'}</Text>
+            </Pressable>
+          )}
+        </View>
       </View>
     </>
   );
@@ -56,8 +59,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     padding: 24,
-    justifyContent: 'center', // center logo and button vertically
-    alignItems: 'center', // center horizontally
+  },
+  profileContainer: {
+    flexDirection: 'row',
+    gap: 15,
+    marginBottom: 15,
+    marginTop: 5,
+  },
+  profileIconContainer: {
+    width: 60,
+    height: 60,
+    backgroundColor: COLORS.primary,
+    borderRadius: 30,
+  },
+
+  username: {
+    fontSize: SIZES.l,
+    marginBottom: 4,
+    fontWeight: FONT_WEIGHTS.medium,
+    color: COLORS.text,
+  },
+  email: {
+    fontSize: SIZES.s,
+    color: COLORS.textLight,
   },
   logoContainer: {
     alignItems: 'center',
@@ -117,4 +141,7 @@ const styles = StyleSheet.create({
   tokenContainer: { flexDirection: 'row' },
   label: { padding: 12 },
   tokenText: { padding: 12 },
+  logoutButton: {
+    backgroundColor: '#EA4335', // Google Red for the logout action
+  },
 });

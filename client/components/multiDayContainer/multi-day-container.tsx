@@ -113,7 +113,6 @@ export default function MultiDayContainer({ calendarType, events }: { calendarTy
     .onUpdate((event) => {
       const nextY = contextY.value - event.translationY;
       scrollY.value = Math.max(0, Math.min(nextY, hourHeight * 24 - SCREEN_HEIGHT + HEADER_HEIGHT + DATE_HEADER_HEIGHT));
-      console.log(scrollY.value);
     })
     .onEnd((event) => {
       const maxScroll = hourHeight * 24 - SCREEN_HEIGHT + HEADER_HEIGHT + DATE_HEADER_HEIGHT;

@@ -6,9 +6,14 @@ import { useNavigation } from 'expo-router';
 import { useContext, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from './contexts/auth-context';
 import { DateContext } from './contexts/calendar-index-context';
 
 export default function CalendarHeader(props: any) {
+  const { jwtToken } = useAuth();
+  if (!jwtToken) {
+    return null;
+  }
   const navigation = useNavigation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const { curDate, setCurDate } = useContext(DateContext);
