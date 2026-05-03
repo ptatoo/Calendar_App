@@ -5,6 +5,8 @@
 // 4. when modifying a pallete, a user can remove and add colors
 
 import { lightenColor } from '@/utility/eventUtils';
+import { globalStyles } from '@/utility/globalStyles';
+import { COLORS } from '@/utility/theme';
 import { colorCache } from '@/utility/types';
 import { useContext, useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -26,9 +28,13 @@ const ThemeButton = ({
   return (
     <Pressable
       onPress={() => setActiveTheme(index)}
-      style={({ pressed }) => [styles.segment, isActive && styles.activeSegment, pressed && styles.pressedSegment]}
+      style={({ pressed }) => [
+        globalStyles.toggleButtonSegment,
+        isActive && globalStyles.toggleButtonActiveSegement,
+        pressed && globalStyles.pressedButton,
+      ]}
     >
-      <Text style={[styles.text, isActive && styles.activeText]}>{option}</Text>
+      <Text style={[globalStyles.smallButtonText, isActive && globalStyles.activeSmallButtonText]}>{option}</Text>
     </Pressable>
   );
 };
@@ -133,22 +139,22 @@ export default function AppearanceContainer() {
   return (
     <View style={styles.container}>
       {/* -- Theme Editor --- */}
-      <View style={styles.rowHeader}>
-        <Text style={styles.headerText}>Theme</Text>
+      <View style={globalStyles.rowHeader}>
+        <Text style={globalStyles.headerText}>Theme</Text>
       </View>
-      <View style={styles.themeContainer}>
+      <View style={globalStyles.toggleButtonContainer}>
         {themeOptions.map((option, index) => (
           <ThemeButton key={option} option={option} index={index} activeTheme={activeTheme} setActiveTheme={setActiveTheme} />
         ))}
       </View>
 
       {/* -- Color Palette Editor --- */}
-      <View style={styles.rowHeader}>
-        <Text style={styles.headerText}>Color & Appearance</Text>
+      <View style={globalStyles.rowHeader}>
+        <Text style={globalStyles.headerText}>Color & Appearance</Text>
         {/* -- Add Palette Button --- */}
-        <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+        <Pressable style={({ pressed }) => [styles.addButton, pressed && globalStyles.pressedButton]} onPress={() => setModalVisible(true)}>
           <Text style={styles.addButtonText}>+ New Palette</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {/* -- Palette Display --- */}
@@ -269,14 +275,10 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: '600',
   },
-  themeContainer: { flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 10, padding: 4, height: 35, marginBottom: 20 },
-  segment: { flex: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 8 },
-  activeSegment: { backgroundColor: '#FFF', elevation: 3, shadowOpacity: 0.1 },
-  pressedSegment: { opacity: 0.7 },
   text: { fontSize: 12, color: '#6B7280' },
   activeText: { color: '#111827', fontWeight: '700' },
-  addButton: { backgroundColor: '#EEF2FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  addButtonText: { fontSize: 12, fontWeight: '600', color: '#4F46E5' },
+  addButton: { backgroundColor: COLORS.primaryLight, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  addButtonText: { fontSize: 12, fontWeight: '600', color: COLORS.primaryDark },
   paletteDisplayCard: {
     flexDirection: 'column',
     backgroundColor: '#F9FAFB',

@@ -1,6 +1,6 @@
 import { differenceInMinutes, format, getHours, getMinutes, isSameDay, parseISO } from 'date-fns';
 import { EVENT_GAP } from './constants';
-import { EventObj, calendarObj } from './types';
+import { EventObj, calendarObj, sharedObj } from './types';
 
 export function createEventObj(data: Partial<EventObj>): EventObj {
   return {
@@ -21,7 +21,6 @@ export function createEventObj(data: Partial<EventObj>): EventObj {
   };
 } 
 // usage ex: const myEvent = createEvent({ title: "Meeting", allDay: true });
-
 
 export const convertToGoogleEvent = (eventObj: EventObj) => {
   const formatAllDay = (date: Date) => date.toISOString().split("T")[0];
@@ -134,6 +133,10 @@ export const processCalendar = ( calendar : any[], calendarId: string, owner: st
         .map((item: any) => processEvent(item, owner, calendarObj, calendarId)).filter((event: any): event is EventObj => event !== null)
         .sort(compareEvents);
 };
+
+export const processSharedCalendar = (item: sharedObj, userEmail: string) : sharedObj => {
+  return {} as sharedObj;
+}
 
 export const compareEvents = (a: EventObj, b: EventObj): number => {
     // 1. returns which 1 starts earlier

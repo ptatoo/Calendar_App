@@ -141,7 +141,7 @@ export default function CustomDrawerContent(props: any) {
               }}
               style={({ pressed }) => getButtonStyle(option as '1' | '2' | '3' | 'W' | 'M', pressed)}
             >
-              <Text style={[styles.viewButtonText, calendarType === option && styles.activeButtonText]}>
+              <Text style={[globalStyles.smallButtonText, calendarType === option && globalStyles.activeSmallButtonText]}>
                 {option === 'W' ? 'week' : option === 'M' ? 'month' : `${option} day${option !== '1' ? 's' : ''}`}
               </Text>
             </Pressable>
@@ -200,14 +200,5 @@ const styles = StyleSheet.create({
     padding: 8,
     marginVertical: 2,
     borderRadius: 8,
-  },
-  viewButtonText: {
-    fontSize: SIZES.s,
-    color: COLORS.text,
-    fontWeight: FONT_WEIGHTS.light,
-  },
-  activeButtonText: {
-    color: COLORS.text,
-    fontWeight: FONT_WEIGHTS.medium,
   },
 });

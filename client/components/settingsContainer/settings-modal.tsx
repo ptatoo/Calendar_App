@@ -4,11 +4,11 @@ import { StyleSheet, Text, View } from 'react-native';
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
 
 import AppearanceContainer from './appearance-container';
-import LoginButton from './login';
+import Login from './login';
 
 const ProfileSettings = () => (
   <BottomSheetScrollView key={1}>
-    <LoginButton />
+    <Login />
   </BottomSheetScrollView>
 );
 const AppearanceSettings = () => (

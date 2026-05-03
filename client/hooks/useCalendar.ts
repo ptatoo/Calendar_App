@@ -45,8 +45,8 @@ export function useCalendar(jwtToken: string | null) {
       });
 
       const allParentCalendars = await Promise.all(parentCalendarPromises);
-      const newState: FamilyCalendarState = { parent: allParentCalendars, children: [] }; // Preserved structure, ignored children
-      
+      const newState: FamilyCalendarState = { parent: allParentCalendars, children: [] };
+
       setCalendars(newState); setCalendarIds(parentCalendarObjs); setSharedObjs(allSharedObjs);
       await storage.save("calendar", newState);
     } catch (err: any) {

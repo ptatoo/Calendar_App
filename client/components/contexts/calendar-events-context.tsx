@@ -2,8 +2,8 @@
 import { useCalendar } from '@/hooks/useCalendar';
 import { useCalendarWrite } from '@/hooks/useCalendarWrite';
 import { useProfiles } from '@/hooks/useProfile';
-import { calendarObj, EventObj, FamilyProfileObjs } from '@/utility/types';
-import { createContext, Dispatch, ReactNode, SetStateAction, useEffect, useMemo, useState } from 'react';
+import { calendarObj, EventObj, FamilyProfileObjs, sharedObj } from '@/utility/types';
+import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuth } from './auth-context';
 
 export interface EventsContextType {
@@ -20,6 +20,7 @@ export interface EventsContextType {
   editEvent: (event: EventObj) => Promise<any>;
   isWriting: boolean;
   writeError: string | null;
+  sharedCalendars: sharedObj[];
 }
 
 export const EventsContext = createContext<EventsContextType>({} as EventsContextType);
@@ -29,9 +30,10 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
   const { jwtToken } = useAuth();
   const sessionTokenString = jwtToken?.sessionToken ?? null;
   const { familyProfiles } = useProfiles(sessionTokenString);
-  const { calendars, newCalendarIds, isLoading } = useCalendar(sessionTokenString);
+  const { calendars, newCalendarIds, isLoading, sharedObjs } = useCalendar(sessionTokenString);
   const { editEvent, createEvent, deleteEvent, loading: isWriting, error: writeError } = useCalendarWrite(sessionTokenString);
   const [timeZone, setTimeZone] = useState<number>(0);
+  const [sharedCalendars, setSharedCalendars] = useState<sharedObj[]>([]);
 
   useEffect(() => {
     if (newCalendarIds?.length) setCalendarObj(newCalendarIds);
@@ -85,6 +87,40 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  // -------------------------------------------
+  // shared Calendars
+  // -------------------------------------------
+  useEffect(() => {
+    if (!sharedObjs || !familyProfiles?.parent?.email) return;
+
+    const ownerEmail = familyProfiles.parent.email;
+
+    const processedCalendars = sharedObjs.map((calendar) => {
+      const filteredSharedIds = calendar.sharedIds.filter((sharedIdObj) => {
+        if (sharedIdObj.accessRole === 'freeBusyReader' || sharedIdObj.accessRole === 'freeReader') {
+          return false;
+        }
+
+        const cleanId = sharedIdObj.id.replace(/^(user:|group:|domain:|default:)/, '');
+
+        if (cleanId === calendar.id) {
+          return false;
+        }
+        if (cleanId === ownerEmail) {
+          return false;
+        }
+
+        return true;
+      });
+
+      return {
+        ...calendar,
+        sharedIds: filteredSharedIds,
+      };
+    });
+    setSharedCalendars(processedCalendars);
+  }, [sharedObjs, familyProfiles]);
+
   return (
     <EventsContext.Provider
       value={{
@@ -101,9 +137,16 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
         editEvent,
         isWriting,
         writeError,
+        sharedCalendars,
       }}
     >
       {children}
     </EventsContext.Provider>
   );
 };
+
+export function useCalendarEvents() {
+  const ctx = useContext(EventsContext);
+  if (!ctx) throw new Error('useCalendarIndex must be within DateProvider');
+  return ctx;
+}

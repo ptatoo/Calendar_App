@@ -1,8 +1,14 @@
 export const COLORS = {
     headerBackground: '#f0f0f0',
+    darkNeutral: '#F3F4F6',
     text: '#333333',
     textLight: '#808080',
     primary: '#2563EB',
+    primaryLight: '#EEF2FF',
+    primaryDark: '#4F46E5',
+    secondary: '#BA1A1A',
+    secondaryLight: '#ffeeee',
+    secondaryDark: '#e54646',
     selectedButton: '#f0f0f0',
 }
 
